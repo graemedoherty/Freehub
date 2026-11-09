@@ -1,0 +1,1071 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hub Rider</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --bg:#0b0813; --card:#15101f; --card2:#1e1533; --line:#2d2243; --text:#f6eeff; --mute:#9d90b8; --accent:#d946ef; --blue:#6d7bff; --pink:#ff4fb8; --good:#3ee6b0; --grad:linear-gradient(135deg,#6d7bff,#c13cf0 55%,#ff4fb8); }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Inter,sans-serif; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:16px 28px; border-bottom:1px solid var(--line); gap:12px; flex-wrap:wrap; }
+  h1 { font-size:18px; margin:0; letter-spacing:.5px; } h1 span { background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .conn { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .pill { font-size:12px; color:var(--mute); padding:6px 10px; border:1px solid var(--line); border-radius:99px; display:flex; align-items:center; gap:6px; }
+  .pill.wait { color:var(--text); border-color:var(--pink); animation:glow .9s ease-in-out infinite alternate; }
+  .dot { width:8px; height:8px; border-radius:50%; background:#4a3d63; transition:.2s; } .dot.on { background:var(--good); box-shadow:0 0 8px var(--good); }
+  button { font:inherit; cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--text); padding:9px 16px; border-radius:10px; transition:.15s; }
+  button:hover:not(:disabled) { border-color:var(--mute); } button:disabled { opacity:.4; cursor:not-allowed; }
+  button.primary { background:var(--grad); border-color:transparent; font-weight:600; }
+  button.primary:hover:not(:disabled) { filter:brightness(1.12); border-color:transparent; }
+  button.linked { background:rgba(62,230,176,.14); border-color:var(--good); color:var(--good); font-weight:600; }
+  button.linked:hover:not(:disabled) { background:rgba(62,230,176,.22); border-color:var(--good); }
+  button.danger { background:#d6246e; border-color:#d6246e; }
+  button.ghost-danger { color:#ff7ab6; }
+  main { max-width:1400px; margin:0 auto; padding:20px 28px 48px; display:grid; grid-template-columns:minmax(0,1fr) 230px; gap:24px; align-items:start; }
+  .side { position:sticky; top:20px; }
+
+  .controls { display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+  .timer { margin-left:auto; text-align:right; }
+  .timer .t { font-size:44px; font-weight:700; font-variant-numeric:tabular-nums; line-height:1; }
+  .timer .label { margin-bottom:2px; }
+
+  .tile { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px 22px; }
+  .label { font-size:12px; text-transform:uppercase; letter-spacing:1.2px; color:var(--mute); }
+  .val { font-size:44px; font-weight:700; font-variant-numeric:tabular-nums; margin-top:6px; line-height:1; }
+  .val small { font-size:15px; font-weight:500; color:var(--mute); margin-left:6px; }
+  .sub { font-size:13px; color:var(--mute); margin-top:8px; font-variant-numeric:tabular-nums; }
+
+  .row1 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .row1 .tile { padding:24px 28px; background:linear-gradient(160deg,var(--card2),var(--card)); }
+  .row1 .val { font-size:116px; letter-spacing:-2px; margin-top:10px; }
+  .row1 .val small { font-size:24px; letter-spacing:0; }
+  .row2 { display:grid; grid-template-columns:2fr 1fr 1fr; gap:16px; margin-top:16px; }
+  .row2 .big .val { font-size:72px; transition:color .3s; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; margin-top:16px; }
+  .grid .val { font-size:32px; }
+
+  .chart { margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px 20px; }
+  canvas { width:100%; height:170px; display:block; }
+  .panel { margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 20px; display:flex; gap:24px; flex-wrap:wrap; align-items:center; }
+  .panel label { font-size:13px; color:var(--mute); display:flex; gap:8px; align-items:center; }
+  input[type=number], input[type=text] { background:var(--bg); border:1px solid var(--line); color:var(--text); padding:8px 10px; border-radius:8px; width:90px; font:inherit; }
+  input:focus { outline:none; border-color:var(--accent); }
+  #toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#241a38; border:1px solid var(--line); padding:12px 18px; border-radius:12px; display:none; max-width:80%; z-index:50; }
+  a { color:var(--accent); }
+
+  .qrmin { display:none; flex-direction:column; align-items:center; gap:10px; }
+  .qrbox { width:100%; line-height:0; }
+  .qrbox svg { width:100%; height:auto; display:block; }
+  .qrcap { font-size:12px; text-transform:uppercase; letter-spacing:1.4px; color:var(--mute); }
+  /* ---- Workout card ---- */
+  .wkhead { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+  .wkhead select { background:var(--bg); color:var(--text); border:1px solid var(--line); border-radius:10px; padding:9px 12px; font:inherit; min-width:220px; }
+  .wkhead .ftpbox { font-size:13px; color:var(--mute); display:flex; gap:8px; align-items:center; }
+  .wkhead .ftpbox input { width:76px; }
+  .wkhead .beeps { font-size:13px; color:var(--mute); display:flex; gap:6px; align-items:center; }
+  .wkactive { display:grid; grid-template-columns:1.2fr 1fr 1.7fr 1fr; gap:14px; margin-bottom:12px; padding:14px 16px; background:linear-gradient(160deg,var(--card2),var(--card)); border:1px solid var(--line); border-radius:14px; }
+  .wkactive .val { font-size:38px; margin-top:4px; }
+  .wkNext { font-size:16px; margin-top:8px; line-height:1.3; }
+  #wkChart, #wkZoom { width:100%; display:block; background:var(--bg); border:1px solid var(--line); border-radius:12px; }
+  #wkChart { height:200px; } #wkZoom { height:210px; }
+  .wkcap { margin:10px 0 6px; }
+  .wkactive.alert { border-color:var(--pink); animation:glow .8s ease-in-out infinite alternate; }
+  @keyframes glow { from { box-shadow:0 0 0 rgba(255,79,184,0); } to { box-shadow:0 0 26px rgba(255,79,184,.55); } }
+  #wkDesc { margin-top:10px; }
+  .banner { display:none; margin-top:10px; text-align:center; }
+  /* ---- Finish dialog ---- */
+  .overlay { position:fixed; inset:0; background:rgba(6,3,14,.78); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; z-index:40; padding:20px; }
+  .overlay.open { display:flex; animation:fade .18s ease; }
+  @keyframes fade { from { opacity:0 } to { opacity:1 } }
+  @keyframes rise { from { transform:translateY(14px); opacity:0 } to { transform:none; opacity:1 } }
+  .modal { width:min(640px,100%); max-height:94vh; overflow:auto; background:var(--card); border:1px solid var(--line); border-radius:20px; padding:26px 28px; box-shadow:0 30px 80px rgba(0,0,0,.6); animation:rise .22s ease; }
+  .modal h2 { margin:4px 0 2px; font-size:26px; }
+  .mstats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:16px 0; }
+  .mstat { background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .mstat .v { font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; margin-top:4px; }
+  .mstat .v small { font-size:12px; color:var(--mute); font-weight:500; margin-left:3px; }
+  .mstat.hl .v { color:var(--accent); }
+  .field { display:block; margin:14px 0 4px; }
+  .field input { width:100%; margin-top:6px; font-size:17px; padding:12px 14px; border-radius:10px; }
+  .mactions { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .mactions .primary { flex:1 1 180px; padding:13px 16px; }
+  #mStatus { margin-top:12px; font-size:14px; min-height:20px; }
+  #mStatus.ok { color:var(--good); } #mStatus.err { color:#ff7ab6; } #mStatus.busy { color:var(--mute); }
+  .spin { display:inline-block; width:12px; height:12px; border:2px solid var(--mute); border-top-color:var(--accent); border-radius:50%; animation:sp .8s linear infinite; vertical-align:-2px; margin-right:6px; }
+  @keyframes sp { to { transform:rotate(360deg) } }
+  #mChart { height:110px; margin-top:12px; background:var(--bg); border:1px solid var(--line); border-radius:12px; }
+  .confirm { display:none; margin-top:14px; padding:12px 14px; border:1px solid #5a1f4a; background:#2a1033; border-radius:12px; align-items:center; gap:10px; flex-wrap:wrap; }
+  .confirm span { flex:1 1 200px; font-size:14px; }
+
+  /* ---- Session catalogue ---- */
+  .brand { display:flex; align-items:center; gap:18px; }
+  .cat-modal { width:min(1040px,100%); }
+  .cathead { display:flex; align-items:center; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+  .cathead h2 { margin:0; flex:1; font-size:24px; }
+  .catgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:14px; }
+  .catcard { background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:8px; }
+  .catcard.sel { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset; }
+  .catcard canvas { width:100%; height:78px; display:block; background:var(--card); border-radius:8px; }
+  .catcard h3 { margin:2px 0 0; font-size:16px; }
+  .catmeta, .catdesc { font-size:12.5px; color:var(--mute); line-height:1.45; }
+  .catdesc { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .catactions { display:flex; gap:8px; flex-wrap:wrap; margin-top:auto; padding-top:4px; }
+  .catactions button { padding:7px 12px; font-size:13px; }
+  .tag { font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--accent); border:1px solid var(--accent); border-radius:99px; padding:1px 7px; margin-left:8px; vertical-align:2px; }
+  .bfield { display:block; margin:10px 0; }
+  .bfield input[type=text] { width:100%; margin-top:6px; font-size:15px; padding:10px 12px; }
+  .steprows { display:grid; grid-template-columns:minmax(0,1fr) 84px 84px 84px auto; gap:6px; align-items:center; }
+  .steprows .hd { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--mute); }
+  .steprows input[type=number], .steprows input[type=text] { width:100%; padding:8px 9px; font-size:14px; }
+  .rowbtns { display:flex; gap:4px; }
+  .rowbtns button { padding:5px 9px; font-size:12px; }
+  .ivform { display:none; gap:10px; align-items:flex-end; flex-wrap:wrap; margin-top:10px; padding:12px; border:1px dashed var(--line); border-radius:10px; }
+  .ivform label { font-size:12px; color:var(--mute); display:flex; flex-direction:column; gap:4px; }
+  .ivform input { width:78px; }
+  #bChart { width:100%; height:170px; display:block; background:var(--bg); border:1px solid var(--line); border-radius:12px; margin-top:14px; }
+  @media(max-width:1180px){ main{grid-template-columns:minmax(0,1fr);} .side{position:static;} .qrmin{align-items:flex-start;} .qrbox{width:150px;} }
+  @media(max-width:820px){ .row1 .val{font-size:72px;} .row2{grid-template-columns:1fr 1fr;} .row2 .big{grid-column:1/-1;} .mstats{grid-template-columns:repeat(2,1fr);} }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><h1>HUB <span>RIDER</span></h1><button id="btnSessions" title="Browse your sessions or build a new one">☰ Sessions</button></div>
+  <div class="conn">
+    <div class="pill"><span class="dot" id="dotTrainer"></span><span id="txtTrainer">Trainer: not connected</span></div>
+    <button id="btnTrainer" title="Connect your trainer over Bluetooth">Connect Zwift Hub</button>
+    <div class="pill"><span class="dot" id="dotHr"></span><span id="txtHr">HR: not connected</span></div>
+    <button id="btnHr" title="Connect a Bluetooth heart-rate strap">Connect HR strap</button>
+    <button id="btnStrava" title="Checking Strava…">Strava…</button>
+  </div>
+</header>
+
+<main>
+<div class="content">
+  <div class="controls">
+    <button id="btnStart" class="primary" disabled>▶ Start</button>
+    <button id="btnPause" disabled>⏸ Pause</button>
+    <button id="btnStop" class="danger" disabled>■ Finish</button>
+    <span class="pill" id="state">Idle</span>
+    <div class="timer"><div class="label">Time</div><div class="t" id="time">0:00:00</div></div>
+  </div>
+
+  <div class="row1">
+    <div class="tile"><div class="label">Speed</div><div class="val" id="speed">--<small>km/h</small></div><div class="sub" id="speedAvg">avg --</div></div>
+    <div class="tile"><div class="label">Distance</div><div class="val" id="dist">0.00<small>km</small></div><div class="sub" id="kjSub">0 kJ burned</div></div>
+  </div>
+
+  <div class="row2">
+    <div class="tile big"><div class="label">Power</div><div class="val" id="power">--<small>W</small></div><div class="sub" id="zone">Zone –</div></div>
+    <div class="tile"><div class="label">Heart rate</div><div class="val" id="hr">--<small>bpm</small></div><div class="sub" id="hrAvg">avg --</div></div>
+    <div class="tile"><div class="label">Cadence</div><div class="val" id="cad">--<small>rpm</small></div><div class="sub" id="cadAvg">avg --</div></div>
+  </div>
+
+  <div class="grid">
+    <div class="tile"><div class="label">Avg power</div><div class="val" id="pavg">--<small>W</small></div><div class="sub" id="pmax">max --</div></div>
+    <div class="tile"><div class="label">Norm. power</div><div class="val" id="np">--<small>W</small></div></div>
+    <div class="tile"><div class="label">3s power</div><div class="val" id="p3">--<small>W</small></div></div>
+    <div class="tile"><div class="label">Energy</div><div class="val" id="kj">0<small>kJ</small></div></div>
+    <div class="tile"><div class="label">Max HR</div><div class="val" id="hrmax">--<small>bpm</small></div></div>
+  </div>
+
+  <div class="chart" id="wkCard">
+    <div class="wkhead">
+      <div class="label">Workout</div>
+      <select id="wkSel"></select>
+      <label class="ftpbox" title="All workout targets are a percentage of this">Your FTP <input type="number" id="ftp" value="180" min="50" max="600"> W</label>
+      <span class="sub" id="wkMeta" style="margin:0"></span>
+      <span style="flex:1"></span>
+      <label class="beeps"><input type="checkbox" id="wkBeep" checked> Beeps</label>
+      <button id="wkStart" class="primary" disabled>▶ Start workout</button>
+      <button id="wkSkip" style="display:none">⏭ Skip step</button>
+      <button id="wkExt" style="display:none">+1 min</button>
+      <button id="wkEnd" class="ghost-danger" style="display:none">End workout</button>
+    </div>
+    <div class="wkactive" id="wkActive" style="display:none">
+      <div><div class="label" id="wkStepName">Step</div><div class="val" id="wkTarget">--<small>W target</small></div></div>
+      <div><div class="label">Step time left</div><div class="val" id="wkLeft">0:00</div></div>
+      <div><div class="label" id="wkNextLabel">Next up</div><div class="wkNext" id="wkNext">–</div></div>
+      <div><div class="label">Workout left</div><div class="val" id="wkTotalLeft">0:00</div></div>
+    </div>
+    <div class="label wkcap" id="wkCapNow" style="display:none">Coming up — next 12 minutes</div>
+    <canvas id="wkZoom" style="display:none"></canvas>
+    <div class="label wkcap" id="wkCapAll" style="display:none">Full workout</div>
+    <canvas id="wkChart"></canvas>
+    <div class="sub" id="wkDesc"></div>
+  </div>
+
+  <div class="chart"><div class="label" style="margin-bottom:8px">Power &amp; heart rate (last 5 min)</div><canvas id="chart"></canvas></div>
+
+  <div class="panel">
+    <label>ERG target <input type="number" id="erg" value="150" min="0" max="1000"> W
+      <button id="btnErg" disabled>Set</button></label>
+    <label>Free ride <button id="btnFree" disabled>Switch to free ride</button></label>
+    <label title="Used to work out your speed from your power">Rider weight <input type="number" id="weight" value="75" min="30" max="200"> kg</label>
+    <label>Speed <select id="speedSrc" style="background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 8px;font:inherit"><option value="calc">Calculated (Zwift-style)</option><option value="hub">Hub reading</option></select></label>
+  </div>
+
+
+</div>
+<aside class="side">
+<div class="qrmin" id="qrPanel"><div class="qrbox" id="qrBox"></div><div class="qrcap">Companion</div></div>
+</aside>
+</main>
+
+<!-- Finish dialog -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="label" id="mKicker">Ride complete</div>
+    <h2 id="mTitle">Nice work!</h2>
+    <div class="sub" id="mDate"></div>
+    <canvas id="mChart"></canvas>
+    <div class="mstats" id="mStats"></div>
+    <div id="nameBlock">
+      <label class="field"><span class="label">Activity name on Strava</span>
+        <input type="text" id="actName" maxlength="100" placeholder="Name your ride"></label>
+    </div>
+    <div id="mStatus"></div>
+    <img id="mImg" alt="Ride image" style="display:none;width:100%;margin-top:12px;border-radius:12px;border:1px solid var(--line)">
+    <div class="sub" id="mImgHint" style="display:none;margin-top:8px">Download this image, then on Strava open the activity and choose “Add photo”.</div>
+    <div class="mactions" id="mActions">
+      <button id="btnUpload" class="primary">Upload to Strava</button>
+      <button id="btnDownload">Download .tcx</button>
+      <button id="btnImage">Save image</button>
+      <button id="btnResume">Resume ride</button>
+      <button id="btnDiscard" class="ghost-danger">Discard</button>
+    </div>
+    <div class="mactions" id="mDoneActions" style="display:none">
+      <a id="mViewLink" target="_blank" style="display:none;flex:1 1 180px"><button style="width:100%">View on Strava ↗</button></a>
+      <button id="btnImage2" class="primary">⬇ Download image</button>
+      <button id="btnDone">Done</button>
+    </div>
+    <div class="confirm" id="discardConfirm">
+      <span>Discard this ride? The recording will be lost.</span>
+      <button id="btnDiscardYes" class="danger">Yes, discard</button>
+      <button id="btnDiscardNo">Keep it</button>
+    </div>
+  </div>
+</div>
+<!-- Session catalogue -->
+<div class="overlay" id="catOverlay">
+  <div class="modal cat-modal" role="dialog" aria-modal="true" aria-label="Session catalogue">
+    <div id="catList">
+      <div class="cathead"><h2>Session catalogue</h2><button id="catNew" class="primary">＋ New session</button><button id="catClose">Close</button></div>
+      <div class="sub" id="catNote" style="margin:-6px 0 14px"></div>
+      <div class="catgrid" id="catGrid"></div>
+    </div>
+    <div id="catBuild" style="display:none">
+      <div class="cathead"><h2 id="bTitle">New session</h2></div>
+      <label class="bfield"><span class="label">Name</span><input type="text" id="bName" maxlength="60" placeholder="e.g. Tuesday Threshold"></label>
+      <label class="bfield"><span class="label">Description (optional)</span><input type="text" id="bDesc" maxlength="240" placeholder="What is this session for?"></label>
+      <div class="label" style="margin:16px 0 8px">Steps — targets are % of your FTP. Fill “to” to make a ramp, leave it empty for a flat step.</div>
+      <div class="steprows" id="bRows"></div>
+      <div class="mactions"><button id="bAddStep">＋ Step</button><button id="bAddIv">＋ Intervals</button></div>
+      <div class="ivform" id="ivForm">
+        <label>Reps<input type="number" id="ivReps" value="5" min="1" max="50"></label>
+        <label>On (min)<input type="number" id="ivOnMin" value="5" min="0.25" step="0.25"></label>
+        <label>On (% FTP)<input type="number" id="ivOnPct" value="105" min="20" max="250"></label>
+        <label>Off (min)<input type="number" id="ivOffMin" value="3" min="0" step="0.25"></label>
+        <label>Off (% FTP)<input type="number" id="ivOffPct" value="50" min="20" max="250"></label>
+        <button id="ivAdd" class="primary">Add intervals</button>
+      </div>
+      <canvas id="bChart"></canvas>
+      <div class="sub" id="bSummary" style="margin-top:8px"></div>
+      <div class="sub" id="bErr" style="color:#ff7ab6;min-height:18px;margin-top:6px"></div>
+      <div class="mactions"><button id="bSave" class="primary">Save session</button><button id="bCancel">Cancel</button></div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script src="/qrcode.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const toast = (m, ms=4500) => { const t=$('toast'); t.textContent=m; t.style.display='block'; clearTimeout(toast.t); toast.t=setTimeout(()=>t.style.display='none',ms); };
+
+// ---------- State ----------
+let trainer = null, ftmsControl = null, hrDev = null;
+let live = { power:null, cadence:null, speed:null, hubSpeed:null, hr:null };
+let session = null, timer = null;
+let modalOpen = false, stravaConnected = false;
+let upload = { status:'idle', text:'', activityId:null };   // idle | uploading | done | error
+const history = [];
+
+const newSession = () => ({ state:'idle', samples:[], startTime:null, elapsed:0, distance:0, joules:0,
+  pSum:0, pN:0, pMax:0, hrSum:0, hrN:0, hrMax:0, cadSum:0, cadN:0, spdSum:0, spdN:0, p3:[], np30:[], npSum4:0, npN:0 });
+session = newSession();
+
+const avg = (sum, n) => n ? Math.round(sum / n) : '--';
+const fmtTime = s => { const h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return `${h}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`; };
+function stats() {
+  const s = session;
+  return { elapsed:s.elapsed, distance:s.distance, avgSpeed: s.spdN ? s.spdSum/s.spdN : 0,
+    avgPower: s.pN ? Math.round(s.pSum/s.pN) : 0, maxPower:s.pMax, np: s.npN ? Math.round((s.npSum4/s.npN)**.25) : 0,
+    kj: Math.round(s.joules/1000), avgHr: s.hrN ? Math.round(s.hrSum/s.hrN) : 0, maxHr:s.hrMax,
+    avgCad: s.cadN ? Math.round(s.cadSum/s.cadN) : 0, start: s.startTime && s.startTime.toISOString(), tooShort: s.samples.length < 10 };
+}
+
+// ---------- Calculated speed (power -> speed, like Zwift) ----------
+const MODEL = { crr:0.004, cda:0.35, rho:1.225, eff:0.975, bike:9, g:9.81 };
+let vSim = 0;
+function stepSpeed(dt) {
+  const m = (+$('weight').value || 75) + MODEL.bike;
+  const P = Math.max(0, live.power || 0) * MODEL.eff;
+  let Pres = MODEL.crr * m * MODEL.g * vSim + 0.5 * MODEL.rho * MODEL.cda * vSim ** 3;
+  if (!live.cadence) Pres += 40 * vSim * vSim;                 // not pedalling: slow down quickly, like a trainer does
+  vSim = Math.sqrt(Math.max(0, vSim * vSim + 2 * dt * (P - Pres) / (m + 1)));   // +1 kg ≈ wheel inertia
+}
+try { const w = localStorage.getItem('hubrider.weight'); if (w) $('weight').value = w; const src = localStorage.getItem('hubrider.speedsrc'); if (src) $('speedSrc').value = src; } catch {}
+$('weight').addEventListener('change', () => { try { localStorage.setItem('hubrider.weight', $('weight').value); } catch {} });
+$('speedSrc').addEventListener('change', () => { try { localStorage.setItem('hubrider.speedsrc', $('speedSrc').value); } catch {} });
+setInterval(() => { if (session.state === 'waiting' && pedalling()) begin(); }, 100);
+setInterval(() => {
+  if ($('speedSrc').value === 'hub') { live.speed = live.hubSpeed; vSim = (live.hubSpeed || 0) / 3.6; return; }
+  if (live.power == null) { vSim = 0; live.speed = null; return; }
+  stepSpeed(0.2); live.speed = vSim * 3.6;
+}, 200);
+
+
+// ---------- Bluetooth ----------
+const FTMS = 0x1826, BIKE_DATA = 0x2AD2, CONTROL_POINT = 0x2AD9;
+
+function parseBikeData(dv) {
+  const flags = dv.getUint16(0, true); let o = 2; const out = {};
+  if (!(flags & 0x01)) { out.speed = dv.getUint16(o, true) / 100; o += 2; }
+  if (flags & 0x02) o += 2;
+  if (flags & 0x04) { out.cadence = dv.getUint16(o, true) / 2; o += 2; }
+  if (flags & 0x08) o += 2;
+  if (flags & 0x10) { out.distance = dv.getUint8(o) | (dv.getUint8(o+1) << 8) | (dv.getUint8(o+2) << 16); o += 3; }
+  if (flags & 0x20) o += 2;
+  if (flags & 0x40) { out.power = dv.getInt16(o, true); o += 2; }
+  if (flags & 0x80) o += 2;
+  if (flags & 0x100) o += 5;
+  if (flags & 0x200) { out.hr = dv.getUint8(o); o += 1; }
+  return out;
+}
+
+$('btnTrainer').onclick = async () => {
+  if (connected()) { trainer.gatt.disconnect(); return; }
+  if (!navigator.bluetooth) return toast('Web Bluetooth needs Google Chrome (or Edge). Open http://localhost:3000 in Chrome.');
+  try {
+    const dev = await navigator.bluetooth.requestDevice({ filters: [{ services: [FTMS] }], optionalServices: ['heart_rate', 'cycling_power'] });
+    dev.addEventListener('gattserverdisconnected', () => setTrainer(false, dev.name));
+    const server = await dev.gatt.connect();
+    const svc = await server.getPrimaryService(FTMS);
+    const bike = await svc.getCharacteristic(BIKE_DATA);
+    bike.addEventListener('characteristicvaluechanged', e => {
+      const d = parseBikeData(e.target.value);
+      if (d.power !== undefined) live.power = d.power;
+      if (d.cadence !== undefined) live.cadence = d.cadence;
+      if (d.speed !== undefined) live.hubSpeed = d.speed;
+      if (d.hr) live.hr = d.hr;
+    });
+    await bike.startNotifications();
+    try {
+      ftmsControl = await svc.getCharacteristic(CONTROL_POINT);
+      // The trainer answers every command with [0x80, opcode, result]; result 1 = success.
+      ftmsControl.addEventListener('characteristicvaluechanged', e => {
+        const v = e.target.value;
+        if (v.byteLength >= 3 && v.getUint8(0) === 0x80) {
+          const op = v.getUint8(1), rc = v.getUint8(2);
+          if (rc !== 1 && (op === 0x05 || op === 0x11 || op === 0x07)) toast(`The trainer rejected a control command (code 0x${op.toString(16)}, result ${rc}).`, 6000);
+        }
+      });
+      await ftmsControl.startNotifications(); await writeCtl([0x00]);
+    } catch { ftmsControl = null; }
+    trainer = dev; setTrainer(true, dev.name);
+  } catch (e) { if (e.name !== 'NotFoundError') toast('Trainer connection failed: ' + e.message); }
+};
+
+function setTrainer(on, name) {
+  $('dotTrainer').classList.toggle('on', on);
+  $('txtTrainer').textContent = on ? `Trainer: ${name}` : 'Trainer: not connected';
+  $('btnTrainer').classList.toggle('linked', on);
+  $('btnTrainer').textContent = on ? '✓ Zwift Hub linked' : 'Connect Zwift Hub';
+  $('btnTrainer').title = on ? 'Linked — click to disconnect' : 'Connect your trainer over Bluetooth';
+  $('btnErg').disabled = $('btnFree').disabled = !on || !ftmsControl;
+  if (!on) { live.power = live.cadence = live.speed = live.hubSpeed = null; if (session.state==='running') { pause(); toast('Trainer disconnected. Ride paused — reconnect to resume.'); } }
+  updateButtons();
+}
+
+const setHr = (on, name) => {
+  $('dotHr').classList.toggle('on', on); $('txtHr').textContent = on ? `HR: ${name || 'strap'}` : 'HR: not connected';
+  $('btnHr').classList.toggle('linked', on); $('btnHr').textContent = on ? '✓ HR strap linked' : 'Connect HR strap';
+  $('btnHr').title = on ? 'Linked — click to disconnect' : 'Connect a Bluetooth heart-rate strap';
+  if (!on) live.hr = null;
+};
+$('btnHr').onclick = async () => {
+  if (hrDev && hrDev.gatt.connected) { hrDev.gatt.disconnect(); return; }
+  if (!navigator.bluetooth) return toast('Web Bluetooth needs Google Chrome.');
+  try {
+    const dev = await navigator.bluetooth.requestDevice({ filters: [{ services: ['heart_rate'] }] });
+    dev.addEventListener('gattserverdisconnected', () => setHr(false));
+    const server = await dev.gatt.connect();
+    const svc = await server.getPrimaryService('heart_rate');
+    const ch = await svc.getCharacteristic('heart_rate_measurement');
+    ch.addEventListener('characteristicvaluechanged', e => { const dv = e.target.value; live.hr = (dv.getUint8(0) & 1) ? dv.getUint16(1, true) : dv.getUint8(1); });
+    await ch.startNotifications();
+    hrDev = dev; setHr(true, dev.name);
+  } catch (e) { if (e.name !== 'NotFoundError') toast('HR connection failed: ' + e.message); }
+};
+
+// Writes go through a queue: Bluetooth only allows one GATT operation at a time.
+let ctlChain = Promise.resolve();
+function writeCtl(bytes) {
+  if (!ftmsControl) return Promise.resolve();
+  const p = ctlChain.then(() => ftmsControl.writeValueWithResponse(new Uint8Array(bytes)));
+  ctlChain = p.catch(() => {});
+  return p;
+}
+$('btnErg').onclick = async () => {
+  const w = Math.max(0, Math.min(2000, +$('erg').value|0));
+  try { await writeCtl([0x00]); await writeCtl([0x05, w & 0xFF, (w >> 8) & 0xFF]); toast(`ERG mode: ${w} W`); }
+  catch (e) { toast('ERG not accepted: ' + e.message); }
+};
+$('btnFree').onclick = async () => {
+  try { await writeCtl([0x00]); await writeCtl([0x11, 0,0, 0,0, 40, 51]); toast('Free ride (flat, simulation mode)'); }
+  catch (e) { toast('Could not switch mode: ' + e.message); }
+};
+
+// ---------- Session control ----------
+const connected = () => !!(trainer && trainer.gatt.connected);
+function start() {
+  if (!connected() || ['running','paused','waiting'].includes(session.state)) return;
+  session = newSession(); session.state = 'waiting'; history.length = 0;      // the clock starts when you start pedalling
+  upload = { status:'idle', text:'', activityId:null };
+  writeCtl([0x07]).catch(()=>{});
+  timer = setInterval(tick, 1000); updateButtons(); pushState();
+}
+const pedalling = () => (live.power || 0) > 5 || (live.cadence || 0) > 0;
+function begin() {
+  if (session.state !== 'waiting') return;
+  session.state = 'running'; session.startTime = new Date();
+  if (wk.active) wk.tickAt = performance.now();
+  beep(1040, 120); updateButtons(); pushState();
+}
+function cancelWaiting() { if (session.state === 'waiting') { resetAll(); toast('Cancelled — nothing was recorded.', 2500); } }
+function pause() { if (session.state !== 'running') return; session.state = 'paused'; updateButtons(); pushState(); }
+function resume() { if (session.state !== 'paused') return; session.state = 'running'; writeCtl([0x07]).catch(()=>{}); if (wk.active) applyTarget(true); updateButtons(); pushState(); }
+function resetAll() {
+  endWorkout(false); clearInterval(timer); timer = null; writeCtl([0x08, 0x01]).catch(()=>{});
+  session = newSession(); history.length = 0; upload = { status:'idle', text:'', activityId:null };
+  $('actName').value = ''; closeModal(); updateButtons(); pushState();
+}
+
+function updateButtons() {
+  const st = session.state, live_ = st === 'running' || st === 'paused' || st === 'waiting';
+  $('btnStart').disabled = !connected() || live_;
+  $('btnPause').disabled = !(st === 'running' || st === 'paused') || modalOpen;
+  $('btnPause').textContent = st === 'paused' ? '▶ Resume' : '⏸ Pause';
+  $('btnStop').disabled = !live_ || modalOpen;
+  $('btnStop').textContent = st === 'waiting' ? '✕ Cancel' : '■ Finish';
+  $('state').classList.toggle('wait', st === 'waiting' && !modalOpen);
+  $('wkStart').disabled = !connected() || !ftmsControl || wk.active || modalOpen;
+  $('state').textContent = modalOpen ? 'Finishing' : { idle:'Idle', waiting:'Start pedalling to begin', running:'Riding', paused:'Paused' }[st];
+}
+$('btnStart').onclick = start;
+$('btnPause').onclick = () => session.state === 'paused' ? resume() : pause();
+$('btnStop').onclick = () => session.state === 'waiting' ? cancelWaiting() : openSummary();
+
+function tick() {
+  const s = session; if (s.state !== 'running') return;
+  const p = live.power ?? 0, c = live.cadence ?? 0, v = live.speed ?? 0, h = live.hr ?? 0;
+  s.elapsed++; s.distance += v / 3.6; s.joules += p;
+  s.samples.push({ t: new Date(), p, c, v, h, d: s.distance });
+  s.pSum += p; s.pN++; s.pMax = Math.max(s.pMax, p);
+  if (c) { s.cadSum += c; s.cadN++; }
+  if (v) { s.spdSum += v; s.spdN++; }
+  if (h) { s.hrSum += h; s.hrN++; s.hrMax = Math.max(s.hrMax, h); }
+  s.p3.push(p); if (s.p3.length > 3) s.p3.shift();
+  s.np30.push(p); if (s.np30.length > 30) s.np30.shift();
+  if (s.np30.length === 30) { const a = s.np30.reduce((x,y)=>x+y,0)/30; s.npSum4 += a**4; s.npN++; }
+  history.push({ p, h }); if (history.length > 300) history.shift();
+  workoutTick();
+}
+
+// ---------- Finish dialog ----------
+const defaultName = () => { if (session.workoutName) return session.workoutName; const h = (session.startTime || new Date()).getHours();
+  return `${h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : h < 21 ? 'Evening' : 'Night'} Virtual Ride`; };
+
+function statTile(label, value, unit, hl) {
+  return `<div class="mstat${hl?' hl':''}"><div class="label">${label}</div><div class="v">${value}${unit?`<small>${unit}</small>`:''}</div></div>`;
+}
+function renderStats(st) {
+  const dash = v => v ? v : '–';
+  $('mStats').innerHTML =
+    statTile('Time', fmtTime(st.elapsed), '', true) + statTile('Distance', (st.distance/1000).toFixed(2), 'km', true) +
+    statTile('Avg speed', st.avgSpeed.toFixed(1), 'km/h') + statTile('Avg power', dash(st.avgPower), st.avgPower?'W':'') +
+    statTile('Max power', dash(st.maxPower), st.maxPower?'W':'') + statTile('Norm. power', dash(st.np), st.np?'W':'') +
+    statTile('Energy', st.kj, 'kJ') + statTile('Avg HR', dash(st.avgHr), st.avgHr?'bpm':'') + statTile('Avg cadence', dash(st.avgCad), st.avgCad?'rpm':'');
+}
+function drawSummaryChart() {
+  const cv = $('mChart'), dpr = devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  cv.width = w*dpr; cv.height = h*dpr;
+  const g = cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
+  const sm = session.samples; if (sm.length < 2) return;
+  const n = Math.min(sm.length, 240), step = sm.length / n, pts = [];
+  for (let i = 0; i < n; i++) { const a = sm.slice(Math.floor(i*step), Math.max(Math.floor((i+1)*step), Math.floor(i*step)+1));
+    pts.push({ p: a.reduce((x,y)=>x+y.p,0)/a.length, h: a.reduce((x,y)=>x+y.h,0)/a.length }); }
+  const maxP = Math.max(100, ...pts.map(x=>x.p)) * 1.1;
+  const path = (key, max) => { g.beginPath(); pts.forEach((pt,i)=>{ const x=i/(n-1)*w, y=h-(pt[key]/max)*(h-8)-2; i?g.lineTo(x,y):g.moveTo(x,y); }); };
+  path('p', maxP); g.lineTo(w,h); g.lineTo(0,h); g.closePath(); g.fillStyle='rgba(196,90,255,.24)'; g.fill();
+  path('p', maxP); g.strokeStyle='#d25cff'; g.lineWidth=2; g.stroke();
+  if (pts.some(x=>x.h)) { path('h', 200); g.strokeStyle='#ff7ec9'; g.lineWidth=1.5; g.stroke(); }
+}
+function openSummary() {
+  if (modalOpen || !(session.state === 'running' || session.state === 'paused')) return;
+  if (session.state === 'running') pause();
+  modalOpen = true;
+  const st = stats();
+  $('overlay').classList.add('open');
+  $('mDate').textContent = session.startTime.toLocaleString([], { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' });
+  renderStats(st);
+  $('actName').value = $('actName').value || defaultName();
+  $('discardConfirm').style.display = 'none';
+  setModalMode('review');
+  setUploadStatus('idle');
+  requestAnimationFrame(drawSummaryChart);
+  updateButtons(); pushState();
+  if (st.tooShort) setStatusText('This ride is under 10 seconds, so it can’t be uploaded.', 'err');
+  else if (!stravaConnected) setStatusText('Connect Strava (button at the top right) to upload. You can still download the file.', 'busy');
+  $('btnUpload').disabled = st.tooShort || !stravaConnected;
+  setTimeout(() => $('actName').focus(), 50);
+}
+function closeModal() { modalOpen = false; $('overlay').classList.remove('open'); updateButtons(); }
+function setModalMode(mode) {
+  const done = mode === 'done';
+  $('mActions').style.display = done ? 'none' : 'flex';
+  $('mDoneActions').style.display = done ? 'flex' : 'none';
+  $('nameBlock').style.display = done ? 'none' : '';
+  try { if (done) { $('mImg').src = buildShareImage().toDataURL('image/png'); } } catch {}
+  $('mImg').style.display = $('mImgHint').style.display = done ? '' : 'none';
+  $('mChart').style.display = $('mStats').style.display = $('mDate').style.display = done ? 'none' : '';
+  $('mKicker').textContent = done ? 'Saved' : 'Ride complete';
+  $('mTitle').textContent = done ? 'Uploaded to Strava' : 'Nice work!';
+}
+function setStatusText(text, cls) { const el = $('mStatus'); el.className = cls || ''; el.innerHTML = (cls === 'busy' && /Uploading/.test(text) ? '<span class="spin"></span>' : '') + text; }
+function setUploadStatus(status, text, activityId) {
+  upload = { status, text: text || '', activityId: activityId || null };
+  if (status === 'uploading') setStatusText('Uploading to Strava…', 'busy');
+  else if (status === 'error') setStatusText(text, 'err');
+  else if (status === 'done') setStatusText(text, 'ok');
+  else if (status === 'idle') setStatusText('', '');
+}
+$('btnResume').onclick = () => { closeModal(); resume(); };
+$('btnDiscard').onclick = () => { $('discardConfirm').style.display = 'flex'; };
+$('btnDiscardNo').onclick = () => { $('discardConfirm').style.display = 'none'; };
+$('btnDiscardYes').onclick = () => { resetAll(); toast('Ride discarded.'); };
+$('btnDone').onclick = resetAll;
+$('btnImage').onclick = $('btnImage2').onclick = () => saveShareImage();
+$('btnDownload').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([buildTcx(rideName())], { type: 'application/xml' }));
+  a.download = `ride-${session.startTime.toISOString().slice(0,16).replace(/[:T]/g,'-')}.tcx`; a.click();
+};
+const rideName = () => ($('actName').value || '').trim() || defaultName();
+$('actName').addEventListener('keydown', e => { if (e.key === 'Enter' && !$('btnUpload').disabled) doUpload(); });
+$('actName').addEventListener('input', pushState);
+$('btnUpload').onclick = () => doUpload();
+
+async function doUpload() {
+  if (!modalOpen || upload.status === 'uploading' || upload.status === 'done') return;
+  if (!stravaConnected) return setUploadStatus('error', 'Strava isn’t connected yet.');
+  $('btnUpload').disabled = true; setUploadStatus('uploading'); pushState();
+  try {
+    const r = await fetch('/api/upload', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ tcx: buildTcx(rideName()), name: rideName(), description: rideDescription() }) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    const link = j.activityId ? `https://www.strava.com/activities/${j.activityId}` : null;
+    setUploadStatus('done', j.activityId ? `“${rideName()}” is on Strava.` : 'Upload accepted — Strava is still processing it.', j.activityId);
+    setModalMode('done'); $('mViewLink').style.display = link ? '' : 'none'; if (link) $('mViewLink').href = link;
+  } catch (e) {
+    setUploadStatus('error', 'Upload failed: ' + e.message + ' — you can download the .tcx and upload it manually.');
+    $('btnUpload').disabled = false;
+  }
+  pushState();
+}
+
+// ---------- Workouts (ERG mode) ----------
+const S = (label, mins, from, to = from) => ({ label, dur: Math.round(mins * 60), from, to });   // from/to = fraction of FTP
+const WORKOUTS = [
+  { id:'erg', name:'ERG Check (10 min)', desc:'A gentle test to confirm your Hub follows the targets: easy → steady → a short push → easy. Targets change at each beep.',
+    steps:[ S('Easy spin',3,.5), S('Steady',3,.6), S('Push',2,.75), S('Easy spin',2,.5) ] },
+  { id:'ss', name:'Sweet Spot 3×8', desc:'Warm up, then three 8-minute blocks at 90% FTP with 3-minute recoveries, and a cool-down. Builds sustainable power.',
+    steps:[ S('Warm-up',8,.5,.75),
+      S('Sweet spot 1/3',8,.9), S('Recover',3,.55), S('Sweet spot 2/3',8,.9), S('Recover',3,.55), S('Sweet spot 3/3',8,.9),
+      S('Cool-down',5,.65,.45) ] },
+  { id:'kos', name:'Kosciuszko (90 min)', desc:'Re-created from your screenshot, so the numbers are approximate: 24 min of warm-up and openers, then 8 × 5 min at about 108% FTP with 3-minute recoveries, and a 5-minute cool-down.',
+    steps:(() => { const a=[S('Warm-up',6,.5), S('Build',6,.72), S('Primer',3,.97), S('Easy',9,.5)];
+      for (let i=1; i<=8; i++) { a.push(S(`Interval ${i}/8`,5,1.08)); if (i<8) a.push(S('Recover',3,.41)); }
+      a.push(S('Cool-down',5,.41,.3)); return a; })() },
+  { id:'ss30', name:'FTP 30m Sweet Spot Intervals', desc:'70 minutes. 10 min easy warm-up at 90 rpm, then 3 × 10 min at about 93% of FTP (91–95%) with 5 min easy spins between, a 5 min recovery, then 10 min of endurance and a 5 min easy warm-down. Planned IF 0.70, TSS about 57. Steps are approximated from the workout chart.',
+    steps:[ S('Warm-up · 90 rpm easy (3 × 10 s spin-ups to 120)',10,.55),
+      S('Interval 1/3 · 91–95% FTP',10,.93), S('Recover · easy spin',5,.50),
+      S('Interval 2/3 · 91–95% FTP',10,.93), S('Recover · easy spin',5,.50),
+      S('Interval 3/3 · 91–95% FTP',10,.93), S('Recover · easy spin',5,.50),
+      S('Endurance · 85–92 rpm',10,.65), S('Warm-down · easy',5,.62,.40) ] },
+  { id:'3030', name:'30/30 Intervals', desc:'Two sets of eight 30-second surges at 120% FTP, each followed by 30 seconds easy. Short, sharp and fun.',
+    steps:(() => { const a=[S('Warm-up',10,.5,.7)];
+      for (let set=1; set<=2; set++) { for (let r=1; r<=8; r++) { a.push(S(`Set ${set} · Hard ${r}/8`,.5,1.2), S(`Set ${set} · Easy ${r}/8`,.5,.5)); } if (set<2) a.push(S('Recovery',5,.55)); }
+      a.push(S('Cool-down',5,.6,.4)); return a; })() },
+];
+for (const d of WORKOUTS) { let t = 0; d.offsets = d.steps.map(st => { const o = t; t += st.dur; return o; }); d.total = t; }
+$('wkSel').innerHTML = WORKOUTS.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+
+// ---------- Session catalogue & builder ----------
+const esc = x => String(x).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const finalize = d => { let t = 0; d.offsets = d.steps.map(st => { const o = t; t += st.dur; return o; }); d.total = t; return d; };
+WORKOUTS.forEach(d => d.preset = true);
+try { for (const c of JSON.parse(localStorage.getItem('hubrider.custom') || '[]')) WORKOUTS.push(finalize({ id:c.id, name:c.name, desc:c.desc || '', steps:c.steps })); } catch {}
+function saveCustom() {
+  try { localStorage.setItem('hubrider.custom', JSON.stringify(WORKOUTS.filter(w => !w.preset).map(w => ({ id:w.id, name:w.name, desc:w.desc, steps:w.steps })))); }
+  catch { toast('Could not save in this browser (storage is blocked), so this session will be lost on refresh.', 7000); }
+}
+function refreshSelect(sel) {
+  $('wkSel').innerHTML = WORKOUTS.map(w => `<option value="${w.id}">${esc(w.name)}</option>`).join('');
+  if (sel && WORKOUTS.some(w => w.id === sel)) $('wkSel').value = sel;
+}
+refreshSelect();
+try { const v = localStorage.getItem('hubrider.sel'); if (v && WORKOUTS.some(w => w.id === v)) $('wkSel').value = v; } catch {}
+$('wkSel').addEventListener('change', () => { try { localStorage.setItem('hubrider.sel', $('wkSel').value); } catch {} });
+
+const planIF = w => w.steps.reduce((a, st) => a + (st.from + st.to) / 2 * st.dur, 0) / (w.total || 1);
+const hm = sec => { const h = Math.floor(sec / 3600), m = Math.round(sec % 3600 / 60); return h ? `${h}h ${String(m).padStart(2,'0')}m` : `${m} min`; };
+const catOpen = () => $('catOverlay').classList.contains('open');
+function showCat(view) { $('catList').style.display = view === 'list' ? '' : 'none'; $('catBuild').style.display = view === 'build' ? '' : 'none'; }
+function openCatalogue() { $('catOverlay').classList.add('open'); showCat('list'); renderCatalogue(); }
+function closeCatalogue() { $('catOverlay').classList.remove('open'); }
+$('btnSessions').onclick = openCatalogue;
+$('catClose').onclick = closeCatalogue;
+$('catOverlay').addEventListener('mousedown', e => { if (e.target === $('catOverlay') && $('catList').style.display !== 'none') closeCatalogue(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && catOpen()) { $('catList').style.display === 'none' ? (showCat('list'), renderCatalogue()) : closeCatalogue(); } });
+
+function renderCatalogue() {
+  const ftp = +$('ftp').value || 200, sel = $('wkSel').value, grid = $('catGrid');
+  $('catNote').textContent = wk.active ? 'A workout is running. End it to pick a different session.' : `Targets use your FTP of ${ftp} W. Pick a session, or build your own.`;
+  grid.innerHTML = WORKOUTS.map(w => { const IFv = planIF(w), tss = Math.round(w.total / 3600 * IFv * IFv * 100);
+    return `<div class="catcard${w.id === sel ? ' sel' : ''}" data-id="${esc(w.id)}"><canvas></canvas>
+      <h3>${esc(w.name)}${w.preset ? '' : '<span class="tag">Custom</span>'}</h3>
+      <div class="catmeta">${hm(w.total)} · ${w.steps.length} steps · IF ${IFv.toFixed(2)} · TSS ${tss}</div>
+      <div class="catdesc">${esc(w.desc || 'No description.')}</div>
+      <div class="catactions"><button class="primary" data-act="use" ${wk.active ? 'disabled' : ''}>${w.id === sel ? '✓ Selected' : 'Use this session'}</button>
+        ${w.preset ? '<button data-act="dup">Duplicate</button>' : '<button data-act="edit">Edit</button><button data-act="del" class="ghost-danger">Delete</button>'}</div></div>`; }).join('');
+  grid.querySelectorAll('.catcard').forEach(card => { const w = WORKOUTS.find(x => x.id === card.dataset.id), cv = card.querySelector('canvas');
+    drawProfile(cv, 0, w.total, 0, { W: cv.clientWidth || 260, H: 78, def: w, ftp, actual: null, mini: true, dpr: devicePixelRatio || 1 }); });
+}
+$('catGrid').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  const id = b.closest('.catcard').dataset.id, w = WORKOUTS.find(x => x.id === id), act = b.dataset.act;
+  const running = wk.active && wk.def.id === id;
+  if (act === 'use') {
+    $('wkSel').value = id; try { localStorage.setItem('hubrider.sel', id); } catch {}
+    closeCatalogue(); updateWorkoutUi(); $('wkCard').scrollIntoView({ behavior:'smooth', block:'center' }); toast(`Selected: ${w.name}`, 2500);
+  } else if (act === 'dup') openBuilder({ name: w.name + ' (copy)', desc: w.desc, steps: w.steps }, null);
+  else if (act === 'edit') { if (running) return toast('End the running workout before editing it.'); openBuilder(w, id); }
+  else if (act === 'del') {
+    if (running) return toast('End the running workout before deleting it.');
+    if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Confirm delete'; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = 'Delete'; } }, 3000); return; }
+    WORKOUTS.splice(WORKOUTS.indexOf(w), 1); saveCustom();
+    const keep = $('wkSel').value === id ? WORKOUTS[0].id : $('wkSel').value; refreshSelect(keep); updateWorkoutUi(); renderCatalogue(); toast('Session deleted.', 2500);
+  }
+});
+
+// --- builder ---
+let draft = null;
+const pct = v => Math.round(v * 100);
+function openBuilder(src, id) {
+  draft = { id, name: src ? src.name : '', desc: src ? (src.desc || '') : '',
+    steps: (src ? src.steps : [ { label:'Warm-up', dur:600, from:.5, to:.7 }, { label:'Main set', dur:1200, from:.9, to:.9 }, { label:'Cool-down', dur:300, from:.6, to:.4 } ])
+      .map(st => ({ label: st.label, min: +(st.dur / 60).toFixed(2), from: pct(st.from), to: st.to !== st.from ? pct(st.to) : '' })) };
+  $('bTitle').textContent = id ? 'Edit session' : 'New session'; $('bName').value = draft.name; $('bDesc').value = draft.desc; $('bErr').textContent = ''; $('ivForm').style.display = 'none';
+  showCat('build'); renderRows(); setTimeout(() => $('bName').focus(), 30);
+}
+function renderRows() {
+  const last = draft.steps.length - 1;
+  $('bRows').innerHTML = ['Step name', 'Minutes', 'From %', 'To %', ''].map(h => `<div class="hd">${h}</div>`).join('') + draft.steps.map((st, i) =>
+    `<input type="text" data-i="${i}" data-k="label" value="${esc(st.label)}" maxlength="60">
+     <input type="number" data-i="${i}" data-k="min" value="${st.min}" min="0.25" step="0.25">
+     <input type="number" data-i="${i}" data-k="from" value="${st.from}" min="20" max="250">
+     <input type="number" data-i="${i}" data-k="to" value="${st.to}" min="20" max="250" placeholder="same">
+     <div class="rowbtns"><button data-i="${i}" data-a="up" ${i === 0 ? 'disabled' : ''} title="Move up">↑</button><button data-i="${i}" data-a="down" ${i === last ? 'disabled' : ''} title="Move down">↓</button><button data-i="${i}" data-a="rm" class="ghost-danger" title="Remove">✕</button></div>`).join('');
+  drawDraft();
+}
+function draftDef(strict) {
+  const steps = []; let err = '';
+  draft.steps.forEach((st, i) => {
+    const min = parseFloat(st.min), from = parseFloat(st.from), to = st.to === '' || st.to == null ? from : parseFloat(st.to);
+    if (!(min > 0) || !(from >= 20 && from <= 250) || !(to >= 20 && to <= 250)) { if (!err) err = `Step ${i + 1}: minutes must be above 0 and targets between 20% and 250% of FTP.`; return; }
+    steps.push({ label: (st.label || '').trim() || `Step ${i + 1}`, dur: Math.round(min * 60), from: from / 100, to: to / 100 });
+  });
+  if (strict && !err && !steps.length) err = 'Add at least one step.';
+  return { def: steps.length ? finalize({ steps }) : null, err };
+}
+function drawDraft() {
+  const { def } = draftDef(false), cv = $('bChart'), ftp = +$('ftp').value || 200;
+  if (!def) { cv.getContext('2d').clearRect(0, 0, cv.width, cv.height); $('bSummary').textContent = ''; return; }
+  drawProfile(cv, 0, def.total, 0, { W: cv.clientWidth || 900, H: 170, def, ftp, actual: null, sc: 1, dpr: devicePixelRatio || 1 });
+  const IFv = planIF(def); $('bSummary').textContent = `${hm(def.total)} · ${def.steps.length} steps · IF ${IFv.toFixed(2)} · TSS ${Math.round(def.total / 3600 * IFv * IFv * 100)} (at FTP ${ftp} W)`;
+}
+$('bRows').addEventListener('input', e => { const el = e.target; if (el.dataset.k) { draft.steps[+el.dataset.i][el.dataset.k] = el.value; drawDraft(); } });
+$('bRows').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return; const i = +b.dataset.i, a = b.dataset.a, st = draft.steps;
+  if (a === 'rm') st.splice(i, 1); else if (a === 'up') [st[i-1], st[i]] = [st[i], st[i-1]]; else if (a === 'down') [st[i+1], st[i]] = [st[i], st[i+1]];
+  renderRows();
+});
+const insertAt = () => { const n = draft.steps.length; return n && /cool|down/i.test(draft.steps[n - 1].label) ? n - 1 : n; };   // keep a trailing cool-down last
+$('bAddStep').onclick = () => { const l = draft.steps[draft.steps.length - 1]; draft.steps.splice(insertAt(), 0, { label:'New step', min: l ? l.min : 5, from: l ? l.from : 70, to:'' }); renderRows(); };
+$('bAddIv').onclick = () => { const f = $('ivForm'); f.style.display = f.style.display === 'flex' ? 'none' : 'flex'; };
+$('ivAdd').onclick = () => {
+  const n = Math.max(1, Math.min(50, parseInt($('ivReps').value) || 1)), on = parseFloat($('ivOnMin').value), onP = parseFloat($('ivOnPct').value), off = parseFloat($('ivOffMin').value), offP = parseFloat($('ivOffPct').value);
+  if (!(on > 0) || !(onP >= 20)) return $('bErr').textContent = 'Interval length and % FTP are needed.';
+  $('bErr').textContent = '';
+  const add = []; for (let i = 1; i <= n; i++) { add.push({ label: n > 1 ? `Interval ${i}/${n}` : 'Interval', min: on, from: onP, to: '' }); if (i < n && off > 0) add.push({ label:'Recover', min: off, from: offP || 50, to:'' }); }
+  draft.steps.splice(insertAt(), 0, ...add);
+  $('ivForm').style.display = 'none'; renderRows();
+};
+$('bCancel').onclick = () => { showCat('list'); renderCatalogue(); };
+$('bSave').onclick = () => {
+  const name = $('bName').value.trim(); draft.desc = $('bDesc').value.trim();
+  if (!name) return $('bErr').textContent = 'Give the session a name.';
+  const { def, err } = draftDef(true); if (err) return $('bErr').textContent = err;
+  if (draft.id && wk.active && wk.def.id === draft.id) return $('bErr').textContent = 'End the running workout before saving changes to it.';
+  let id = draft.id, w = id && WORKOUTS.find(x => x.id === id);
+  if (w) { w.name = name; w.desc = draft.desc; w.steps = def.steps; finalize(w); }
+  else { id = 'c' + Date.now().toString(36); WORKOUTS.push(finalize({ id, name, desc: draft.desc, steps: def.steps })); }
+  saveCustom();
+  const pick = wk.active ? $('wkSel').value : id; refreshSelect(pick); try { localStorage.setItem('hubrider.sel', $('wkSel').value); } catch {}
+  updateWorkoutUi(); showCat('list'); renderCatalogue(); toast(`Saved “${name}”.`, 2500);
+};
+$('catNew').onclick = () => openBuilder(null, null);
+
+try { const v = localStorage.getItem('hubrider.ftp'); if (v) $('ftp').value = v; } catch {}
+$('ftp').addEventListener('input', () => { if (wk.active) applyTarget(true); });
+$('ftp').addEventListener('change', () => { try { localStorage.setItem('hubrider.ftp', $('ftp').value); } catch {} });
+
+let wk = { active:false, def:null, idx:0, stepElapsed:0, extra:0, actual:[] };
+let lastTarget = null, actx = null;
+const mmss = s => { s = Math.max(0, Math.round(s)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
+const curDef = () => wk.active ? wk.def : WORKOUTS.find(w => w.id === $('wkSel').value);
+const stepDur = () => wk.def.steps[wk.idx].dur + wk.extra;
+
+function beep(freq = 880, ms = 140) {
+  if (!$('wkBeep').checked) return;
+  try { actx = actx || new AudioContext(); const o = actx.createOscillator(), g = actx.createGain();
+    o.frequency.value = freq; g.gain.value = .12; o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + ms/1000); } catch {}
+}
+function currentTarget() {
+  const st = wk.def.steps[wk.idx], ftp = +$('ftp').value || 200;
+  const f = st.dur ? st.from + (st.to - st.from) * Math.min(1, wk.stepElapsed / st.dur) : st.from;
+  return Math.round(ftp * f);
+}
+function applyTarget(force) {
+  const t = currentTarget(); if (!force && t === lastTarget) return; lastTarget = t;
+  writeCtl([0x05, t & 0xFF, (t >> 8) & 0xFF]).catch(e => toast('Could not set ERG target: ' + e.message));
+}
+function wkInfo() {
+  const d = wk.def, st = d.steps[wk.idx], nx = d.steps[wk.idx + 1], ftp = +$('ftp').value || 200;
+  const left = stepDur() - wk.stepElapsed;
+  return { name: d.name, step: st.label, target: currentTarget(), left, totalLeft: left + (d.total - d.offsets[wk.idx] - st.dur),
+           next: nx ? `${nx.label} · ${Math.round(ftp * nx.from)}${nx.to !== nx.from ? '→' + Math.round(ftp * nx.to) : ''} W · ${mmss(nx.dur)}` : 'Finish' };
+}
+async function startWorkout() {
+  if (wk.active || modalOpen) return;
+  if (!connected()) return toast('Connect your Zwift Hub first.');
+  if (!ftmsControl) return toast('No control channel on this trainer connection, so ERG workouts are unavailable.');
+  const def = WORKOUTS.find(w => w.id === $('wkSel').value);
+  if (session.state === 'idle') start(); else if (session.state === 'paused') resume();   // 'waiting' / 'running': keep going
+  session.workoutName = def.name; session.workoutDef = def;
+  wk = { active:true, def, idx:0, stepElapsed:0, extra:0, actual:[], tickAt:performance.now() }; lastTarget = null;
+  try { actx = actx || new AudioContext(); actx.resume(); } catch {}
+  beep(1040, 260); updateButtons(); pushState();
+  await writeCtl([0x00]).catch(() => {}); await writeCtl([0x07]).catch(() => {});   // take control, then start, then set the first target
+  applyTarget(true);
+}
+function workoutTick() {
+  if (!wk.active) return;
+  wk.stepElapsed++; wk.tickAt = performance.now();
+  const st = wk.def.steps[wk.idx];
+  wk.actual.push({ x: wk.def.offsets[wk.idx] + Math.min(wk.stepElapsed, st.dur), p: live.power ?? 0 });
+  const left = stepDur() - wk.stepElapsed;
+  if (left <= 0) nextStep(); else { if (left <= 3) beep(660, 90); applyTarget(); }
+}
+function nextStep() {
+  wk.idx++; wk.stepElapsed = 0; wk.extra = 0;
+  if (wk.idx >= wk.def.steps.length) {
+    wk.active = false; beep(1200, 500); updateButtons();
+    writeCtl([0x00]).then(() => writeCtl([0x11, 0,0, 0,0, 40, 51])).catch(() => {});   // back to a flat free ride
+    toast('Workout complete! Trainer is back in free ride — keep spinning, then press Finish.', 8000); pushState(); return;
+  }
+  beep(1040, 260); applyTarget(true);
+}
+function workoutSkip() { if (wk.active) { nextStep(); pushState(); } }
+function endWorkout(sendFreeRide) {
+  if (!wk.active) return; wk.active = false; updateButtons();
+  if (sendFreeRide) writeCtl([0x00]).then(() => writeCtl([0x11, 0,0, 0,0, 40, 51])).catch(() => {});
+}
+$('wkStart').onclick = startWorkout;
+$('wkSkip').onclick = workoutSkip;
+$('wkExt').onclick = () => { if (wk.active) { wk.extra += 60; toast('Step extended by 1 minute.', 2000); } };
+$('wkEnd').onclick = () => { endWorkout(true); toast('Workout ended. Trainer is back in free ride.'); pushState(); };
+$('wkSel').onchange = () => {};
+
+function updateWorkoutUi() {
+  const d = curDef(), on = wk.active, ftp = +$('ftp').value || 200;
+  $('wkMeta').textContent = `${mmss(d.total)} · ${d.steps.length} steps · FTP ${ftp} W`;
+  $('wkDesc').textContent = on ? '' : d.desc;
+  $('wkSel').disabled = on; $('wkStart').style.display = on ? 'none' : '';
+  for (const id of ['wkSkip','wkExt','wkEnd']) $(id).style.display = on ? '' : 'none';
+  $('wkActive').style.display = on ? 'grid' : 'none';
+  $('wkZoom').style.display = $('wkCapNow').style.display = $('wkCapAll').style.display = on ? '' : 'none';
+  $('wkChart').style.height = on ? '110px' : '200px';
+  if (!on) { $('wkActive').classList.remove('alert'); return; }
+  const i = wkInfo(), cur = wk.def.steps[wk.idx], nx = wk.def.steps[wk.idx + 1];
+  const hardNext = nx && nx.from > cur.to + .15;            // a real step up in effort
+  $('wkActive').classList.toggle('alert', !!hardNext && i.left <= 15);
+  $('wkStepName').textContent = i.step; $('wkTarget').firstChild.nodeValue = i.target;
+  $('wkLeft').textContent = mmss(i.left); $('wkTotalLeft').textContent = mmss(i.totalLeft);
+  $('wkNextLabel').textContent = nx ? `Next up · in ${mmss(i.left)}` : 'Last step';
+  $('wkNext').textContent = (hardNext && i.left <= 15 ? '⚡ Get ready — ' : '') + i.next;
+}
+const zoneColor = f => f < .55 ? '#9d90b8' : f < .75 ? '#6d7bff' : f < .9 ? '#a56bff' : f < 1.05 ? '#d946ef' : f < 1.2 ? '#ff4fb8' : '#ff7a9c';
+function playPos() {
+  if (!wk.active) return 0;
+  const st = wk.def.steps[wk.idx];
+  let frac = 0; if (session.state === 'running') frac = Math.min(1, (performance.now() - (wk.tickAt || 0)) / 1000);
+  return wk.def.offsets[wk.idx] + Math.min(st.dur, wk.stepElapsed + frac);
+}
+function drawProfile(cv, t0, t1, pos, o) {   // o = optional {W,H,def,ftp,actual,sc} for rendering to an image
+  const dpr = o ? (o.dpr || 1) : (devicePixelRatio || 1), W = o ? o.W : cv.clientWidth, H = o ? o.H : cv.clientHeight; if (!W || !H) return;
+  if (cv.width !== Math.round(W*dpr) || cv.height !== Math.round(H*dpr)) { cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
+  const g = cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+  const d = o ? o.def : curDef(), ftp = o ? o.ftp : (+$('ftp').value || 200), sc = o ? (o.sc || 1) : 1;
+  const mini = !!(o && o.mini);
+  const padL = mini ? 0 : 40*sc, padR = mini ? 0 : (o ? 22 : 10)*sc, padT = mini ? 4 : 8*sc, padB = mini ? 0 : 20*sc, pw = W - padL - padR, ph = H - padT - padB;
+  const peak = Math.max(ftp * 1.2, ...d.steps.map(s => Math.max(s.from, s.to) * ftp));
+  const stepW = peak > 450 ? 100 : peak > 220 ? 50 : 25, maxW = Math.ceil(peak * 1.08 / stepW) * stepW;
+  const X = t => padL + (t - t0) / (t1 - t0) * pw, Y = w => padT + ph - Math.min(w, maxW) / maxW * ph;
+  g.font = `${11*sc}px -apple-system, Helvetica, Arial, sans-serif`; g.textBaseline = 'middle';
+  // watt grid + labels
+  for (let w = 0; !mini && w <= maxW; w += stepW) {
+    g.strokeStyle = w === 0 ? '#3a2d55' : '#241a38'; g.lineWidth = 1; g.beginPath(); g.moveTo(padL, Y(w)); g.lineTo(W - padR, Y(w)); g.stroke();
+    g.fillStyle = '#9d90b8'; g.textAlign = 'right'; g.fillText(w, padL - 6, Y(w));
+  }
+  // time axis
+  const tick = (t1 - t0) <= 900 ? 120 : (t1 - t0) <= 2400 ? 300 : 600;
+  g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+  for (let t = Math.ceil(t0 / tick) * tick; !mini && t <= t1; t += tick) { g.fillStyle = '#9d90b8'; g.fillText(mmss(t), X(t), H - 5); }
+  // workout profile
+  g.save(); g.beginPath(); g.rect(padL, 0, pw, H); g.clip();
+  d.steps.forEach((st, i) => {
+    const s0 = d.offsets[i], s1 = s0 + st.dur; if (s1 < t0 || s0 > t1) return;
+    const x0 = X(s0), x1 = X(s1), y0 = Y(st.from * ftp), y1 = Y(st.to * ftp), col = zoneColor((st.from + st.to) / 2);
+    const grad = g.createLinearGradient(0, padT, 0, padT + ph); grad.addColorStop(0, col); grad.addColorStop(1, col + '55');
+    g.fillStyle = grad; g.globalAlpha = .92;
+    g.beginPath(); g.moveTo(x0, Y(0)); g.lineTo(x0, y0); g.lineTo(x1, y1); g.lineTo(x1, Y(0)); g.closePath(); g.fill();
+    g.globalAlpha = 1; g.strokeStyle = 'rgba(246,238,255,.35)'; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+  });
+  if (!o && wk.active) { g.fillStyle = 'rgba(11,8,19,.66)'; g.fillRect(padL, padT, Math.max(0, X(pos) - padL), ph); }   // dim what's done
+  g.restore();
+  // FTP line
+  g.strokeStyle = '#ffffff'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(padL, Y(ftp)); g.lineTo(W - padR, Y(ftp)); g.stroke();
+  g.fillStyle = '#ffffff'; g.textAlign = 'right'; g.textBaseline = 'bottom'; if (!mini) g.fillText(`FTP ${ftp}`, W - padR - 4, Y(ftp) - 3);
+  const actual = o ? o.actual : (wk.active ? wk.actual : null); if (!actual || !actual.length) return;
+  // actual power
+  g.save(); g.beginPath(); g.rect(padL, 0, pw, H); g.clip();
+  g.beginPath(); let started = false;
+  actual.forEach(a => { if (a.x < t0 - 5) return; const x = X(a.x), y = Y(a.p); started ? g.lineTo(x, y) : g.moveTo(x, y); started = true; });
+  g.strokeStyle = '#f6eeff'; g.lineWidth = 1.6; g.lineJoin = 'round'; g.stroke();
+  // now marker
+  if (!o) { const px = X(pos); g.strokeStyle = '#ffffff'; g.lineWidth = 2; g.beginPath(); g.moveTo(px, padT); g.lineTo(px, padT + ph); g.stroke();
+  g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(px - 5, padT); g.lineTo(px + 5, padT); g.lineTo(px, padT + 7); g.closePath(); g.fill(); }
+  g.restore();
+}
+function drawWorkout() {
+  const d = curDef(), T = d.total;
+  drawProfile($('wkChart'), 0, T, playPos());
+  if (wk.active) {
+    const pos = playPos(), win = Math.min(720, T);
+    let t0 = Math.max(0, pos - 90), t1 = t0 + win; if (t1 > T) { t1 = T; t0 = Math.max(0, T - win); }
+    drawProfile($('wkZoom'), t0, t1, pos);
+  }
+}
+
+// ---------- Rendering ----------
+function zoneInfo(p) {
+  const f = +$('ftp').value || 200, r = p / f;
+  return r < .55 ? [1,'Recovery','#9d90b8'] : r < .75 ? [2,'Endurance','#6d7bff'] : r < .9 ? [3,'Tempo','#a56bff']
+       : r < 1.05 ? [4,'Threshold','#d946ef'] : r < 1.2 ? [5,'VO2max','#ff4fb8'] : [6,'Anaerobic','#ff7a9c'];
+}
+function render() {
+  const s = session, p = live.power, z = p != null ? zoneInfo(p) : null;
+  $('power').firstChild.nodeValue = p ?? '--'; $('power').style.color = z ? z[2] : '';
+  $('zone').textContent = (z ? `Zone ${z[0]} · ${z[1]}` : 'Zone –') + (wk.active ? ` · target ${currentTarget()} W` : '');
+  $('hr').firstChild.nodeValue = live.hr ?? '--'; $('hrAvg').textContent = `avg ${avg(s.hrSum, s.hrN)}`;
+  $('cad').firstChild.nodeValue = live.cadence != null ? Math.round(live.cadence) : '--'; $('cadAvg').textContent = `avg ${avg(s.cadSum, s.cadN)}`;
+  $('time').textContent = fmtTime(s.elapsed);
+  $('speed').firstChild.nodeValue = live.speed != null ? live.speed.toFixed(1) : '--';
+  $('speedAvg').textContent = `avg ${s.spdN ? (s.spdSum/s.spdN).toFixed(1) : '--'} km/h`;
+  $('dist').firstChild.nodeValue = (s.distance/1000).toFixed(2);
+  $('kjSub').textContent = `${Math.round(s.joules/1000)} kJ burned`;
+  $('pavg').firstChild.nodeValue = avg(s.pSum, s.pN); $('pmax').textContent = `max ${s.pN ? s.pMax : '--'}`;
+  $('kj').firstChild.nodeValue = Math.round(s.joules/1000);
+  $('np').firstChild.nodeValue = s.npN ? Math.round((s.npSum4/s.npN) ** .25) : '--';
+  $('p3').firstChild.nodeValue = s.p3.length ? Math.round(s.p3.reduce((a,b)=>a+b,0)/s.p3.length) : '--';
+  $('hrmax').firstChild.nodeValue = s.hrMax || '--';
+  drawChart(); updateWorkoutUi(); drawWorkout();
+  requestAnimationFrame(render);
+}
+function drawChart() {
+  const cv = $('chart'), dpr = devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  if (cv.width !== w*dpr) { cv.width = w*dpr; cv.height = h*dpr; }
+  const g = cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
+  g.strokeStyle = '#252c38'; g.lineWidth = 1;
+  for (let i=0;i<=4;i++){ const y=h*i/4; g.beginPath(); g.moveTo(0,y); g.lineTo(w,y); g.stroke(); }
+  if (history.length < 2) return;
+  const maxP = Math.max(300, ...history.map(x=>x.p)) * 1.1, maxH = 200;
+  const line = (key, max, color, fill) => {
+    g.beginPath(); history.forEach((pt,i) => { const x = i/299*w, y = h - (pt[key]/max)*h; i ? g.lineTo(x,y) : g.moveTo(x,y); });
+    g.strokeStyle = color; g.lineWidth = 2; g.stroke();
+    if (fill) { g.lineTo((history.length-1)/299*w, h); g.lineTo(0,h); g.closePath(); g.fillStyle = fill; g.fill(); }
+  };
+  line('p', maxP, '#d25cff', 'rgba(196,90,255,.18)');
+  if (history.some(x=>x.h)) line('h', maxH, '#ff7ec9');
+}
+render();
+
+// ---------- Strava description + shareable image ----------
+function intensityAt(d, t) {
+  let i = d.offsets.length - 1; while (i > 0 && d.offsets[i] > t) i--;
+  const st = d.steps[i]; return st.from + (st.to - st.from) * Math.min(1, Math.max(0, (t - d.offsets[i]) / st.dur));
+}
+function rideDescription() {
+  const d = session.workoutDef; if (!d) return 'Recorded with Hub Rider';
+  const bars = '▁▂▃▄▅▆▇█', N = 36, ftp = +$('ftp').value || 200; let line = '';
+  for (let k = 0; k < N; k++) { let sum = 0, c = 0; for (let t = k * d.total / N; t < (k + 1) * d.total / N; t += 5) { sum += intensityAt(d, t); c++; }
+    line += bars[Math.max(0, Math.min(7, Math.round(((sum / c) - .3) / .95 * 7)))]; }
+  return `${d.name} · ${fmtTime(d.total)} at FTP ${ftp} W\n${line}\nRecorded with Hub Rider`;
+}
+function drawRideChart(g, x, y, w, h) {
+  const sm = session.samples; if (sm.length < 2) return;
+  const n = Math.min(sm.length, 300), step = sm.length / n, pts = [];
+  for (let i = 0; i < n; i++) { const a = sm.slice(Math.floor(i*step), Math.max(Math.floor((i+1)*step), Math.floor(i*step)+1));
+    pts.push({ p: a.reduce((q,r)=>q+r.p,0)/a.length, h: a.reduce((q,r)=>q+r.h,0)/a.length }); }
+  const maxP = Math.max(150, ...pts.map(q => q.p)) * 1.15;
+  const path = (key, max) => { g.beginPath(); pts.forEach((pt,i) => { const px = x + i/(n-1)*w, py = y + h - (pt[key]/max)*h; i ? g.lineTo(px,py) : g.moveTo(px,py); }); };
+  g.strokeStyle = '#241a38'; g.lineWidth = 1; for (let i = 0; i <= 4; i++) { g.beginPath(); g.moveTo(x, y + h*i/4); g.lineTo(x + w, y + h*i/4); g.stroke(); }
+  path('p', maxP); g.lineTo(x + w, y + h); g.lineTo(x, y + h); g.closePath(); g.fillStyle = 'rgba(196,90,255,.28)'; g.fill();
+  path('p', maxP); g.strokeStyle = '#d25cff'; g.lineWidth = 3; g.lineJoin = 'round'; g.stroke();
+  if (pts.some(q => q.h)) { path('h', 200); g.strokeStyle = '#ff7ec9'; g.lineWidth = 2.5; g.stroke(); }
+}
+function buildShareImage() {
+  const W = 1200, H = 630, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d'), st = stats(), def = session.workoutDef, ftp = +$('ftp').value || 200, FONT = '-apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif';
+  const bg = g.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#1e1533'); bg.addColorStop(1, '#0b0813'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  g.textBaseline = 'alphabetic'; g.textAlign = 'left';
+  const name = rideName(); let fs = 46; g.font = `700 ${fs}px ${FONT}`;
+  while (g.measureText(name).width > 1080 && fs > 26) { fs -= 2; g.font = `700 ${fs}px ${FONT}`; }
+  g.fillStyle = '#f6eeff'; g.fillText(name, 60, 88);
+  g.fillStyle = '#9d90b8'; g.font = `400 24px ${FONT}`;
+  g.fillText((session.startTime || new Date()).toLocaleString([], { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' }) + (def ? `  ·  FTP ${ftp} W` : ''), 60, 126);
+  const items = [['TIME', fmtTime(st.elapsed)], ['DISTANCE', (st.distance/1000).toFixed(1) + ' km'], ['AVG POWER', st.avgPower ? st.avgPower + ' W' : '–'],
+                 ['NORM. POWER', st.np ? st.np + ' W' : '–'], ['AVG HR', st.avgHr ? st.avgHr + ' bpm' : '–']];
+  items.forEach((it, i) => { const x = 60 + i * 216;
+    g.fillStyle = '#9d90b8'; g.font = `600 15px ${FONT}`; g.fillText(it[0].split('').join(String.fromCharCode(8202)), x, 182);
+    g.fillStyle = '#ffffff'; g.font = `700 38px ${FONT}`; g.fillText(it[1], x, 226); });
+  if (def) {
+    const sub = document.createElement('canvas'), actual = wk.def === def ? wk.actual : [];
+    drawProfile(sub, 0, def.total, 0, { W: 1080, H: 330, def, ftp, actual, sc: 1.5 }); g.drawImage(sub, 60, 252);
+  } else drawRideChart(g, 100, 262, 1040, 300);
+  g.fillStyle = '#9d90b8'; g.font = `400 18px ${FONT}`; g.fillText(def ? 'Planned workout  ·  white line = your power' : 'Power (purple)  ·  Heart rate (pink)', 60, 604);
+  g.textAlign = 'right'; g.font = `800 22px ${FONT}`; const lg = g.createLinearGradient(W - 220, 0, W - 60, 0); lg.addColorStop(0, '#6d7bff'); lg.addColorStop(.6, '#c13cf0'); lg.addColorStop(1, '#ff4fb8');
+  g.fillStyle = lg; g.fillText('HUB RIDER', W - 60, 604);
+  return cv;
+}
+function saveShareImage() {
+  buildShareImage().toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+    a.download = `ride-${session.startTime.toISOString().slice(0,16).replace(/[:T]/g,'-')}.png`; a.click(); }, 'image/png');
+}
+
+// ---------- TCX ----------
+function buildTcx(name) {
+  const s = session, iso = d => d.toISOString();
+  const pts = s.samples.map(x => `
+        <Trackpoint><Time>${iso(x.t)}</Time><DistanceMeters>${x.d.toFixed(1)}</DistanceMeters>${x.h?`<HeartRateBpm><Value>${x.h}</Value></HeartRateBpm>`:''}<Cadence>${Math.round(x.c)}</Cadence>
+          <Extensions><ns3:TPX><ns3:Speed>${(x.v/3.6).toFixed(2)}</ns3:Speed><ns3:Watts>${x.p}</ns3:Watts></ns3:TPX></Extensions></Trackpoint>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:ns3="http://www.garmin.com/xmlschemas/ActivityExtension/v2">
+  <Activities><Activity Sport="Biking"><Id>${iso(s.startTime)}</Id>
+    <Lap StartTime="${iso(s.startTime)}"><TotalTimeSeconds>${s.elapsed}</TotalTimeSeconds><DistanceMeters>${s.distance.toFixed(1)}</DistanceMeters>
+      <Calories>${Math.round(s.joules/4184)}</Calories>${s.hrN?`<AverageHeartRateBpm><Value>${avg(s.hrSum,s.hrN)}</Value></AverageHeartRateBpm><MaximumHeartRateBpm><Value>${s.hrMax}</Value></MaximumHeartRateBpm>`:''}
+      <Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod>
+      <Track>${pts}
+      </Track></Lap><Notes>${name.replace(/[<&>]/g,'')}</Notes></Activity></Activities>
+</TrainingCenterDatabase>`;
+}
+
+// ---------- Strava status ----------
+let stravaState = 'checking';
+async function loadStrava() {
+  let j; try { j = await (await fetch('/api/status')).json(); } catch { return; }
+  const b = $('btnStrava');
+  stravaConnected = j.connected && j.canUpload !== false;
+  b.classList.remove('linked');
+  if (!j.configured) { stravaState = 'unconfigured'; b.textContent = 'Set up Strava'; b.title = 'Strava keys missing: add them to config.json and restart the server (see README)'; }
+  else if (!j.connected) { stravaState = 'disconnected'; b.textContent = 'Connect Strava'; b.title = 'Sign in to Strava so rides can be uploaded'; }
+  else if (j.canUpload === false) { stravaState = 'noperm'; b.textContent = 'Reconnect Strava'; b.title = 'Connected, but upload permission was not granted. Reconnect and tick "Upload your activities".'; }
+  else { stravaState = 'linked'; b.classList.add('linked'); b.textContent = '✓ Strava linked'; b.title = (j.athlete ? 'Connected as ' + j.athlete + '. ' : '') + 'Click to disconnect'; }
+  pushState();
+}
+$('btnStrava').onclick = async () => {
+  if (stravaState === 'unconfigured') return toast('Add your Strava keys to config.json next to server.js, then restart the server (see README).', 7000);
+  if (stravaState === 'disconnected' || stravaState === 'noperm') { location.href = '/auth/strava'; return; }
+  if (stravaState === 'linked') { await fetch('/auth/disconnect'); toast('Strava disconnected.'); loadStrava(); }
+};
+loadStrava();
+
+// ---------- Companion sync ----------
+function snapshot() {
+  const s = session;
+  const phase = modalOpen ? 'summary' : s.state;
+  return { ts: Date.now(), phase, trainer: connected(), strava: stravaConnected,
+    live: { power: live.power, hr: live.hr, cadence: live.cadence != null ? Math.round(live.cadence) : null, speed: live.speed,
+            zone: live.power != null ? zoneInfo(live.power).slice(0,3) : null },
+    elapsed: s.elapsed, distance: s.distance, kj: Math.round(s.joules/1000),
+    avgSpeed: s.spdN ? s.spdSum/s.spdN : 0, avgPower: s.pN ? Math.round(s.pSum/s.pN) : 0, maxPower: s.pMax,
+    hrAvg: s.hrN ? Math.round(s.hrSum/s.hrN) : 0,
+    summary: modalOpen ? stats() : null, name: $('actName').value, upload, workout: wk.active ? wkInfo() : null };
+}
+let lastPush = 0;
+function pushState() { lastPush = Date.now(); fetch('/api/state', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(snapshot()), keepalive:true }).catch(()=>{}); }
+setInterval(pushState, 1000);
+
+const cmdSrc = new EventSource('/api/cmd-stream');
+cmdSrc.onmessage = e => {
+  const { cmd, name } = JSON.parse(e.data);
+  if (cmd === 'start') start();
+  else if (cmd === 'pause' && !modalOpen) pause();
+  else if (cmd === 'resume') { if (modalOpen) closeModal(); resume(); }
+  else if (cmd === 'finish') { session.state === 'waiting' ? cancelWaiting() : openSummary(); }
+  else if (cmd === 'skip') workoutSkip();
+  else if (cmd === 'upload' && modalOpen) { if (name && name.trim()) $('actName').value = name.trim(); doUpload(); }
+  else if (cmd === 'discard' && modalOpen) resetAll();
+  else if (cmd === 'done' && modalOpen && upload.status === 'done') resetAll();
+  pushState();
+};
+
+function drawQr(url) {
+  const qr = qrcode(0, 'M'); qr.addData(url); qr.make();
+  const n = qr.getModuleCount(), q = 2; let d = '';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) d += `M${c+q},${r+q}h1v1h-1z`;
+  $('qrBox').innerHTML = `<svg viewBox="0 0 ${n+q*2} ${n+q*2}" shape-rendering="crispEdges" role="img" aria-label="QR code for the phone companion"><path d="${d}" fill="#ffffff"/></svg>`;
+}
+fetch('/api/info').then(r => r.json()).then(j => {
+  const urls = j.companionUrls || [];
+  if (urls.length) { $('qrPanel').style.display = 'flex'; drawQr(urls[0]); }
+}).catch(() => {});
+
+window.addEventListener('beforeunload', e => { if (session.state === 'running' || session.state === 'paused') { e.preventDefault(); e.returnValue=''; } });
+</script>
+</body>
+</html>
