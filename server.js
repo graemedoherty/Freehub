@@ -1,6 +1,10 @@
 // Zero-dependency server: dashboard, companion page, Strava OAuth + upload, and a tiny
 // state/command relay so the phone companion can mirror and control the ride.
 // Requires Node 18+.
+if (typeof fetch !== 'function' || typeof FormData === 'undefined') {
+  console.error(`\nFreehub needs Node.js 18 or newer, but this is ${process.version}.\nUpdate it (macOS: "brew upgrade node", or download the LTS installer from https://nodejs.org), then run "node server.js" again.\n`);
+  process.exit(1);
+}
 const http = require('http');
 const fs = require('fs');
 const os = require('os');
@@ -54,6 +58,44 @@ const readBody = (req, limit = 1e6) => new Promise((res, rej) => {
   req.on('end', () => res(d)); req.on('error', rej);
 });
 const json = (res, code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(obj)); };
+// ---- Persistent data (rides, custom sessions, plans) in ./data ----
+const DATA_DIR = path.join(__dirname, 'data'), RIDES_DIR = path.join(DATA_DIR, 'rides');
+fs.mkdirSync(RIDES_DIR, { recursive: true });
+const okId = (id) => /^[0-9A-Za-z_-]{1,64}$/.test(id);
+const readJson = (f, dflt) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return dflt; } };
+const writeJson = (f, o) => { const tmp = f + '.tmp'; fs.writeFileSync(tmp, JSON.stringify(o)); fs.renameSync(tmp, f); };
+const STORES = new Set(['custom', 'plans']);
+const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon' };
+
+async function stravaUpload({ tcx, name, description }) {
+  const token = await validToken();
+  const form = new FormData();
+  form.append('file', new Blob([tcx], { type: 'application/xml' }), 'ride.tcx');
+  form.append('data_type', 'tcx');
+  form.append('sport_type', 'VirtualRide');
+  form.append('trainer', '1');
+  form.append('name', name || 'Indoor Ride');
+  if (description) form.append('description', description);
+  const r = await fetch('https://www.strava.com/api/v3/uploads', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
+  let up = await r.json();
+  console.log('Strava upload response:', r.status, JSON.stringify(up));
+  if (!r.ok) {
+    const missing = r.status === 401 || r.status === 403 || (up.errors || []).some(e => e.code === 'missing' || /activity:write/.test(e.field || ''));
+    const detail = (up.errors || []).map(e => `${e.resource || ''} ${e.field || ''} ${e.code || ''}`.trim()).join('; ');
+    return { status: r.status, body: { error: missing
+      ? 'Strava refused the upload because upload permission was not granted. Click "Disconnect Strava", then "Connect Strava" again and make sure "Upload your activities" is ticked.'
+      : `Strava said: ${up.message || 'error'}${detail ? ' (' + detail + ')' : ''}` } };
+  }
+  for (let i = 0; i < 10 && !up.activity_id && !up.error; i++) {
+    await new Promise(s => setTimeout(s, 2000));
+    const p = await fetch(`https://www.strava.com/api/v3/uploads/${up.id}`, { headers: { Authorization: `Bearer ${token}` } });
+    up = await p.json();
+    console.log('Strava upload status:', JSON.stringify(up));
+  }
+  if (up.error) return { status: 422, body: { error: up.error } };
+  return { status: 200, body: { activityId: up.activity_id || null, status: up.status } };
+}
+
 const isLocal = (req) => ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress);
 
 // ---- Live state relay (main dashboard -> companions) and command relay (companions -> dashboard)
@@ -75,7 +117,7 @@ const LAN_ROUTES = new Set(['/companion', '/api/state-stream', '/api/cmd']);
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, BASE);
   try {
-    if (!LAN_ROUTES.has(url.pathname) && !isLocal(req)) { res.writeHead(403); return res.end('Local access only'); }
+    if (!LAN_ROUTES.has(url.pathname) && !url.pathname.startsWith('/images/') && !isLocal(req)) { res.writeHead(403); return res.end('Local access only'); }
 
     if (url.pathname === '/') {
       res.writeHead(200, { 'Content-Type': 'text/html' });
@@ -146,35 +188,61 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true });
     }
     if (url.pathname === '/api/upload' && req.method === 'POST') {
-      const { tcx, name, description } = JSON.parse(await readBody(req, 20e6));
-      const token = await validToken();
-      const form = new FormData();
-      form.append('file', new Blob([tcx], { type: 'application/xml' }), 'ride.tcx');
-      form.append('data_type', 'tcx');
-      form.append('sport_type', 'VirtualRide');
-      form.append('trainer', '1');
-      form.append('name', name || 'Indoor Ride');
-      if (description) form.append('description', description);
-      const r = await fetch('https://www.strava.com/api/v3/uploads', {
-        method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
-      let up = await r.json();
-      console.log('Strava upload response:', r.status, JSON.stringify(up));
-      if (!r.ok) {
-        const missing = r.status === 401 || r.status === 403 || (up.errors || []).some(e => e.code === 'missing' || /activity:write/.test(e.field || ''));
-        const detail = (up.errors || []).map(e => `${e.resource || ''} ${e.field || ''} ${e.code || ''}`.trim()).join('; ');
-        return json(res, r.status, { error: missing
-          ? 'Strava refused the upload because upload permission was not granted. Click "Disconnect Strava", then "Connect Strava" again and make sure "Upload your activities" is ticked.'
-          : `Strava said: ${up.message || 'error'}${detail ? ' (' + detail + ')' : ''}` });
+      const out = await stravaUpload(JSON.parse(await readBody(req, 20e6)));
+      return json(res, out.status, out.body);
+    }
+
+    // ---- static images (logo etc.) ----
+    if (url.pathname.startsWith('/images/')) {
+      const full = path.join(__dirname, 'public', 'images', path.basename(url.pathname));
+      if (!fs.existsSync(full)) { res.writeHead(404); return res.end('Not found'); }
+      res.writeHead(200, { 'Content-Type': MIME[path.extname(full).toLowerCase()] || 'application/octet-stream', 'Cache-Control': 'public, max-age=3600' });
+      return res.end(fs.readFileSync(full));
+    }
+
+    // ---- small JSON stores: custom sessions, training plans ----
+    let m = url.pathname.match(/^\/api\/store\/([a-z]+)$/);
+    if (m) {
+      if (!STORES.has(m[1])) return json(res, 404, { error: 'Unknown store' });
+      const file = path.join(DATA_DIR, m[1] + '.json');
+      if (req.method === 'GET') return json(res, 200, readJson(file, null));
+      if (req.method === 'PUT') { writeJson(file, JSON.parse(await readBody(req, 5e6))); return json(res, 200, { ok: true }); }
+    }
+
+    // ---- ride history ----
+    if (url.pathname === '/api/rides' && req.method === 'GET') {
+      const list = fs.readdirSync(RIDES_DIR).filter(n => n.endsWith('.json')).map(n => readJson(path.join(RIDES_DIR, n), null)).filter(Boolean)
+        .map(({ series, wkActual, ...rest }) => rest).sort((x, y) => String(y.start).localeCompare(String(x.start)));
+      return json(res, 200, list);
+    }
+    m = url.pathname.match(/^\/api\/rides\/([^/]+)(?:\/(tcx|upload))?$/);
+    if (m) {
+      const id = m[1], sub = m[2];
+      if (!okId(id)) return json(res, 400, { error: 'Bad ride id' });
+      const jf = path.join(RIDES_DIR, id + '.json'), tf = path.join(RIDES_DIR, id + '.tcx');
+      if (!sub && req.method === 'GET') { const r = readJson(jf, null); return r ? json(res, 200, r) : json(res, 404, { error: 'Not found' }); }
+      if (!sub && req.method === 'PUT') {
+        const { record, tcx } = JSON.parse(await readBody(req, 30e6));
+        if (!record || record.id !== id) return json(res, 400, { error: 'Record id mismatch' });
+        const prev = readJson(jf, {});
+        writeJson(jf, { ...record, strava: record.strava || prev.strava || null, savedAt: new Date().toISOString() });
+        if (typeof tcx === 'string' && tcx) fs.writeFileSync(tf, tcx);
+        return json(res, 200, { ok: true });
       }
-      for (let i = 0; i < 10 && !up.activity_id && !up.error; i++) {
-        await new Promise(s => setTimeout(s, 2000));
-        const p = await fetch(`https://www.strava.com/api/v3/uploads/${up.id}`, { headers: { Authorization: `Bearer ${token}` } });
-        up = await p.json();
-        console.log('Strava upload status:', JSON.stringify(up));
+      if (!sub && req.method === 'DELETE') { for (const f of [jf, tf]) { try { fs.unlinkSync(f); } catch {} } return json(res, 200, { ok: true }); }
+      if (sub === 'tcx' && req.method === 'GET') {
+        if (!fs.existsSync(tf)) return json(res, 404, { error: 'No file stored for this ride' });
+        res.writeHead(200, { 'Content-Type': 'application/xml', 'Content-Disposition': `attachment; filename="ride-${id}.tcx"` });
+        return res.end(fs.readFileSync(tf));
       }
-      if (up.error) return json(res, 422, { error: up.error });
-      if (!up.activity_id) return json(res, 200, { activityId: null, status: up.status });
-      return json(res, 200, { activityId: up.activity_id, status: up.status });
+      if (sub === 'upload' && req.method === 'POST') {
+        const rec = readJson(jf, null); if (!rec || !fs.existsSync(tf)) return json(res, 404, { error: 'Ride not found' });
+        const body = JSON.parse(await readBody(req, 5e4));
+        const name = (body.name || rec.name || 'Indoor Ride').slice(0, 100);
+        const out = await stravaUpload({ tcx: fs.readFileSync(tf, 'utf8'), name, description: body.description || 'Recorded with Freehub' });
+        if (out.status === 200) { rec.name = name; rec.strava = { activityId: out.body.activityId, uploadedAt: new Date().toISOString() }; writeJson(jf, rec); }
+        return json(res, out.status, out.body);
+      }
     }
     res.writeHead(404); res.end('Not found');
   } catch (e) {
@@ -190,9 +258,10 @@ function lanIps() {
 }
 
 server.listen(PORT, () => {
-  console.log(`Hub Rider running → ${BASE}  (open in Google Chrome)`);
+  console.log(`Freehub running → ${BASE}  (open in Google Chrome)`);
   if (cfgProblem) console.log('\n⚠ Strava is NOT set up: ' + cfgProblem + '\n');
   else if (!CLIENT_ID || !CLIENT_SECRET) console.log('\n⚠ Strava is NOT set up: config.json needs both "clientId" and "clientSecret".\n');
   else console.log(`Strava keys loaded (client ID ${CLIENT_ID}).`);
+  console.log(`Your rides and plans are saved in ${DATA_DIR}`);
   for (const ip of lanIps()) console.log(`Phone companion   → http://${ip}:${PORT}/companion`);
 });

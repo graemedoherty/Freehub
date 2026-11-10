@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Hub Rider Companion</title>
+<title>Freehub Companion</title>
+<link rel="icon" type="image/png" href="/images/favicon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0b0813">
@@ -43,9 +44,9 @@
 </style>
 </head>
 <body>
-<header><h1>HUB <span>RIDER</span></h1><div class="pill"><span class="dot" id="dot"></span><span id="link">Connecting…</span></div></header>
+<header><h1 style="display:flex;align-items:center;gap:9px"><img src="/images/freehub_mark.png" alt="" style="width:28px;height:28px;border-radius:7px">FREE<span>HUB</span></h1><div class="pill"><span class="dot" id="dot"></span><span id="link">Connecting…</span></div></header>
 
-<div id="offline" class="offline" hidden>Waiting for Hub Rider on your Mac.<br>Open <b>http://localhost:3000</b> in Chrome there and keep that tab open.</div>
+<div id="offline" class="offline" hidden>Waiting for Freehub on your Mac.<br>Open <b>http://localhost:3000</b> in Chrome there and keep that tab open.</div>
 
 <div id="live" hidden>
   <div class="state"><span class="pill" id="state" style="display:inline-flex">Idle</span></div>
@@ -99,7 +100,7 @@ function render() {
 
   if (st.phase === 'summary') return renderSummary();
   const L = st.live;
-  $('state').textContent = { idle:'Ready', running:'Riding', paused:'Paused' }[st.phase] || st.phase;
+  $('state').textContent = { idle:'Ready', waiting:'Start pedalling to begin', running:'Riding', paused:'Paused' }[st.phase] || st.phase;
   $('time').textContent = fmt(st.elapsed);
   set('speed', L.speed != null ? L.speed.toFixed(1) : '--'); $('speedAvg').textContent = `avg ${st.avgSpeed ? st.avgSpeed.toFixed(1) : '--'} km/h`;
   set('dist', (st.distance/1000).toFixed(2)); $('kj').textContent = `${st.kj} kJ burned`;
@@ -112,6 +113,7 @@ function render() {
 
   let bar = '';
   if (st.phase === 'idle') bar = `<button class="primary" onclick="cmd('start')" ${st.trainer ? '' : 'disabled'}>${st.trainer ? '▶ Start ride' : 'Connect trainer on Mac first'}</button>`;
+  else if (st.phase === 'waiting') bar = `<button class="danger" onclick="cmd('finish')">✕ Cancel</button>`;
   else if (st.phase === 'running') bar = `<button onclick="cmd('pause')">⏸ Pause</button>${st.workout ? `<button onclick="cmd('skip')">⏭ Skip</button>` : ''}<button class="danger" onclick="cmd('finish')">■ Stop</button>`;
   else if (st.phase === 'paused') bar = `<button class="primary" onclick="cmd('resume')">▶ Resume</button><button class="danger" onclick="cmd('finish')">■ Stop</button>`;
   setBar(bar);

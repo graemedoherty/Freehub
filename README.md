@@ -1,4 +1,6 @@
-# Hub Rider — a minimal Zwift Hub app for macOS
+<p align="center"><img src="public/images/freehub_logo.png" alt="Freehub — Virtual Cycling Trainer App" width="420"></p>
+
+# Freehub — a minimal Zwift Hub app for macOS
 
 Connects to a Zwift Hub over Bluetooth (standard FTMS), shows live power / cadence / speed / HR /
 distance / time, records the ride and uploads it to Strava. No Zwift subscription needed.
@@ -10,7 +12,7 @@ distance / time, records the ride and uploads it to Strava. No Zwift subscriptio
 
 ## Run
 ```bash
-cd hub-rider
+cd freehub
 node server.js
 ```
 Open http://localhost:3000 in Chrome → **Connect Zwift Hub** → **Start**.
@@ -49,10 +51,25 @@ be duplicated and edited as a custom copy.
 
 ## Ride image
 After a ride is uploaded, the dialog shows a shareable image (ride name, stats, workout profile with your power over
-it) with a **Download image** button. Strava's public API can't attach photos, so add it on Strava with **Add photo**.
+it) with a **Download image** button. The image is 4:3 with safe margins, so Strava's feed crop and its "Virtual" badge don't cover anything. You can regenerate it for any past ride from History. Strava's public API can't attach photos, so add it on Strava with **Add photo**.
 
 ## Connection buttons
 The Connect buttons turn green ("✓ Zwift Hub linked" / "✓ HR strap linked") when paired. Click a linked button to disconnect.
+
+## History (saved rides)
+Every ride is saved automatically in the `data/` folder next to `server.js` as soon as you press **Stop**
+(discarding a ride deletes it). Click **⟲ History** to see weekly / monthly / all-time totals, open any ride,
+re-download its Strava image or `.tcx`, rename it, upload it to Strava later, or delete it.
+
+## Training plans
+Click **📅 Plan** to start a template (e.g. the 4-Week FTP Builder) or build your own: pick a start date, the
+number of weeks and a session for each day. The schedule shows what is Done, Today and Missed (matched against
+your saved rides), and **Load** drops that day's session into the workout picker. A green dot on the button means
+today's session is still to do. Plans and your custom sessions are stored in `data/`.
+
+## Backing up
+Everything you create lives in `data/` (`rides/`, `plans.json`, `custom.json`). Copy that folder to back it up.
+Never share `config.json`, `tokens.json` or `data/` publicly.
 
 ## Extras
 - Power-zone colouring (set your FTP).

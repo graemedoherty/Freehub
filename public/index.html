@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Hub Rider</title>
+<title>Freehub</title>
+<link rel="icon" type="image/png" href="/images/favicon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root { --bg:#0b0813; --card:#15101f; --card2:#1e1533; --line:#2d2243; --text:#f6eeff; --mute:#9d90b8; --accent:#d946ef; --blue:#6d7bff; --pink:#ff4fb8; --good:#3ee6b0; --grad:linear-gradient(135deg,#6d7bff,#c13cf0 55%,#ff4fb8); }
@@ -124,13 +125,31 @@
   .ivform label { font-size:12px; color:var(--mute); display:flex; flex-direction:column; gap:4px; }
   .ivform input { width:78px; }
   #bChart { width:100%; height:170px; display:block; background:var(--bg); border:1px solid var(--line); border-radius:12px; margin-top:14px; }
+  .brand .logo { width:38px; height:38px; border-radius:9px; display:block; }
+  .pdot { display:none; width:8px; height:8px; border-radius:50%; background:#3ee6b0; margin-left:7px; vertical-align:1px; } .pdot.on { display:inline-block; }
+  .histtotals { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+  .htile { background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px 14px; } .htile .v { font-size:20px; font-weight:700; margin-top:4px; } .htile .s { font-size:12.5px; color:var(--mute); margin-top:2px; }
+  .histrow { display:grid; grid-template-columns:130px minmax(0,1.6fr) repeat(4,minmax(0,.7fr)) 14px; gap:12px; align-items:center; padding:12px 14px; background:var(--bg); border:1px solid var(--line); border-radius:12px; margin-bottom:8px; cursor:pointer; font-variant-numeric:tabular-nums; font-size:14px; }
+  .histrow:hover { border-color:var(--accent); } .histrow .n { font-weight:600; } .histrow .m { font-size:11.5px; color:var(--mute); }
+  .sdot { display:inline-block; width:9px; height:9px; border-radius:50%; background:#3ee6b0; }
+  #hMsg.ok, #peErr.ok { color:#3ee6b0; } #hMsg.err { color:#ff7ab6; }
+  .weektabs { display:flex; gap:6px; flex-wrap:wrap; margin:14px 0 12px; } .weektabs button.on { background:var(--accent); border-color:var(--accent); }
+  .pdays { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:8px; }
+  .pday { background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:6px; min-height:150px; }
+  .pday.today { border-color:var(--accent); } .pday.done { border-color:#3ee6b0; } .pday .pdh { font-size:12.5px; color:var(--mute); } .pday .pdh b { color:var(--text); }
+  .pday canvas { width:100%; height:44px; display:block; background:var(--card); border-radius:6px; } .pdn { font-size:13px; font-weight:600; line-height:1.25; }
+  .pstat { font-size:12px; color:var(--mute); margin-top:auto; } .pstat.done { color:#3ee6b0; font-weight:600; } .pstat.missed { color:#ff7ab6; } .pstat.today { color:var(--accent); font-weight:600; }
+  .planbar { height:6px; background:var(--card); border-radius:99px; overflow:hidden; margin-top:8px; } .planbar i { display:block; height:100%; background:linear-gradient(90deg,#6d7bff,#c13cf0,#ff4fb8); }
+  .today-banner { display:flex; gap:14px; align-items:center; margin:12px 0; padding:14px 16px; border:1px solid var(--accent); border-radius:12px; background:var(--bg); }
+  .pmatrix { display:grid; grid-template-columns:60px repeat(7,minmax(0,1fr)); gap:6px; align-items:center; } .pmatrix select { width:100%; font-size:12.5px; padding:6px 4px; background:var(--bg); color:var(--text); border:1px solid var(--line); border-radius:8px; }
+  @media(max-width:820px){ .pdays{grid-template-columns:repeat(2,1fr);} .histrow{grid-template-columns:1fr 1fr;} .histtotals{grid-template-columns:1fr;} .pmatrix{grid-template-columns:repeat(2,1fr);} }
   @media(max-width:1180px){ main{grid-template-columns:minmax(0,1fr);} .side{position:static;} .qrmin{align-items:flex-start;} .qrbox{width:150px;} }
   @media(max-width:820px){ .row1 .val{font-size:72px;} .row2{grid-template-columns:1fr 1fr;} .row2 .big{grid-column:1/-1;} .mstats{grid-template-columns:repeat(2,1fr);} }
 </style>
 </head>
 <body>
 <header>
-  <div class="brand"><h1>HUB <span>RIDER</span></h1><button id="btnSessions" title="Browse your sessions or build a new one">☰ Sessions</button></div>
+  <div class="brand"><img class="logo" src="/images/freehub_mark.png" alt=""><h1>FREE<span>HUB</span></h1><button id="btnSessions" title="Browse your sessions or build a new one">☰ Sessions</button><button id="btnPlan" title="Your training plan">📅 Plan<i class="pdot" id="planDot"></i></button><button id="btnHist" title="Past rides">⟲ History</button></div>
   <div class="conn">
     <div class="pill"><span class="dot" id="dotTrainer"></span><span id="txtTrainer">Trainer: not connected</span></div>
     <button id="btnTrainer" title="Connect your trainer over Bluetooth">Connect Zwift Hub</button>
@@ -276,6 +295,8 @@
     </div>
   </div>
 </div>
+<div class="overlay" id="histOverlay"><div class="modal cat-modal" role="dialog" aria-modal="true" aria-label="Ride history"><div id="histBody"></div></div></div>
+<div class="overlay" id="planOverlay"><div class="modal cat-modal" role="dialog" aria-modal="true" aria-label="Training plan"><div id="planBody"></div></div></div>
 <div id="toast"></div>
 
 <script src="/qrcode.js"></script>
@@ -439,7 +460,7 @@ function start() {
 const pedalling = () => (live.power || 0) > 5 || (live.cadence || 0) > 0;
 function begin() {
   if (session.state !== 'waiting') return;
-  session.state = 'running'; session.startTime = new Date();
+  session.state = 'running'; session.startTime = new Date(); rideId = rid(session.startTime);
   if (wk.active) wk.tickAt = performance.now();
   beep(1040, 120); updateButtons(); pushState();
 }
@@ -516,7 +537,7 @@ function openSummary() {
   if (modalOpen || !(session.state === 'running' || session.state === 'paused')) return;
   if (session.state === 'running') pause();
   modalOpen = true;
-  const st = stats();
+  const st = stats(); saveRide();
   $('overlay').classList.add('open');
   $('mDate').textContent = session.startTime.toLocaleString([], { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' });
   renderStats(st);
@@ -554,8 +575,8 @@ function setUploadStatus(status, text, activityId) {
 $('btnResume').onclick = () => { closeModal(); resume(); };
 $('btnDiscard').onclick = () => { $('discardConfirm').style.display = 'flex'; };
 $('btnDiscardNo').onclick = () => { $('discardConfirm').style.display = 'none'; };
-$('btnDiscardYes').onclick = () => { resetAll(); toast('Ride discarded.'); };
-$('btnDone').onclick = resetAll;
+$('btnDiscardYes').onclick = () => { deleteRide(); rideId = null; resetAll(); toast('Ride discarded.'); };
+$('btnDone').onclick = async () => { await saveRide(); rideId = null; resetAll(); };
 $('btnImage').onclick = $('btnImage2').onclick = () => saveShareImage();
 $('btnDownload').onclick = () => {
   const a = document.createElement('a');
@@ -572,8 +593,9 @@ async function doUpload() {
   if (!stravaConnected) return setUploadStatus('error', 'Strava isn’t connected yet.');
   $('btnUpload').disabled = true; setUploadStatus('uploading'); pushState();
   try {
-    const r = await fetch('/api/upload', { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ tcx: buildTcx(rideName()), name: rideName(), description: rideDescription() }) });
+    const sv = await putJson('/api/rides/' + rideId, { record: rideRecord(), tcx: buildTcx(rideName()) });
+    if (!sv.ok) throw new Error('could not save the ride');
+    const r = await putJson(`/api/rides/${rideId}/upload`, { name: rideName(), description: rideDescription() }, 'POST');
     const j = await r.json();
     if (!r.ok) throw new Error(j.error);
     const link = j.activityId ? `https://www.strava.com/activities/${j.activityId}` : null;
@@ -619,6 +641,7 @@ const finalize = d => { let t = 0; d.offsets = d.steps.map(st => { const o = t; 
 WORKOUTS.forEach(d => d.preset = true);
 try { for (const c of JSON.parse(localStorage.getItem('hubrider.custom') || '[]')) WORKOUTS.push(finalize({ id:c.id, name:c.name, desc:c.desc || '', steps:c.steps })); } catch {}
 function saveCustom() {
+  putJson('/api/store/custom', WORKOUTS.filter(w => !w.preset).map(w => ({ id:w.id, name:w.name, desc:w.desc, steps:w.steps }))).catch(() => toast('Could not save your sessions to the server.'));
   try { localStorage.setItem('hubrider.custom', JSON.stringify(WORKOUTS.filter(w => !w.preset).map(w => ({ id:w.id, name:w.name, desc:w.desc, steps:w.steps })))); }
   catch { toast('Could not save in this browser (storage is blocked), so this session will be lost on refresh.', 7000); }
 }
@@ -934,58 +957,271 @@ function drawChart() {
 }
 render();
 
-// ---------- Strava description + shareable image ----------
+// ---------- Persistence, ride image, history and plans ----------
+const markImg = new Image(); markImg.src = '/images/freehub_mark.png';
+let rideId = null, rides = [];
+const rid = d => d.toISOString().slice(0, 19).replace(/:/g, '-');
+const dkey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const parseDay = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d, 12); };
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const mondayOf = d => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
+const putJson = (url, body, method = 'PUT') => fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
 function intensityAt(d, t) {
   let i = d.offsets.length - 1; while (i > 0 && d.offsets[i] > t) i--;
   const st = d.steps[i]; return st.from + (st.to - st.from) * Math.min(1, Math.max(0, (t - d.offsets[i]) / st.dur));
 }
-function rideDescription() {
-  const d = session.workoutDef; if (!d) return 'Recorded with Hub Rider';
-  const bars = '▁▂▃▄▅▆▇█', N = 36, ftp = +$('ftp').value || 200; let line = '';
+const defOf = rec => rec.workout ? finalize({ id: rec.workout.id, name: rec.workout.name, steps: rec.workout.steps }) : null;
+
+// A saved ride: summary numbers, the workout it followed, and a 5-second series for charts.
+function rideRecord() {
+  const s = session, st = stats(), d = s.workoutDef, series = { p: [], hr: [], cad: [], spd: [] };
+  for (let i = 0; i < s.samples.length; i += 5) {
+    const a = s.samples.slice(i, i + 5), m = k => a.reduce((x, y) => x + y[k], 0) / a.length;
+    series.p.push(Math.round(m('p'))); series.hr.push(Math.round(m('h'))); series.cad.push(Math.round(m('c'))); series.spd.push(+m('v').toFixed(1));
+  }
+  return { id: rideId, name: rideName(), start: s.startTime.toISOString(), elapsed: st.elapsed, distance: Math.round(st.distance), avgSpeed: +st.avgSpeed.toFixed(2),
+    avgPower: st.avgPower, maxPower: st.maxPower, np: st.np, kj: st.kj, avgHr: st.avgHr, maxHr: st.maxHr, avgCad: st.avgCad,
+    ftp: +$('ftp').value || 200, weight: +$('weight').value || null,
+    workout: d ? { id: d.id, name: d.name, steps: d.steps.map(x => ({ label: x.label, dur: x.dur, from: x.from, to: x.to })) } : null,
+    wkActual: d && wk.def === d ? wk.actual.filter((_, i) => i % 5 === 0).map(a => [a.x, a.p]) : [], series };
+}
+async function saveRide() {
+  if (!rideId || !session.startTime || session.samples.length < 10) return;
+  try { await putJson('/api/rides/' + rideId, { record: rideRecord(), tcx: buildTcx(rideName()) }); loadRides(); } catch {}
+}
+function deleteRide() { if (rideId) fetch('/api/rides/' + rideId, { method: 'DELETE' }).then(loadRides).catch(() => {}); }
+async function loadRides() { try { rides = await (await fetch('/api/rides')).json(); if (!Array.isArray(rides)) rides = []; } catch { rides = []; } updatePlanDot(); }
+
+// ---- Strava description + shareable image (4:3, which is how Strava crops photos in the feed) ----
+function rideDescription(rec) {
+  rec = rec || rideRecord(); const d = defOf(rec); if (!d) return 'Recorded with Freehub';
+  const bars = '▁▂▃▄▅▆▇█', N = 36; let line = '';
   for (let k = 0; k < N; k++) { let sum = 0, c = 0; for (let t = k * d.total / N; t < (k + 1) * d.total / N; t += 5) { sum += intensityAt(d, t); c++; }
     line += bars[Math.max(0, Math.min(7, Math.round(((sum / c) - .3) / .95 * 7)))]; }
-  return `${d.name} · ${fmtTime(d.total)} at FTP ${ftp} W\n${line}\nRecorded with Hub Rider`;
+  return `${d.name} · ${fmtTime(d.total)} at FTP ${rec.ftp} W\n${line}\nRecorded with Freehub`;
 }
-function drawRideChart(g, x, y, w, h) {
-  const sm = session.samples; if (sm.length < 2) return;
-  const n = Math.min(sm.length, 300), step = sm.length / n, pts = [];
-  for (let i = 0; i < n; i++) { const a = sm.slice(Math.floor(i*step), Math.max(Math.floor((i+1)*step), Math.floor(i*step)+1));
-    pts.push({ p: a.reduce((q,r)=>q+r.p,0)/a.length, h: a.reduce((q,r)=>q+r.h,0)/a.length }); }
-  const maxP = Math.max(150, ...pts.map(q => q.p)) * 1.15;
-  const path = (key, max) => { g.beginPath(); pts.forEach((pt,i) => { const px = x + i/(n-1)*w, py = y + h - (pt[key]/max)*h; i ? g.lineTo(px,py) : g.moveTo(px,py); }); };
-  g.strokeStyle = '#241a38'; g.lineWidth = 1; for (let i = 0; i <= 4; i++) { g.beginPath(); g.moveTo(x, y + h*i/4); g.lineTo(x + w, y + h*i/4); g.stroke(); }
-  path('p', maxP); g.lineTo(x + w, y + h); g.lineTo(x, y + h); g.closePath(); g.fillStyle = 'rgba(196,90,255,.28)'; g.fill();
-  path('p', maxP); g.strokeStyle = '#d25cff'; g.lineWidth = 3; g.lineJoin = 'round'; g.stroke();
-  if (pts.some(q => q.h)) { path('h', 200); g.strokeStyle = '#ff7ec9'; g.lineWidth = 2.5; g.stroke(); }
+function drawSeriesChart(g, x, y, w, h, series) {
+  const P = series.p || []; if (P.length < 2) return;
+  const n = Math.min(P.length, 320), step = P.length / n, pick = arr => { const o = []; for (let i = 0; i < n; i++) { const a = arr.slice(Math.floor(i * step), Math.max(Math.floor((i + 1) * step), Math.floor(i * step) + 1)); o.push(a.reduce((q, r) => q + r, 0) / a.length); } return o; };
+  const pw = pick(P), hr = pick(series.hr || []), maxP = Math.max(150, ...pw) * 1.15;
+  const path = (arr, max) => { g.beginPath(); arr.forEach((v, i) => { const px = x + i / (n - 1) * w, py = y + h - (v / max) * h; i ? g.lineTo(px, py) : g.moveTo(px, py); }); };
+  g.strokeStyle = '#241a38'; g.lineWidth = 1; for (let i = 0; i <= 4; i++) { g.beginPath(); g.moveTo(x, y + h * i / 4); g.lineTo(x + w, y + h * i / 4); g.stroke(); }
+  path(pw, maxP); g.lineTo(x + w, y + h); g.lineTo(x, y + h); g.closePath(); g.fillStyle = 'rgba(196,90,255,.28)'; g.fill();
+  path(pw, maxP); g.strokeStyle = '#d25cff'; g.lineWidth = 4; g.lineJoin = 'round'; g.stroke();
+  if (hr.some(v => v)) { path(hr, 200); g.strokeStyle = '#ff7ec9'; g.lineWidth = 3.5; g.stroke(); }
 }
-function buildShareImage() {
-  const W = 1200, H = 630, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
-  const g = cv.getContext('2d'), st = stats(), def = session.workoutDef, ftp = +$('ftp').value || 200, FONT = '-apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif';
+function buildShareImage(rec) {
+  rec = rec || rideRecord();
+  const W = 1600, H = 1200, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const g = cv.getContext('2d'), def = defOf(rec), ftp = rec.ftp || 200, FONT = '-apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif', X0 = 120, X1 = W - 120;
   const bg = g.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#1e1533'); bg.addColorStop(1, '#0b0813'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
   g.textBaseline = 'alphabetic'; g.textAlign = 'left';
-  const name = rideName(); let fs = 46; g.font = `700 ${fs}px ${FONT}`;
-  while (g.measureText(name).width > 1080 && fs > 26) { fs -= 2; g.font = `700 ${fs}px ${FONT}`; }
-  g.fillStyle = '#f6eeff'; g.fillText(name, 60, 88);
-  g.fillStyle = '#9d90b8'; g.font = `400 24px ${FONT}`;
-  g.fillText((session.startTime || new Date()).toLocaleString([], { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' }) + (def ? `  ·  FTP ${ftp} W` : ''), 60, 126);
-  const items = [['TIME', fmtTime(st.elapsed)], ['DISTANCE', (st.distance/1000).toFixed(1) + ' km'], ['AVG POWER', st.avgPower ? st.avgPower + ' W' : '–'],
-                 ['NORM. POWER', st.np ? st.np + ' W' : '–'], ['AVG HR', st.avgHr ? st.avgHr + ' bpm' : '–']];
-  items.forEach((it, i) => { const x = 60 + i * 216;
-    g.fillStyle = '#9d90b8'; g.font = `600 15px ${FONT}`; g.fillText(it[0].split('').join(String.fromCharCode(8202)), x, 182);
-    g.fillStyle = '#ffffff'; g.font = `700 38px ${FONT}`; g.fillText(it[1], x, 226); });
+  // Strava puts a "Virtual" badge over the top-left corner, so the title starts below it.
+  let fs = 68; g.font = `700 ${fs}px ${FONT}`; while (g.measureText(rec.name).width > X1 - X0 && fs > 34) { fs -= 2; g.font = `700 ${fs}px ${FONT}`; }
+  g.fillStyle = '#f6eeff'; g.fillText(rec.name, X0, 262);
+  g.fillStyle = '#9d90b8'; g.font = `400 30px ${FONT}`;
+  g.fillText(new Date(rec.start).toLocaleString([], { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) + (def ? `  ·  FTP ${ftp} W` : ''), X0, 316);
+  const items = [['TIME', fmtTime(rec.elapsed)], ['DISTANCE', (rec.distance / 1000).toFixed(1) + ' km'], ['AVG POWER', rec.avgPower ? rec.avgPower + ' W' : '–'],
+                 ['NORM. POWER', rec.np ? rec.np + ' W' : '–'], ['AVG HR', rec.avgHr ? rec.avgHr + ' bpm' : '–']];
+  items.forEach((it, i) => { const x = X0 + i * 272;
+    g.fillStyle = '#9d90b8'; g.font = `600 20px ${FONT}`; g.fillText(it[0].split('').join(String.fromCharCode(8202)), x, 410);
+    g.fillStyle = '#ffffff'; g.font = `700 52px ${FONT}`; g.fillText(it[1], x, 472); });
   if (def) {
-    const sub = document.createElement('canvas'), actual = wk.def === def ? wk.actual : [];
-    drawProfile(sub, 0, def.total, 0, { W: 1080, H: 330, def, ftp, actual, sc: 1.5 }); g.drawImage(sub, 60, 252);
-  } else drawRideChart(g, 100, 262, 1040, 300);
-  g.fillStyle = '#9d90b8'; g.font = `400 18px ${FONT}`; g.fillText(def ? 'Planned workout  ·  white line = your power' : 'Power (purple)  ·  Heart rate (pink)', 60, 604);
-  g.textAlign = 'right'; g.font = `800 22px ${FONT}`; const lg = g.createLinearGradient(W - 220, 0, W - 60, 0); lg.addColorStop(0, '#6d7bff'); lg.addColorStop(.6, '#c13cf0'); lg.addColorStop(1, '#ff4fb8');
-  g.fillStyle = lg; g.fillText('HUB RIDER', W - 60, 604);
+    const sub = document.createElement('canvas'), actual = (rec.wkActual || []).map(a => ({ x: a[0], p: a[1] }));
+    drawProfile(sub, 0, def.total, 0, { W: X1 - X0, H: 500, def, ftp, actual, sc: 2.1 }); g.drawImage(sub, X0, 528);
+  } else drawSeriesChart(g, X0 + 20, 540, X1 - X0 - 40, 470, rec.series || {});
+  g.fillStyle = '#9d90b8'; g.font = `400 24px ${FONT}`; g.fillText(def ? 'Planned workout  ·  white line = your power' : 'Power (purple)  ·  Heart rate (pink)', X0, 1108);
+  g.textAlign = 'right'; g.font = `800 34px ${FONT}`; const lg = g.createLinearGradient(X1 - 200, 0, X1, 0); lg.addColorStop(0, '#6d7bff'); lg.addColorStop(.6, '#c13cf0'); lg.addColorStop(1, '#ff4fb8');
+  const wmW = g.measureText('FREEHUB').width; g.fillStyle = lg; g.fillText('FREEHUB', X1, 1112);
+  if (markImg.complete && markImg.naturalWidth) { g.save(); g.beginPath(); g.roundRect ? g.roundRect(X1 - wmW - 18 - 56, 1112 - 44, 56, 56, 12) : g.rect(X1 - wmW - 74, 1068, 56, 56); g.clip(); g.drawImage(markImg, X1 - wmW - 18 - 56, 1112 - 44, 56, 56); g.restore(); }
   return cv;
 }
-function saveShareImage() {
-  buildShareImage().toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b);
-    a.download = `ride-${session.startTime.toISOString().slice(0,16).replace(/[:T]/g,'-')}.png`; a.click(); }, 'image/png');
+function downloadCanvas(cv, filename) { cv.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = filename; a.click(); }, 'image/png'); }
+function saveShareImage(rec) { rec = rec || rideRecord(); downloadCanvas(buildShareImage(rec), `freehub-${rec.id || rid(new Date())}.png`); }
+
+// ---- History ----
+const fmtWhen = iso => new Date(iso).toLocaleString([], { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+let histRec = null;
+const histOpen = () => $('histOverlay').classList.contains('open');
+async function openHistory() { $('histOverlay').classList.add('open'); $('histBody').innerHTML = '<div class="sub">Loading…</div>'; await loadRides(); renderHistory(); }
+const closeHistory = () => $('histOverlay').classList.remove('open');
+function tot(list) { return { n: list.length, sec: list.reduce((a, r) => a + (r.elapsed || 0), 0), km: list.reduce((a, r) => a + (r.distance || 0), 0) / 1000 }; }
+function renderHistory() {
+  const now = new Date(), wkStart = mondayOf(now); wkStart.setHours(0, 0, 0, 0);
+  const sets = [['This week', rides.filter(r => new Date(r.start) >= wkStart)], ['This month', rides.filter(r => { const d = new Date(r.start); return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth(); })], ['All time', rides]];
+  $('histBody').innerHTML = `<div class="cathead"><h2>History</h2><button data-act="close">Close</button></div>
+    <div class="histtotals">${sets.map(([l, list]) => { const t = tot(list); return `<div class="htile"><div class="label">${l}</div><div class="v">${t.n} ${t.n === 1 ? 'ride' : 'rides'}</div><div class="s">${hm(t.sec)} · ${t.km.toFixed(0)} km</div></div>`; }).join('')}</div>` +
+    (rides.length ? rides.map(r => `<div class="histrow" data-id="${esc(r.id)}"><div class="m">${fmtWhen(r.start)}</div>
+        <div><div class="n">${esc(r.name)}</div><div class="m">${r.workout ? esc(r.workout.name) : 'Free ride'}</div></div>
+        <div><div class="m">Time</div>${fmtTime(r.elapsed)}</div><div><div class="m">Distance</div>${(r.distance / 1000).toFixed(1)} km</div>
+        <div><div class="m">Avg power</div>${r.avgPower ? r.avgPower + ' W' : '–'}</div><div><div class="m">Norm. power</div>${r.np ? r.np + ' W' : '–'}</div>
+        <div title="${r.strava ? 'On Strava' : 'Not uploaded'}">${r.strava ? '<span class="sdot"></span>' : ''}</div></div>`).join('')
+      : '<div class="sub" style="padding:30px 0;text-align:center">No rides saved yet. Finish a ride and it will appear here.</div>');
 }
+async function openRide(id) {
+  try { histRec = await (await fetch('/api/rides/' + encodeURIComponent(id))).json(); } catch { return toast('Could not load that ride.'); }
+  if (!histRec || histRec.error) return toast('Could not load that ride.');
+  renderRide();
+}
+function renderRide(msg, cls) {
+  const r = histRec, link = r.strava && r.strava.activityId ? `https://www.strava.com/activities/${r.strava.activityId}` : null;
+  $('histBody').innerHTML = `<div class="cathead"><button data-act="back">← History</button><h2>${esc(r.name)}</h2></div>
+    <div class="sub">${fmtWhen(r.start)}${r.workout ? ' · ' + esc(r.workout.name) : ' · Free ride'}${r.strava ? ' · on Strava' : ''}</div>
+    <label class="bfield"><span class="label">Name (used on Strava)</span><input type="text" id="hName" maxlength="100" value="${esc(r.name)}"></label>
+    <img id="hImg" alt="Ride image" style="width:100%;border-radius:12px;border:1px solid var(--line);margin-top:6px" src="${buildShareImage(r).toDataURL('image/png')}">
+    <div class="mstats">${statTile('Time', fmtTime(r.elapsed), '', true) + statTile('Distance', (r.distance / 1000).toFixed(2), 'km', true) + statTile('Avg speed', (r.avgSpeed || 0).toFixed(1), 'km/h') +
+      statTile('Avg power', r.avgPower || '–', r.avgPower ? 'W' : '') + statTile('Max power', r.maxPower || '–', r.maxPower ? 'W' : '') + statTile('Norm. power', r.np || '–', r.np ? 'W' : '') +
+      statTile('Energy', r.kj, 'kJ') + statTile('Avg HR', r.avgHr || '–', r.avgHr ? 'bpm' : '') + statTile('Avg cadence', r.avgCad || '–', r.avgCad ? 'rpm' : '')}</div>
+    <div id="hMsg" class="${cls || ''}" style="min-height:20px;font-size:14px">${msg || ''}</div>
+    <div class="mactions"><button class="primary" data-act="img">⬇ Download image</button><a href="/api/rides/${encodeURIComponent(r.id)}/tcx"><button>Download .tcx</button></a>
+      ${link ? `<a href="${link}" target="_blank"><button>View on Strava ↗</button></a>` : `<button data-act="up" ${stravaConnected ? '' : 'disabled title="Connect Strava first"'}>Upload to Strava</button>`}
+      <button class="ghost-danger" data-act="del">Delete</button></div>`;
+}
+$('histBody').addEventListener('click', async e => {
+  const row = e.target.closest('.histrow'); if (row) return openRide(row.dataset.id);
+  const b = e.target.closest('button'); if (!b || b.disabled) return; const act = b.dataset.act, r = histRec;
+  if (act === 'close') closeHistory();
+  else if (act === 'back') { await loadRides(); renderHistory(); }
+  else if (act === 'img') saveShareImage(r);
+  else if (act === 'up') {
+    b.disabled = true; $('hMsg').className = ''; $('hMsg').textContent = 'Uploading to Strava…';
+    try { const x = await putJson(`/api/rides/${encodeURIComponent(r.id)}/upload`, { name: r.name, description: rideDescription(r) }, 'POST'), j = await x.json(); if (!x.ok) throw new Error(j.error);
+      r.strava = { activityId: j.activityId }; await loadRides(); renderRide(j.activityId ? 'Uploaded to Strava.' : 'Upload accepted — Strava is still processing it.', 'ok'); }
+    catch (err) { b.disabled = false; $('hMsg').className = 'err'; $('hMsg').textContent = 'Upload failed: ' + err.message; }
+  } else if (act === 'del') {
+    if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Confirm delete'; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = 'Delete'; } }, 3000); return; }
+    await fetch('/api/rides/' + encodeURIComponent(r.id), { method: 'DELETE' }); await loadRides(); renderHistory(); toast('Ride deleted.', 2500);
+  }
+});
+$('histBody').addEventListener('change', async e => {
+  if (e.target.id !== 'hName' || !histRec) return; const v = e.target.value.trim(); if (!v) { e.target.value = histRec.name; return; }
+  histRec.name = v; try { await putJson('/api/rides/' + encodeURIComponent(histRec.id), { record: histRec }); $('hImg').src = buildShareImage(histRec).toDataURL('image/png'); loadRides(); toast('Name saved.', 1800); } catch {}
+});
+$('btnHist').onclick = openHistory;
+$('histOverlay').addEventListener('mousedown', e => { if (e.target === $('histOverlay') && !histRec_inDetail()) closeHistory(); });
+const histRec_inDetail = () => !!$('hImg');
+
+// ---- Training plans ----
+const TEMPLATES = [
+  { id:'t-ftp4', name:'4-Week FTP Builder', desc:'Three indoor sessions a week: an ERG check to start, sweet spot to build, and a 30/30 session for top-end. Week 4 eases off.', weeks:4,
+    days:[ [null,'erg',null,'ss',null,null,'ss30'], [null,'3030',null,'ss',null,null,'ss30'], [null,'3030',null,'ss30',null,null,'kos'], [null,'erg',null,'3030',null,null,null] ] },
+  { id:'t-ss3', name:'3-Week Sweet Spot Block', desc:'Two sweet-spot sessions a week plus a longer weekend ride.', weeks:3,
+    days:[ [null,'ss',null,'ss30',null,null,'kos'], [null,'ss30',null,'ss',null,null,'kos'], [null,'ss',null,'ss30',null,null,null] ] },
+];
+let planStore = { active: null, plans: [] }, planView = 'schedule', planWeek = null, pe = null;
+const activePlan = () => planStore.plans.find(p => p.id === planStore.active) || null;
+const sessionById = id => WORKOUTS.find(w => w.id === id) || null;
+const planOpen = () => $('planOverlay').classList.contains('open');
+async function loadStores() {
+  try {                                    // custom sessions: the server copy is the master; migrate anything saved only in this browser
+    const srv = await (await fetch('/api/store/custom')).json();
+    if (Array.isArray(srv)) { for (let i = WORKOUTS.length - 1; i >= 0; i--) if (!WORKOUTS[i].preset) WORKOUTS.splice(i, 1); srv.forEach(c => WORKOUTS.push(finalize({ id: c.id, name: c.name, desc: c.desc || '', steps: c.steps }))); }
+    else if (WORKOUTS.some(w => !w.preset)) saveCustom();
+    const cur = $('wkSel').value; refreshSelect(cur); try { const v = localStorage.getItem('hubrider.sel'); if (v && WORKOUTS.some(w => w.id === v)) $('wkSel').value = v; } catch {}
+  } catch {}
+  try { const p = await (await fetch('/api/store/plans')).json(); if (p && Array.isArray(p.plans)) planStore = p; } catch {}
+  updatePlanDot();
+}
+const savePlans = () => putJson('/api/store/plans', planStore).catch(() => toast('Could not save the plan to the server.'));
+function statusFor(date, sid) {
+  const k = dkey(date), tk = dkey(new Date()), on = rides.filter(r => dkey(new Date(r.start)) === k);
+  if (!sid) return on.length ? 'extra' : 'rest';
+  if (on.some(r => r.workout && r.workout.id === sid)) return 'done';
+  if (on.length) return 'other';
+  return k < tk ? 'missed' : k === tk ? 'today' : 'upcoming';
+}
+const STATUS_TXT = { done: '✓ Done', other: 'Rode a different session', missed: 'Missed', today: 'Today', upcoming: '', rest: 'Rest day', extra: 'Extra ride' };
+function todaysSession() {
+  const p = activePlan(); if (!p) return null; const di = Math.round((parseDay(dkey(new Date())) - parseDay(p.startDate)) / 864e5);
+  if (di < 0 || di >= p.weeks * 7) return null; const sid = (p.days[Math.floor(di / 7)] || [])[di % 7]; return sid && sessionById(sid) ? { sid, status: statusFor(new Date(), sid) } : null;
+}
+function updatePlanDot() { const t = todaysSession(); $('planDot').classList.toggle('on', !!(t && (t.status === 'today'))); }
+function openPlan() { $('planOverlay').classList.add('open'); planView = activePlan() ? 'schedule' : 'pick'; planWeek = null; loadRides().then(renderPlan); renderPlan(); }
+const closePlan = () => $('planOverlay').classList.remove('open');
+$('btnPlan').onclick = openPlan;
+$('planOverlay').addEventListener('mousedown', e => { if (e.target === $('planOverlay') && planView !== 'edit') closePlan(); });
+function planThumbs() { $('planBody').querySelectorAll('canvas[data-sid]').forEach(cv => { const w = sessionById(cv.dataset.sid); if (w) drawProfile(cv, 0, w.total, 0, { W: cv.clientWidth || 120, H: 44, def: w, ftp: +$('ftp').value || 200, actual: null, mini: true, dpr: devicePixelRatio || 1 }); }); }
+function renderPlan() { const p = activePlan(); if (planView === 'edit') renderPlanEdit(); else if (planView === 'pick' || !p) renderPlanPick(); else renderPlanSchedule(p); planThumbs(); }
+function renderPlanSchedule(p) {
+  const start = parseDay(p.startDate), tk = dkey(new Date()), di = Math.round((parseDay(tk) - start) / 864e5); let total = 0, done = 0;
+  p.days.forEach((wd, wi) => wd.forEach((sid, d) => { if (sid && sessionById(sid)) { total++; if (statusFor(addDays(start, wi * 7 + d), sid) === 'done') done++; } }));
+  if (planWeek == null) planWeek = Math.max(0, Math.min(p.weeks - 1, Math.floor(di / 7)));
+  const t = todaysSession(), tw = t && sessionById(t.sid);
+  const banner = di < 0 ? `<div class="catmeta" style="margin:10px 0">This plan starts on ${parseDay(p.startDate).toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' })}.</div>`
+    : di >= p.weeks * 7 ? `<div class="catmeta" style="margin:10px 0">This plan has finished. Nice work — pick a new one or edit this plan to extend it.</div>`
+    : tw && t.status === 'today' ? `<div class="today-banner"><div style="flex:1"><div class="label">Today</div><div style="font-size:18px;font-weight:700;margin-top:2px">${esc(tw.name)}</div><div class="catmeta">${hm(tw.total)} · ${tw.steps.length} steps</div></div><button class="primary" data-act="load" data-sid="${esc(t.sid)}">Load into workout</button></div>`
+    : `<div class="catmeta" style="margin:10px 0">${tw && t.status === 'done' ? '✓ Today’s session is done. Great work.' : 'Nothing planned for today — enjoy the rest.'}</div>`;
+  const days = (p.days[planWeek] || []).map((sid, d) => { const date = addDays(start, planWeek * 7 + d), w = sid && sessionById(sid), st = statusFor(date, w ? sid : null), isT = dkey(date) === tk;
+    return `<div class="pday ${st}${isT ? ' today' : ''}"><div class="pdh"><b>${date.toLocaleDateString([], { weekday: 'short' })}</b> ${date.toLocaleDateString([], { day: 'numeric', month: 'short' })}</div>
+      ${w ? `<canvas data-sid="${esc(sid)}"></canvas><div class="pdn">${esc(w.name)}</div><div class="catmeta">${hm(w.total)}</div>` : sid ? '<div class="catmeta">Session removed</div>' : ''}
+      <div class="pstat ${st}">${STATUS_TXT[st] || ''}</div>${w ? `<button data-act="load" data-sid="${esc(sid)}" style="padding:6px 10px;font-size:12.5px">Load</button>` : ''}</div>`; }).join('');
+  $('planBody').innerHTML = `<div class="cathead"><h2>${esc(p.name)}</h2><button data-act="pick">Plans</button><button data-act="edit">Edit</button><button data-act="close">Close</button></div>
+    <div class="catmeta">${done} of ${total} sessions done · ${p.weeks} weeks from ${parseDay(p.startDate).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+    <div class="planbar"><i style="width:${total ? Math.round(done / total * 100) : 0}%"></i></div>${banner}
+    <div class="weektabs">${p.days.map((_, i) => `<button data-act="week" data-w="${i}" class="${i === planWeek ? 'on' : ''}">Week ${i + 1}</button>`).join('')}</div><div class="pdays">${days}</div>`;
+}
+function renderPlanPick() {
+  const mine = planStore.plans.map(p => `<div class="catcard${p.id === planStore.active ? ' sel' : ''}"><h3>${esc(p.name)}${p.id === planStore.active ? '<span class="tag">Active</span>' : ''}</h3><div class="catmeta">${p.weeks} weeks · from ${parseDay(p.startDate).toLocaleDateString([], { day: 'numeric', month: 'short' })}</div>
+      <div class="catactions">${p.id === planStore.active ? '' : `<button class="primary" data-act="activate" data-id="${esc(p.id)}">Make active</button>`}<button data-act="editid" data-id="${esc(p.id)}">Edit</button></div></div>`).join('');
+  const tpl = TEMPLATES.map(t => `<div class="catcard"><h3>${esc(t.name)}</h3><div class="catmeta">${t.weeks} weeks · ${t.days.flat().filter(Boolean).length} sessions</div><div class="catdesc">${esc(t.desc)}</div>
+      <div class="catactions"><button class="primary" data-act="tpl" data-id="${t.id}">Use this plan</button></div></div>`).join('');
+  $('planBody').innerHTML = `<div class="cathead"><h2>Training plans</h2><button class="primary" data-act="new">＋ New plan</button>${activePlan() ? '<button data-act="sched">Back to schedule</button>' : ''}<button data-act="close">Close</button></div>
+    ${mine ? `<div class="label" style="margin:6px 0 10px">Your plans</div><div class="catgrid">${mine}</div>` : ''}
+    <div class="label" style="margin:18px 0 10px">Templates</div><div class="catgrid">${tpl}</div>`;
+}
+function newPlanFrom(src) { return { id: 'p' + Date.now().toString(36), name: src.name, startDate: dkey(mondayOf(new Date())), weeks: src.weeks, days: src.days.map(w => w.slice()) }; }
+function renderPlanEdit() {
+  const opts = sel => `<option value="">Rest</option>` + WORKOUTS.map(w => `<option value="${esc(w.id)}"${w.id === sel ? ' selected' : ''}>${esc(w.name)}</option>`).join('');
+  const start = parseDay(pe.startDate || dkey(new Date())), heads = [...Array(7)].map((_, d) => addDays(start, d).toLocaleDateString([], { weekday: 'short' }));
+  $('planBody').innerHTML = `<div class="cathead"><h2>${pe.isNew ? 'New plan' : 'Edit plan'}</h2></div>
+    <label class="bfield"><span class="label">Plan name</span><input type="text" id="peName" maxlength="60" value="${esc(pe.name)}"></label>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;margin:10px 0"><label class="bfield" style="margin:0"><span class="label">Start date</span><input type="date" id="peStart" value="${esc(pe.startDate)}" style="margin-top:6px;width:170px"></label>
+      <div><span class="label">Weeks</span><div style="display:flex;gap:8px;align-items:center;margin-top:6px"><button data-act="wminus" ${pe.days.length <= 1 ? 'disabled' : ''}>−</button><b style="min-width:24px;text-align:center">${pe.days.length}</b><button data-act="wplus" ${pe.days.length >= 24 ? 'disabled' : ''}>＋</button></div></div></div>
+    <div class="label" style="margin:12px 0 8px">Pick a session for each day (days follow the start date)</div>
+    <div class="pmatrix"><div></div>${heads.map(h => `<div class="label" style="text-align:center">${h}</div>`).join('')}${pe.days.map((wd, wi) => `<div class="label">Week ${wi + 1}</div>` + wd.map((sid, d) => `<select data-w="${wi}" data-d="${d}">${opts(sid)}</select>`).join('')).join('')}</div>
+    <div class="sub" id="peErr" style="color:#ff7ab6;min-height:18px;margin-top:10px"></div>
+    <div class="mactions"><button class="primary" data-act="psave">Save plan</button><button data-act="pcancel">Cancel</button>${pe.isNew ? '' : '<button class="ghost-danger" data-act="pdel">Delete plan</button>'}</div>`;
+}
+$('planBody').addEventListener('input', e => { if (planView === 'edit' && e.target.id === 'peName') pe.name = e.target.value; });
+$('planBody').addEventListener('change', e => {
+  if (planView !== 'edit') return; const el = e.target;
+  if (el.id === 'peStart') { pe.startDate = el.value; renderPlan(); }
+  else if (el.dataset.w != null && el.tagName === 'SELECT') pe.days[+el.dataset.w][+el.dataset.d] = el.value || null;
+});
+$('planBody').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return; const act = b.dataset.act;
+  if (act === 'close') closePlan();
+  else if (act === 'week') { planWeek = +b.dataset.w; renderPlan(); }
+  else if (act === 'pick') { planView = 'pick'; renderPlan(); }
+  else if (act === 'sched') { planView = 'schedule'; planWeek = null; renderPlan(); }
+  else if (act === 'load') {
+    if (wk.active) return toast('A workout is running. End it first.'); const w = sessionById(b.dataset.sid); if (!w) return;
+    $('wkSel').value = w.id; try { localStorage.setItem('hubrider.sel', w.id); } catch {}
+    closePlan(); updateWorkoutUi(); $('wkCard').scrollIntoView({ behavior: 'smooth', block: 'center' }); toast(`Loaded: ${w.name}`, 2500);
+  }
+  else if (act === 'activate') { planStore.active = b.dataset.id; await savePlans(); planView = 'schedule'; planWeek = null; updatePlanDot(); renderPlan(); }
+  else if (act === 'tpl') { const t = TEMPLATES.find(x => x.id === b.dataset.id), p = newPlanFrom(t); planStore.plans.push(p); planStore.active = p.id; await savePlans(); planView = 'schedule'; planWeek = null; updatePlanDot(); renderPlan(); toast(`Started “${p.name}”.`, 2500); }
+  else if (act === 'new') { pe = { isNew: true, id: null, name: '', startDate: dkey(mondayOf(new Date())), days: [[null, null, null, null, null, null, null]] }; planView = 'edit'; renderPlan(); setTimeout(() => $('peName') && $('peName').focus(), 30); }
+  else if (act === 'edit' || act === 'editid') { const p = act === 'edit' ? activePlan() : planStore.plans.find(x => x.id === b.dataset.id); if (!p) return; pe = { isNew: false, id: p.id, name: p.name, startDate: p.startDate, days: p.days.map(w => w.slice()) }; planView = 'edit'; renderPlan(); }
+  else if (act === 'wplus') { pe.days.push([null, null, null, null, null, null, null]); renderPlan(); }
+  else if (act === 'wminus') { pe.days.pop(); renderPlan(); }
+  else if (act === 'pcancel') { planView = activePlan() ? 'schedule' : 'pick'; renderPlan(); }
+  else if (act === 'psave') {
+    pe.name = ($('peName').value || '').trim(); if (!pe.name) return $('peErr').textContent = 'Give the plan a name.'; if (!pe.startDate) return $('peErr').textContent = 'Pick a start date.';
+    const p = { id: pe.id || 'p' + Date.now().toString(36), name: pe.name, startDate: pe.startDate, weeks: pe.days.length, days: pe.days };
+    const i = planStore.plans.findIndex(x => x.id === p.id); i >= 0 ? planStore.plans[i] = p : planStore.plans.push(p); if (pe.isNew || !planStore.active) planStore.active = p.id;
+    await savePlans(); planView = 'schedule'; planWeek = null; updatePlanDot(); renderPlan(); toast('Plan saved.', 2000);
+  }
+  else if (act === 'pdel') {
+    if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Confirm delete'; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = 'Delete plan'; } }, 3000); return; }
+    planStore.plans = planStore.plans.filter(x => x.id !== pe.id); if (planStore.active === pe.id) planStore.active = planStore.plans[0] ? planStore.plans[0].id : null;
+    await savePlans(); planView = activePlan() ? 'schedule' : 'pick'; updatePlanDot(); renderPlan(); toast('Plan deleted.', 2000);
+  }
+});
+document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (planOpen() && planView !== 'edit') closePlan(); else if (histOpen()) closeHistory(); });
+
+loadRides(); loadStores();
 
 // ---------- TCX ----------
 function buildTcx(name) {
