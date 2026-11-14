@@ -31,6 +31,12 @@
   .timer .t { font-size:44px; font-weight:700; font-variant-numeric:tabular-nums; line-height:1; }
   .timer .label { margin-bottom:2px; }
 
+  .tile { position:relative; overflow:hidden; }
+  #ptip { position:fixed; display:none; z-index:200; pointer-events:none; background:#15101f; border:1px solid #3a2d55; border-radius:10px; padding:8px 12px; font-size:13px; box-shadow:0 8px 24px rgba(0,0,0,.5); } #ptip .t { font-size:15px; font-weight:700; margin-top:2px; } #ptip .m { color:var(--mute); font-size:12px; margin-top:2px; }
+  .tbadge { position:absolute; top:0; right:0; width:54px; height:48px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.055); border-left:1px solid var(--line); border-bottom:1px solid var(--line); border-radius:0 16px 0 18px; }
+  .tbadge svg { width:24px; height:24px; fill:none; stroke:var(--ic,#a56bff); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; filter:drop-shadow(0 0 6px color-mix(in srgb,var(--ic,#a56bff) 55%,transparent)); }
+  .row1 .tbadge { width:68px; height:60px; } .row1 .tbadge svg { width:30px; height:30px; }
+  .row3 .tbadge, .row2 .tile:not(.big) .tbadge { width:42px; height:38px; } .row3 .tbadge svg, .row2 .tile:not(.big) .tbadge svg { width:19px; height:19px; }
   .tile { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px 22px; }
   .label { font-size:12px; text-transform:uppercase; letter-spacing:1.2px; color:var(--mute); }
   .val { font-size:44px; font-weight:700; font-variant-numeric:tabular-nums; margin-top:6px; line-height:1; }
@@ -42,6 +48,11 @@
   .row1 .val { font-size:116px; letter-spacing:-2px; margin-top:10px; }
   .row1 .val small { font-size:24px; letter-spacing:0; }
   .row2 { display:grid; grid-template-columns:2fr 1fr 1fr; gap:16px; margin-top:16px; }
+  .pwrow { display:flex; align-items:flex-end; gap:12px; } .pcol { min-width:0; }
+  .ptarget { display:none; margin-left:auto; margin-right:46px; text-align:right; } .pwrow.hasTarget .ptarget { display:block; }
+  .ptarget .val { color:var(--mute); } .ptarget .val.hit { color:#3ee6b0; }
+  .parrow { display:none; flex:1; justify-content:center; align-self:center; } .pwrow.hasTarget .parrow { display:flex; }
+  .parrow svg { width:84px; height:84px; opacity:0; transition:opacity .2s; } .parrow svg.on { opacity:1; }
   .row2 .big .val { font-size:72px; transition:color .3s; }
   .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; margin-top:16px; }
   .grid .val { font-size:32px; }
@@ -116,7 +127,7 @@
   .tag { font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--accent); border:1px solid var(--accent); border-radius:99px; padding:1px 7px; margin-left:8px; vertical-align:2px; }
   .bfield { display:block; margin:10px 0; }
   .bfield input[type=text] { width:100%; margin-top:6px; font-size:15px; padding:10px 12px; }
-  .steprows { display:grid; grid-template-columns:minmax(0,1fr) 84px 84px 84px auto; gap:6px; align-items:center; }
+  .steprows { display:grid; grid-template-columns:minmax(0,1fr) 72px 72px 72px 76px 86px auto; gap:6px; align-items:center; }
   .steprows .hd { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--mute); }
   .steprows input[type=number], .steprows input[type=text] { width:100%; padding:8px 9px; font-size:14px; }
   .rowbtns { display:flex; gap:4px; }
@@ -175,7 +186,10 @@
   </div>
 
   <div class="row2">
-    <div class="tile big"><div class="label">Power</div><div class="val" id="power">--<small>W</small></div><div class="sub" id="zone">Zone –</div></div>
+    <div class="tile big"><div class="pwrow"><div class="pcol"><div class="label">Power</div><div class="val" id="power">--<small>W</small></div></div>
+      <div class="parrow" id="pArrow" aria-hidden="true"></div>
+      <div class="pcol ptarget" id="pTarget"><div class="label">Target</div><div class="val" id="tgt">--<small>W</small></div></div></div>
+      <div class="sub" id="zone">Zone –</div></div>
     <div class="tile"><div class="label">Heart rate</div><div class="val" id="hr">--<small>bpm</small></div><div class="sub" id="hrAvg">avg --</div></div>
     <div class="tile"><div class="label">Cadence</div><div class="val" id="cad">--<small>rpm</small></div><div class="sub" id="cadAvg">avg --</div></div>
   </div>
@@ -277,9 +291,9 @@
       <div class="cathead"><h2 id="bTitle">New session</h2></div>
       <label class="bfield"><span class="label">Name</span><input type="text" id="bName" maxlength="60" placeholder="e.g. Tuesday Threshold"></label>
       <label class="bfield"><span class="label">Description (optional)</span><input type="text" id="bDesc" maxlength="240" placeholder="What is this session for?"></label>
-      <div class="label" style="margin:16px 0 8px">Steps — targets are % of your FTP. Fill “to” to make a ramp, leave it empty for a flat step.</div>
+      <div class="label" style="margin:16px 0 8px">Steps — targets are % of your FTP. Fill “to” to make a ramp, leave it empty for a flat step. Fill “Cadence” (e.g. 55-65) for a low- or high-cadence step; Freehub shows the target and tells you to speed up or slow down. Fill “Hold HR” and the app adjusts your power to keep that heart rate (From % is the starting power).</div>
       <div class="steprows" id="bRows"></div>
-      <div class="mactions"><button id="bAddStep">＋ Step</button><button id="bAddIv">＋ Intervals</button></div>
+      <div class="mactions"><button id="bAddStep">＋ Step</button><button id="bAddIv">＋ Intervals</button><button id="bAddHr" title="The app adjusts ERG power to keep your heart rate at a target">＋ Heart-rate step</button></div>
       <div class="ivform" id="ivForm">
         <label>Reps<input type="number" id="ivReps" value="5" min="1" max="50"></label>
         <label>On (min)<input type="number" id="ivOnMin" value="5" min="0.25" step="0.25"></label>
@@ -295,6 +309,7 @@
     </div>
   </div>
 </div>
+<div class="overlay" id="testOverlay"><div class="modal" role="dialog" aria-modal="true" aria-label="FTP test result" style="max-width:520px"><div id="testBody"></div></div></div>
 <div class="overlay" id="histOverlay"><div class="modal cat-modal" role="dialog" aria-modal="true" aria-label="Ride history"><div id="histBody"></div></div></div>
 <div class="overlay" id="planOverlay"><div class="modal cat-modal" role="dialog" aria-modal="true" aria-label="Training plan"><div id="planBody"></div></div></div>
 <div id="toast"></div>
@@ -610,6 +625,8 @@ async function doUpload() {
 
 // ---------- Workouts (ERG mode) ----------
 const S = (label, mins, from, to = from) => ({ label, dur: Math.round(mins * 60), from, to });   // from/to = fraction of FTP
+const H = (label, mins, bpm, start = .6) => ({ ...S(label, mins, start), hr: bpm });   // heart-rate step: Freehub steers ERG power to hold bpm (start = first guess, fraction of FTP)
+const CAD = (st, lo, hi) => ({ ...st, cad: [lo, hi] });   // cadence guide for a step (rpm range)
 const WORKOUTS = [
   { id:'erg', name:'ERG Check (10 min)', desc:'A gentle test to confirm your Hub follows the targets: easy → steady → a short push → easy. Targets change at each beep.',
     steps:[ S('Easy spin',3,.5), S('Steady',3,.6), S('Push',2,.75), S('Easy spin',2,.5) ] },
@@ -631,6 +648,22 @@ const WORKOUTS = [
     steps:(() => { const a=[S('Warm-up',10,.5,.7)];
       for (let set=1; set<=2; set++) { for (let r=1; r<=8; r++) { a.push(S(`Set ${set} · Hard ${r}/8`,.5,1.2), S(`Set ${set} · Easy ${r}/8`,.5,.5)); } if (set<2) a.push(S('Recovery',5,.55)); }
       a.push(S('Cool-down',5,.6,.4)); return a; })() },
+  { id:'ab60', name:'Aerobic Base 60 (HR 120)', desc:'Easy aerobic ride. After a short warm-up, Freehub adjusts your power to keep your heart rate at 120 bpm for 50 minutes. Edit the bpm in Sessions to suit your own Zone 2.',
+    steps:[ S('Warm-up',5,.45,.6), H('Aerobic · HR 120',50,120), S('Cool-down',5,.55,.4) ] },
+  { id:'ab90', name:'Aerobic Base 90 (HR 122)', desc:'A longer steady ride for building your aerobic engine. 70 minutes holding 122 bpm, with a warm-up and cool-down.',
+    steps:[ S('Warm-up',10,.45,.6), H('Aerobic · HR 122',70,122), S('Cool-down',10,.55,.4) ] },
+  { id:'abl', name:'Aerobic Ladder 80 (HR 120→128)', desc:'Three 20-minute blocks, each 4 bpm higher than the last (120, 124, 128 bpm). Stays in the aerobic zone while teaching you to hold a slightly higher effort.',
+    steps:[ S('Warm-up',10,.45,.6), H('Block 1 · HR 120',20,120), H('Block 2 · HR 124',20,124,.65), H('Block 3 · HR 128',20,128,.68), S('Cool-down',10,.55,.4) ] },
+  { id:'rec45', name:'Recovery Spin 45 (HR 110)', desc:'Very easy legs-turning ride for the day after hard work. Holds 110 bpm; stop earlier if you feel flat.',
+    steps:[ S('Warm-up',5,.4,.5), H('Recovery · HR 110',35,110,.5), S('Cool-down',5,.5,.35) ] },
+  { id:'lct55', name:'Low Cadence Torque 5×5 (55–65 rpm)', desc:'Strength-endurance on the bike. Five 5-minute blocks at 80% FTP while pedalling slowly at 55–65 rpm, so every pedal stroke is heavy. Spin out at 90–100 rpm between blocks. Stay seated, keep your core tight and stop if you feel knee pain.',
+    steps:(() => { const a=[S('Warm-up',10,.5,.7)]; for (let r=1; r<=5; r++) { a.push(CAD(S(`Torque ${r}/5`,5,.8),55,65)); if (r<5) a.push(CAD(S('Spin out',3,.5),90,100)); } a.push(S('Cool-down',7,.6,.4)); return a; })() },
+  { id:'lct60', name:'Low Cadence Endurance 3×10 (60–70 rpm)', desc:'An easier introduction to low-cadence work: three 10-minute blocks at 70% FTP at 60–70 rpm with 4-minute spin-outs. Build up to this before the 5×5.',
+    steps:(() => { const a=[S('Warm-up',10,.5,.7)]; for (let r=1; r<=3; r++) { a.push(CAD(S(`Torque ${r}/3`,10,.7),60,70)); if (r<3) a.push(CAD(S('Spin out',4,.5),90,100)); } a.push(S('Cool-down',6,.6,.4)); return a; })() },
+  { id:'ramp', test:'ramp', name:'FTP Ramp Test (about 20 min)', desc:'Power rises every minute until you can’t continue. Press End workout when you have to stop (or let it run). Freehub then estimates your FTP as 75% of your best 1-minute power. You do not need to know your FTP exactly; the steps scale from your current setting, so it should be roughly right.',
+    steps:(() => { const a=[S('Warm-up',5,.5,.6)]; for (let i=0;i<22;i++) a.push(S(`Ramp ${i+1}`,1,+(.55+i*.05).toFixed(2))); a.push(S('Cool-down',5,.5,.4)); return a; })() },
+  { id:'ftp20', test:'ftp20', name:'FTP Test 20 min (about 60 min)', desc:'The classic test: warm-up, a 5-minute hard effort, recovery, then 20 minutes as hard as you can steadily sustain (the trainer is in free mode, so you pick the power). Freehub estimates FTP as 95% of your 20-minute average. Start the 20 minutes at a pace you can hold; don’t go out too hard.',
+    steps:[ S('Warm-up',10,.5,.75), S('Spin-up 1',1,.9), S('Easy',1,.5), S('Spin-up 2',1,.9), S('Easy',1,.5), S('Spin-up 3',1,.9), S('Easy',2,.5), { ...S('5 min hard effort',5,1.1), free:true }, S('Easy',10,.5,.45), { ...S('FTP test · 20 min',20,1), free:true }, S('Cool-down',10,.5,.35) ] },
 ];
 for (const d of WORKOUTS) { let t = 0; d.offsets = d.steps.map(st => { const o = t; t += st.dur; return o; }); d.total = t; }
 $('wkSel').innerHTML = WORKOUTS.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
@@ -700,26 +733,31 @@ const pct = v => Math.round(v * 100);
 function openBuilder(src, id) {
   draft = { id, name: src ? src.name : '', desc: src ? (src.desc || '') : '',
     steps: (src ? src.steps : [ { label:'Warm-up', dur:600, from:.5, to:.7 }, { label:'Main set', dur:1200, from:.9, to:.9 }, { label:'Cool-down', dur:300, from:.6, to:.4 } ])
-      .map(st => ({ label: st.label, min: +(st.dur / 60).toFixed(2), from: pct(st.from), to: st.to !== st.from ? pct(st.to) : '' })) };
+      .map(st => ({ label: st.label, min: +(st.dur / 60).toFixed(2), from: pct(st.from), to: st.to !== st.from ? pct(st.to) : '', hr: st.hr || '', cad: st.cad ? (st.cad[0] + '-' + st.cad[1]) : '' })) };
   $('bTitle').textContent = id ? 'Edit session' : 'New session'; $('bName').value = draft.name; $('bDesc').value = draft.desc; $('bErr').textContent = ''; $('ivForm').style.display = 'none';
   showCat('build'); renderRows(); setTimeout(() => $('bName').focus(), 30);
 }
 function renderRows() {
   const last = draft.steps.length - 1;
-  $('bRows').innerHTML = ['Step name', 'Minutes', 'From %', 'To %', ''].map(h => `<div class="hd">${h}</div>`).join('') + draft.steps.map((st, i) =>
+  $('bRows').innerHTML = ['Step name', 'Minutes', 'From %', 'To %', 'Hold HR', 'Cadence', ''].map(h => `<div class="hd">${h}</div>`).join('') + draft.steps.map((st, i) =>
     `<input type="text" data-i="${i}" data-k="label" value="${esc(st.label)}" maxlength="60">
      <input type="number" data-i="${i}" data-k="min" value="${st.min}" min="0.25" step="0.25">
      <input type="number" data-i="${i}" data-k="from" value="${st.from}" min="20" max="250">
      <input type="number" data-i="${i}" data-k="to" value="${st.to}" min="20" max="250" placeholder="same">
+     <input type="number" data-i="${i}" data-k="hr" value="${st.hr || ''}" min="60" max="200" placeholder="bpm">
+     <input type="text" data-i="${i}" data-k="cad" value="${esc(st.cad || '')}" placeholder="rpm" title="e.g. 55-65 or 60">
      <div class="rowbtns"><button data-i="${i}" data-a="up" ${i === 0 ? 'disabled' : ''} title="Move up">↑</button><button data-i="${i}" data-a="down" ${i === last ? 'disabled' : ''} title="Move down">↓</button><button data-i="${i}" data-a="rm" class="ghost-danger" title="Remove">✕</button></div>`).join('');
   drawDraft();
 }
 function draftDef(strict) {
   const steps = []; let err = '';
   draft.steps.forEach((st, i) => {
-    const min = parseFloat(st.min), from = parseFloat(st.from), to = st.to === '' || st.to == null ? from : parseFloat(st.to);
+    const min = parseFloat(st.min), hr = parseFloat(st.hr) || 0, from = parseFloat(st.from) || (hr ? 55 : NaN), to = hr || st.to === '' || st.to == null ? from : parseFloat(st.to);
+    let cad = null; if (String(st.cad || '').trim()) { const m = String(st.cad).trim().match(/^(\d{2,3})\s*(?:[-–]\s*(\d{2,3}))?$/); const lo = m ? +m[1] : 0, hi = m ? (m[2] ? +m[2] : lo + 5) : 0, lo2 = m && !m[2] ? lo - 5 : lo;
+      if (!m || lo2 < 30 || hi > 160 || lo2 > hi) { if (!err) err = `Step ${i + 1}: cadence should look like 55-65 (rpm) or a single number.`; return; } cad = [lo2, hi]; }
+    if (hr && !(hr >= 60 && hr <= 200)) { if (!err) err = `Step ${i + 1}: heart-rate target must be between 60 and 200 bpm.`; return; }
     if (!(min > 0) || !(from >= 20 && from <= 250) || !(to >= 20 && to <= 250)) { if (!err) err = `Step ${i + 1}: minutes must be above 0 and targets between 20% and 250% of FTP.`; return; }
-    steps.push({ label: (st.label || '').trim() || `Step ${i + 1}`, dur: Math.round(min * 60), from: from / 100, to: to / 100 });
+    steps.push({ label: (st.label || '').trim() || `Step ${i + 1}`, dur: Math.round(min * 60), from: from / 100, to: to / 100, ...(hr ? { hr } : {}), ...(cad ? { cad } : {}) });
   });
   if (strict && !err && !steps.length) err = 'Add at least one step.';
   return { def: steps.length ? finalize({ steps }) : null, err };
@@ -738,6 +776,7 @@ $('bRows').addEventListener('click', e => {
 });
 const insertAt = () => { const n = draft.steps.length; return n && /cool|down/i.test(draft.steps[n - 1].label) ? n - 1 : n; };   // keep a trailing cool-down last
 $('bAddStep').onclick = () => { const l = draft.steps[draft.steps.length - 1]; draft.steps.splice(insertAt(), 0, { label:'New step', min: l ? l.min : 5, from: l ? l.from : 70, to:'' }); renderRows(); };
+$('bAddHr').onclick = () => { draft.steps.splice(insertAt(), 0, { label:'Steady HR', min: 60, from: 55, to:'', hr: 120 }); renderRows(); };
 $('bAddIv').onclick = () => { const f = $('ivForm'); f.style.display = f.style.display === 'flex' ? 'none' : 'flex'; };
 $('ivAdd').onclick = () => {
   const n = Math.max(1, Math.min(50, parseInt($('ivReps').value) || 1)), on = parseFloat($('ivOnMin').value), onP = parseFloat($('ivOnPct').value), off = parseFloat($('ivOffMin').value), offP = parseFloat($('ivOffPct').value);
@@ -779,18 +818,30 @@ function beep(freq = 880, ms = 140) {
 }
 function currentTarget() {
   const st = wk.def.steps[wk.idx], ftp = +$('ftp').value || 200;
+  if (st.free) return 0;
+  if (st.hr) { if (wk.hrPower == null) wk.hrPower = st.from * ftp; return Math.round(wk.hrPower); }
   const f = st.dur ? st.from + (st.to - st.from) * Math.min(1, wk.stepElapsed / st.dur) : st.from;
   return Math.round(ftp * f);
 }
+// Heart-rate steps: every 10 s nudge the ERG power toward the HR target. HR lags effort by a minute or so, so the nudges are small.
+function hrControl(st) {
+  const ftp = +$('ftp').value || 200; if (wk.hrPower == null) wk.hrPower = st.from * ftp;
+  if (live.hr) { wk.hrBuf.push(live.hr); if (wk.hrBuf.length > 10) wk.hrBuf.shift(); }
+  if (wk.stepElapsed % 10 || wk.hrBuf.length < 5 || !((live.power || 0) > 5)) return;
+  const avgHr = wk.hrBuf.reduce((a, b) => a + b, 0) / wk.hrBuf.length, err = st.hr - avgHr;
+  if (Math.abs(err) < 2) return;                                   // close enough, leave the power alone
+  wk.hrPower = Math.max(.3 * ftp, Math.min(1.1 * ftp, wk.hrPower + Math.max(-4, Math.min(4, err * .4))));
+}
 function applyTarget(force) {
+  if (wk.def.steps[wk.idx].free) { if (lastTarget !== 'free') { lastTarget = 'free'; writeCtl([0x00]).then(() => writeCtl([0x11, 0,0, 0,0, 40, 51])).catch(() => {}); } return; }   // test efforts: no ERG, you set the pace
   const t = currentTarget(); if (!force && t === lastTarget) return; lastTarget = t;
   writeCtl([0x05, t & 0xFF, (t >> 8) & 0xFF]).catch(e => toast('Could not set ERG target: ' + e.message));
 }
 function wkInfo() {
   const d = wk.def, st = d.steps[wk.idx], nx = d.steps[wk.idx + 1], ftp = +$('ftp').value || 200;
   const left = stepDur() - wk.stepElapsed;
-  return { name: d.name, step: st.label, target: currentTarget(), left, totalLeft: left + (d.total - d.offsets[wk.idx] - st.dur),
-           next: nx ? `${nx.label} · ${Math.round(ftp * nx.from)}${nx.to !== nx.from ? '→' + Math.round(ftp * nx.to) : ''} W · ${mmss(nx.dur)}` : 'Finish' };
+  return { name: d.name, step: st.hr ? `${st.label} · ♥ ${st.hr} bpm` : st.cad ? `${st.label} · ${st.cad[0]}–${st.cad[1]} rpm` : st.label, target: currentTarget(), left, totalLeft: left + (d.total - d.offsets[wk.idx] - st.dur),
+           next: nx && nx.free ? `${nx.label} · free effort, you set the power · ${mmss(nx.dur)}` : nx && nx.hr ? `${nx.label} · ♥ ${nx.hr} bpm · ${mmss(nx.dur)}` : nx ? `${nx.label}${nx.cad ? ` · ${nx.cad[0]}–${nx.cad[1]} rpm` : ''} · ${Math.round(ftp * nx.from)}${nx.to !== nx.from ? '→' + Math.round(ftp * nx.to) : ''} W · ${mmss(nx.dur)}` : 'Finish' };
 }
 async function startWorkout() {
   if (wk.active || modalOpen) return;
@@ -799,7 +850,7 @@ async function startWorkout() {
   const def = WORKOUTS.find(w => w.id === $('wkSel').value);
   if (session.state === 'idle') start(); else if (session.state === 'paused') resume();   // 'waiting' / 'running': keep going
   session.workoutName = def.name; session.workoutDef = def;
-  wk = { active:true, def, idx:0, stepElapsed:0, extra:0, actual:[], tickAt:performance.now() }; lastTarget = null;
+  wk = { active:true, def, idx:0, stepElapsed:0, extra:0, actual:[], tickAt:performance.now(), hrPower:null, hrBuf:[] }; lastTarget = null;
   try { actx = actx || new AudioContext(); actx.resume(); } catch {}
   beep(1040, 260); updateButtons(); pushState();
   await writeCtl([0x00]).catch(() => {}); await writeCtl([0x07]).catch(() => {});   // take control, then start, then set the first target
@@ -810,13 +861,15 @@ function workoutTick() {
   wk.stepElapsed++; wk.tickAt = performance.now();
   const st = wk.def.steps[wk.idx];
   wk.actual.push({ x: wk.def.offsets[wk.idx] + Math.min(wk.stepElapsed, st.dur), p: live.power ?? 0 });
+  if (st.hr) hrControl(st);
   const left = stepDur() - wk.stepElapsed;
   if (left <= 0) nextStep(); else { if (left <= 3) beep(660, 90); applyTarget(); }
 }
 function nextStep() {
-  wk.idx++; wk.stepElapsed = 0; wk.extra = 0;
+  wk.idx++; wk.stepElapsed = 0; wk.extra = 0; wk.hrBuf = [];
+  { const ns = wk.def.steps[wk.idx], f = +$('ftp').value || 200; wk.hrPower = ns && ns.hr ? (live.power > 5 ? Math.min(live.power, 1.1 * f) : ns.from * f) : null; }
   if (wk.idx >= wk.def.steps.length) {
-    wk.active = false; beep(1200, 500); updateButtons();
+    wk.active = false; beep(1200, 500); updateButtons(); testResult();
     writeCtl([0x00]).then(() => writeCtl([0x11, 0,0, 0,0, 40, 51])).catch(() => {});   // back to a flat free ride
     toast('Workout complete! Trainer is back in free ride — keep spinning, then press Finish.', 8000); pushState(); return;
   }
@@ -824,8 +877,29 @@ function nextStep() {
 }
 function workoutSkip() { if (wk.active) { nextStep(); pushState(); } }
 function endWorkout(sendFreeRide) {
-  if (!wk.active) return; wk.active = false; updateButtons();
+  if (!wk.active) return; wk.active = false; updateButtons(); testResult();
   if (sendFreeRide) writeCtl([0x00]).then(() => writeCtl([0x11, 0,0, 0,0, 40, 51])).catch(() => {});
+}
+// ---- FTP tests: work out an estimate from what you actually rode ----
+function testResult() {
+  const d = wk.def, a = wk.actual || []; if (!d || !d.test || a.length < 60) return;
+  let ftp = null, how = '';
+  if (d.test === 'ramp') {                                   // 75% of your best 1-minute power
+    let best = 0; for (let i = 59; i < a.length; i++) { let sum = 0; for (let j = i - 59; j <= i; j++) sum += a[j].p; best = Math.max(best, sum / 60); }
+    if (best > 0 && a.length >= 8 * 60) { ftp = Math.round(best * .75); how = `75% of your best 1-minute power (${Math.round(best)} W)`; }
+  } else if (d.test === 'ftp20') {                           // 95% of your 20-minute average
+    const i = d.steps.findIndex(x => /ftp test/i.test(x.label)), o = d.offsets[i], e = o + d.steps[i].dur, seg = a.filter(x => x.x > o && x.x <= e);
+    if (seg.length >= 0.9 * d.steps[i].dur) { const avg = seg.reduce((q, r) => q + r.p, 0) / seg.length; ftp = Math.round(avg * .95); how = `95% of your 20-minute average power (${Math.round(avg)} W)`; }
+  }
+  const cur = +$('ftp').value || 200;
+  $('testBody').innerHTML = ftp ? `<div class="label">${esc(d.name)}</div><h2 style="margin:6px 0 4px">Estimated FTP: ${ftp} W</h2>
+      <div class="sub">${how}. Your current FTP is ${cur} W (${ftp >= cur ? '+' : ''}${ftp - cur} W).</div>
+      <div class="sub" style="margin-top:10px">Tests are only as good as the effort you gave. If you stopped early or held back, keep your old FTP and try again another day.</div>
+      <div class="mactions"><button class="primary" id="testUse">Use ${ftp} W as my FTP</button><button id="testKeep">Keep ${cur} W</button></div>`
+    : `<h2 style="margin:6px 0 4px">Not enough data for an FTP estimate</h2><div class="sub">The ramp test needs at least 8 minutes, and the 20-minute test needs the full effort. Nothing has been changed.</div><div class="mactions"><button id="testKeep">OK</button></div>`;
+  $('testOverlay').classList.add('open');
+  if ($('testUse')) $('testUse').onclick = () => { $('ftp').value = ftp; try { localStorage.setItem('hubrider.ftp', ftp); } catch {} $('ftp').dispatchEvent(new Event('input')); $('ftp').dispatchEvent(new Event('change')); updateWorkoutUi(); $('testOverlay').classList.remove('open'); toast(`FTP set to ${ftp} W. All sessions now use it.`, 4000); };
+  $('testKeep').onclick = () => $('testOverlay').classList.remove('open');
 }
 $('wkStart').onclick = startWorkout;
 $('wkSkip').onclick = workoutSkip;
@@ -846,7 +920,7 @@ function updateWorkoutUi() {
   const i = wkInfo(), cur = wk.def.steps[wk.idx], nx = wk.def.steps[wk.idx + 1];
   const hardNext = nx && nx.from > cur.to + .15;            // a real step up in effort
   $('wkActive').classList.toggle('alert', !!hardNext && i.left <= 15);
-  $('wkStepName').textContent = i.step; $('wkTarget').firstChild.nodeValue = i.target;
+  $('wkStepName').textContent = i.step; $('wkTarget').firstChild.nodeValue = i.target || 'FREE';
   $('wkLeft').textContent = mmss(i.left); $('wkTotalLeft').textContent = mmss(i.totalLeft);
   $('wkNextLabel').textContent = nx ? `Next up · in ${mmss(i.left)}` : 'Last step';
   $('wkNext').textContent = (hardNext && i.left <= 15 ? '⚡ Get ready — ' : '') + i.next;
@@ -858,6 +932,17 @@ function playPos() {
   let frac = 0; if (session.state === 'running') frac = Math.min(1, (performance.now() - (wk.tickAt || 0)) / 1000);
   return wk.def.offsets[wk.idx] + Math.min(st.dur, wk.stepElapsed + frac);
 }
+// Hover a workout chart to see the step under the pointer.
+const ptip = document.createElement('div'); ptip.id = 'ptip'; document.body.appendChild(ptip);
+document.addEventListener('mousemove', e => {
+  const cv = e.target, g = cv && cv._geo; if (!g) { ptip.style.display = 'none'; return; }
+  const r = cv.getBoundingClientRect(), x = e.clientX - r.left;
+  if (x < g.padL || x > g.padL + g.pw) { ptip.style.display = 'none'; return; }
+  const t = g.t0 + (x - g.padL) / g.pw * (g.t1 - g.t0), d = g.d; let i = d.steps.length - 1; while (i > 0 && d.offsets[i] > t) i--;
+  const st = d.steps[i], a = Math.round(st.from * g.ftp), b = Math.round(st.to * g.ftp), pct = Math.round(st.from * 100) + (st.to !== st.from ? '→' + Math.round(st.to * 100) : '') + '% FTP';
+  ptip.innerHTML = `<b>${esc(st.label)}</b><div class="t">${st.free ? 'Free effort' : a === b ? a + ' W' : a + '→' + b + ' W'}${st.free ? '' : ' · ' + pct}</div><div class="m">${mmss(d.offsets[i])} – ${mmss(d.offsets[i] + st.dur)} · ${mmss(st.dur)}${st.hr ? ' · ♥ ' + st.hr + ' bpm' : ''}${st.cad ? ' · ' + st.cad[0] + '–' + st.cad[1] + ' rpm' : ''}</div>`;
+  ptip.style.display = 'block'; const w = ptip.offsetWidth; ptip.style.left = Math.min(e.clientX + 14, innerWidth - w - 8) + 'px'; ptip.style.top = (e.clientY + 16) + 'px';
+});
 function drawProfile(cv, t0, t1, pos, o) {   // o = optional {W,H,def,ftp,actual,sc} for rendering to an image
   const dpr = o ? (o.dpr || 1) : (devicePixelRatio || 1), W = o ? o.W : cv.clientWidth, H = o ? o.H : cv.clientHeight; if (!W || !H) return;
   if (cv.width !== Math.round(W*dpr) || cv.height !== Math.round(H*dpr)) { cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
@@ -868,6 +953,7 @@ function drawProfile(cv, t0, t1, pos, o) {   // o = optional {W,H,def,ftp,actual
   const peak = Math.max(ftp * 1.2, ...d.steps.map(s => Math.max(s.from, s.to) * ftp));
   const stepW = peak > 450 ? 100 : peak > 220 ? 50 : 25, maxW = Math.ceil(peak * 1.08 / stepW) * stepW;
   const X = t => padL + (t - t0) / (t1 - t0) * pw, Y = w => padT + ph - Math.min(w, maxW) / maxW * ph;
+  cv._geo = mini ? null : { padL, pw, t0, t1, d, ftp };
   g.font = `${11*sc}px -apple-system, Helvetica, Arial, sans-serif`; g.textBaseline = 'middle';
   // watt grid + labels
   for (let w = 0; !mini && w <= maxW; w += stepW) {
@@ -886,7 +972,14 @@ function drawProfile(cv, t0, t1, pos, o) {   // o = optional {W,H,def,ftp,actual
     const grad = g.createLinearGradient(0, padT, 0, padT + ph); grad.addColorStop(0, col); grad.addColorStop(1, col + '55');
     g.fillStyle = grad; g.globalAlpha = .92;
     g.beginPath(); g.moveTo(x0, Y(0)); g.lineTo(x0, y0); g.lineTo(x1, y1); g.lineTo(x1, Y(0)); g.closePath(); g.fill();
-    g.globalAlpha = 1; g.strokeStyle = 'rgba(246,238,255,.35)'; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+    if (!mini && i > 0) { g.globalAlpha = 1; g.strokeStyle = 'rgba(11,8,19,.95)'; g.lineWidth = 2 * sc; g.beginPath(); g.moveTo(x0, Y(0)); g.lineTo(x0, Math.min(y0, Y(0))); g.stroke(); }   // clear gap between steps
+    const cx = (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, wA = Math.round(st.from * ftp), wB = Math.round(st.to * ftp), ramp = wA !== wB, wTxt = ramp ? `${wA}→${wB} W` : `${wA} W`;
+    const showW = !mini && !st.free && Math.min(x1, W - padR) - Math.max(x0, padL) > (ramp ? 100 : 40) * sc && Y(0) - (ramp ? Math.max(y0, y1) : Math.min(y0, y1)) > 26 * sc, yTop = ramp ? Math.max(y0, y1) : Math.min(y0, y1), yOff = showW ? 17 * sc : 0;
+    if (showW) { const f = g.font; g.font = `700 ${12 * sc}px -apple-system, Helvetica, Arial, sans-serif`; g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(wTxt, cx, yTop + 6 * sc); g.font = f; }
+    if (st.free && !mini && x1 - x0 > 60 * sc) { g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText('free effort', (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, Math.min(y0, y1) + 6 * sc + yOff); }
+    if (st.cad && !st.hr && !mini && x1 - x0 > 60 * sc) { g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(`${st.cad[0]}–${st.cad[1]} rpm`, (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, Math.min(y0, y1) + 6 * sc + yOff); }
+    if (st.hr && !mini && x1 - x0 > 50 * sc) { g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(`♥ ${st.hr} bpm`, (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, Math.min(y0, y1) + 6 * sc + yOff); }
+    g.globalAlpha = 1; g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = (mini ? 1 : 2.5 * sc); g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
   });
   if (!o && wk.active) { g.fillStyle = 'rgba(11,8,19,.66)'; g.fillRect(padL, padT, Math.max(0, X(pos) - padL), ph); }   // dim what's done
   g.restore();
@@ -923,9 +1016,24 @@ function zoneInfo(p) {
 function render() {
   const s = session, p = live.power, z = p != null ? zoneInfo(p) : null;
   $('power').firstChild.nodeValue = p ?? '--'; $('power').style.color = z ? z[2] : '';
-  $('zone').textContent = (z ? `Zone ${z[0]} · ${z[1]}` : 'Zone –') + (wk.active ? ` · target ${currentTarget()} W` : '');
+  $('zone').textContent = z ? `Zone ${z[0]} · ${z[1]}` : 'Zone –';
+  const row = $('pTarget').parentNode; row.classList.toggle('hasTarget', !!wk.active);
+  const hrStep = wk.active && wk.def.steps[wk.idx].hr, freeStep = wk.active && wk.def.steps[wk.idx].free;
+  if (hrStep) $('zone').textContent += ` · holding ♥ ${hrStep} bpm`;
+  if (freeStep) $('zone').textContent += ' · free effort: you set the power';
+  if (wk.active && !hrStep && !freeStep) {                       // required power on the right; arrow when you're 5 W or more off it
+    const t = currentTarget(), diff = p == null ? 0 : p - t, off = p != null && session.state === 'running' && Math.abs(diff) >= 5;
+    $('tgt').firstChild.nodeValue = t; $('tgt').classList.toggle('hit', p != null && !off);
+    const up = off && diff < 0, key = off ? (up ? 'up' : 'down') : '';
+    if ($('pArrow').dataset.k !== key) { $('pArrow').dataset.k = key;
+      $('pArrow').innerHTML = `<svg viewBox="0 0 24 24" class="${off ? 'on' : ''}" fill="${up ? '#3ee6b0' : '#ff4d6d'}"><title>${up ? 'Push harder' : 'Ease off'}</title><path d="${up ? 'M12 3 2.5 14H8v7h8v-7h5.5z' : 'M12 21 2.5 10H8V3h8v7h5.5z'}"/></svg>`; }
+  } else if (wk.active) { $('tgt').firstChild.nodeValue = freeStep ? '--' : currentTarget(); $('tgt').classList.remove('hit'); if ($('pArrow').dataset.k) { $('pArrow').dataset.k = ''; $('pArrow').innerHTML = ''; }
+  } else if ($('pArrow').dataset.k) { $('pArrow').dataset.k = ''; $('pArrow').innerHTML = ''; }
   $('hr').firstChild.nodeValue = live.hr ?? '--'; $('hrAvg').textContent = `avg ${avg(s.hrSum, s.hrN)}`;
   $('cad').firstChild.nodeValue = live.cadence != null ? Math.round(live.cadence) : '--'; $('cadAvg').textContent = `avg ${avg(s.cadSum, s.cadN)}`;
+  { const cs = wk.active && wk.def.steps[wk.idx].cad, c = live.cadence, el = $('cadAvg'); el.style.color = '';
+    if (cs) { const lo = cs[0], hi = cs[1]; el.textContent = `Target ${lo}–${hi} rpm`;
+      if (c != null && session.state === 'running') { if (c < lo - 3) { el.textContent = `▲ Speed up · ${lo}–${hi} rpm`; el.style.color = '#3ee6b0'; } else if (c > hi + 3) { el.textContent = `▼ Slow down · ${lo}–${hi} rpm`; el.style.color = '#ff4d6d'; } else { el.style.color = '#3ee6b0'; } } } }
   $('time').textContent = fmtTime(s.elapsed);
   $('speed').firstChild.nodeValue = live.speed != null ? live.speed.toFixed(1) : '--';
   $('speedAvg').textContent = `avg ${s.spdN ? (s.spdSum/s.spdN).toFixed(1) : '--'} km/h`;
@@ -983,7 +1091,7 @@ function rideRecord() {
   return { id: rideId, name: rideName(), start: s.startTime.toISOString(), elapsed: st.elapsed, distance: Math.round(st.distance), avgSpeed: +st.avgSpeed.toFixed(2),
     avgPower: st.avgPower, maxPower: st.maxPower, np: st.np, kj: st.kj, avgHr: st.avgHr, maxHr: st.maxHr, avgCad: st.avgCad,
     ftp: +$('ftp').value || 200, weight: +$('weight').value || null,
-    workout: d ? { id: d.id, name: d.name, steps: d.steps.map(x => ({ label: x.label, dur: x.dur, from: x.from, to: x.to })) } : null,
+    workout: d ? { id: d.id, name: d.name, steps: d.steps.map(x => ({ label: x.label, dur: x.dur, from: x.from, to: x.to, ...(x.hr ? { hr: x.hr } : {}), ...(x.cad ? { cad: x.cad } : {}), ...(x.free ? { free: 1 } : {}) })) } : null,
     wkActual: d && wk.def === d ? wk.actual.filter((_, i) => i % 5 === 0).map(a => [a.x, a.p]) : [], series };
 }
 async function saveRide() {
@@ -1106,6 +1214,8 @@ const histRec_inDetail = () => !!$('hImg');
 const TEMPLATES = [
   { id:'t-ftp4', name:'4-Week FTP Builder', desc:'Three indoor sessions a week: an ERG check to start, sweet spot to build, and a 30/30 session for top-end. Week 4 eases off.', weeks:4,
     days:[ [null,'erg',null,'ss',null,null,'ss30'], [null,'3030',null,'ss',null,null,'ss30'], [null,'3030',null,'ss30',null,null,'kos'], [null,'erg',null,'3030',null,null,null] ] },
+  { id:'t-base4', name:'4-Week Aerobic Base (Bike)', desc:'Three easy heart-rate rides a week, building duration and finishing with a lighter recovery week. Adjust the days to fit around your runs.', weeks:4,
+    days:[ [null,'ab60',null,'ab60',null,null,'ab90'], [null,'ab60',null,'abl',null,null,'ab90'], [null,'ab90',null,'abl',null,null,'ab90'], [null,'rec45',null,'ab60',null,null,'ab60'] ] },
   { id:'t-ss3', name:'3-Week Sweet Spot Block', desc:'Two sweet-spot sessions a week plus a longer weekend ride.', weeks:3,
     days:[ [null,'ss',null,'ss30',null,null,'kos'], [null,'ss30',null,'ss',null,null,'kos'], [null,'ss',null,'ss30',null,null,null] ] },
 ];
@@ -1220,6 +1330,25 @@ $('planBody').addEventListener('click', async e => {
   }
 });
 document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (planOpen() && planView !== 'edit') closePlan(); else if (histOpen()) closeHistory(); });
+
+// ---- Corner icon badge on each data tile ----
+const TILE_ICONS = {
+  'speed': ['#6d7bff', '<path d="M4 17a8 8 0 1 1 16 0"/><path d="m12 17 4-5"/><circle cx="12" cy="17" r="1"/>'],
+  'distance': ['#3ee6b0', '<path d="m8 21 2-18M16 21l-2-18"/><path d="M12 5v2M12 11v2M12 17v2"/>'],
+  'power': ['#d946ef', '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'],
+  'heart rate': ['#ff4fb8', '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>'],
+  'cadence': ['#7fd1ff', '<path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 3.5V8h-4.5"/>'],
+  'avg power': ['#a56bff', '<path d="M3 12h4l3-7 4 14 3-7h4"/>'],
+  'norm. power': ['#c13cf0', '<path d="M3 15c3 0 3-8 6-8s3 10 6 10 3-6 6-6"/>'],
+  '3s power': ['#d946ef', '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/>'],
+  'energy': ['#ff7ab6', '<path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-4 3-7 1 1 2 2 3 3 0-3 0-5 0-8z"/>'],
+  'max hr': ['#ff4fb8', '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M12 8v4M10 10h4"/>'],
+};
+document.querySelectorAll('.tile').forEach(t => {
+  const l = t.querySelector('.label'), ic = l && TILE_ICONS[l.textContent.trim().toLowerCase()]; if (!ic) return;
+  const b = document.createElement('div'); b.className = 'tbadge'; b.style.setProperty('--ic', ic[0]);
+  b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${ic[1]}</svg>`; t.appendChild(b);
+});
 
 loadRides(); loadStores();
 
