@@ -1,0 +1,70 @@
+# Freehub: project handover
+
+Paste this file (or tell Claude to read it from the repo) at the start of a new chat. It describes what Freehub is, how it is built, and where things live.
+
+## What it is
+Freehub is Graeme's personal replacement for a Zwift subscription, used with a Zwift Hub smart trainer and a Bluetooth heart-rate strap. It is a zero-dependency Node server plus a static dashboard that runs in Chrome (or an Electron desktop wrapper). Graeme is a mobile (Android/iOS) developer. His FTP is about 180 W. He is training for IRONMAN Malaga 70.3 (31 Oct 2027) and is currently building aerobic base.
+
+## Files
+| Path | Purpose |
+|---|---|
+| `server.js` | Node 18+ http server, no npm dependencies. Serves `public/`, relays live state over SSE, handles Strava OAuth and upload, stores rides and plans on disk. |
+| `public/index.html` | The whole dashboard (about 136 KB, one inline script). Everything below under "Dashboard" lives here. |
+| `public/companion.html` | Phone companion page, opened by QR code over the LAN. Shows live data and has remote controls. |
+| `public/qrcode.js` | QR generator. |
+| `public/images/` | `freehub_logo.png`, `freehub_mark.png`, `favicon.png` (all transparent PNGs), `freehub_logo.jpeg` (old, unused). |
+| `electron/main.js`, `picker.html`, `picker-preload.js` | Desktop wrapper. Runs the server in-process and provides a Bluetooth device picker. |
+| `package.json`, `build/` | electron-builder config (dmg arm64+x64, NSIS x64), `build/icon.png`, `build/entitlements.mac.plist`. |
+| `.github/workflows/build.yml` | CI matrix build for Mac and Windows. |
+| `data/` | Created at runtime: `rides/`, `store/custom.json`, `store/plans.json`. Git-ignored. Back this folder up. |
+| `config.json`, `tokens.json` | Strava client keys and OAuth tokens. Git-ignored. |
+
+Run it with `node server.js` and open `http://localhost:<port>` in Chrome. Web Bluetooth only works in Chrome/Edge and Electron, not Safari or Firefox. `FREEHUB_DATA` env var moves the data directory (Electron sets it to the user data folder).
+
+## Server
+- LAN-exposed routes are only `/companion`, `/api/state-stream`, `/api/cmd` and `/images/*`. Everything else is localhost-only.
+- Persistence API: `GET /api/rides`, `GET/PUT/DELETE /api/rides/:id`, `GET /api/rides/:id/tcx`, `POST /api/rides/:id/upload` (Strava), `GET/PUT /api/store/custom` and `/api/store/plans`.
+- Strava: OAuth plus TCX upload. New Strava apps are limited to Single Player Mode (about 10 athletes without Strava review). The public API cannot attach photos.
+- Port clash: prints a clear EADDRINUSE message.
+
+## Dashboard (public/index.html)
+**Bluetooth (FTMS)**: service 0x1826, Indoor Bike Data 0x2AD2, Control Point 0x2AD9. Opcodes used: request control 0x00, ERG target power 0x05, start 0x07, stop 0x08, simulation params 0x11. Separate HR strap connection.
+
+**Live tiles**: speed, power (actual left, target right, up/down arrow when more than 5 W off target), HR, cadence (with speed up / slow down hint when a cadence target exists), time, distance. Each tile has a small corner-notch icon (`TILE_ICONS`, `.tbadge`). Power zone bar. Weight, FTP and speed source are stored in localStorage (`hubrider.ftp`, `hubrider.weight`, `hubrider.speedsrc`).
+
+**Workout engine**
+- A session is a list of steps: `{label, dur, from, to, hr?, cad?:[lo,hi], free?}`. `from` and `to` are fractions of FTP; a different `to` makes a ramp.
+- `finalize()` computes offsets and total, `currentTarget()` and `applyTarget()` drive the trainer, `nextStep()` and `wkInfo()` feed the UI.
+- Warm-ups ramp in 5 W-style stages by design of the preset definitions; ERG targets are sent as integer watts.
+- HR steps (`H(label, mins, bpm, start)`): `hrControl()` runs every 10 s, averages about 10 s of HR, nudges ERG power by at most 4 W (gain 0.4, clamp 30 to 110 percent of FTP) to hold the target BPM.
+- `free` steps release ERG control (trainer returns to simulation mode) and the UI shows FREE.
+- Cadence steps use `CAD(st, lo, hi)`.
+- Tests: `ramp` (FTP = 75 percent of best 1-minute power) and `ftp20` (FTP = 95 percent of 20-minute average). `testResult()` opens an overlay with "Use X W as my FTP" / "Keep".
+- Presets include Sweet Spot, threshold, VO2, endurance, aerobic base (`ab60`, `ab90`, `abl`), recovery spin (`rec45`), low cadence torque (`lct55`, `lct60`), plus the two FTP tests.
+- Session builder supports power, HR and cadence columns. Custom sessions are saved to `data/store/custom.json` (migrated from localStorage `hubrider.custom`).
+- Chart: `drawProfile(cv, t0, t1, pos, o)` canvas renderer with interval separators, watt labels inside blocks wide enough, hover tooltip (`#ptip`) via `canvas._geo`. Options: `mini`, `bare` (`cv._bare`, no axes, used over video), `o` for image rendering.
+
+**History**: every finished ride is saved to `data/rides/` (record plus TCX). History overlay shows totals, a list, and a detail view with a regenerated 4:3 share image (`buildShareImage`, 1600x1200), TCX download, Strava upload, rename and delete.
+
+**Training plans**: Plan overlay with templates (4-week FTP build, 4-Week Aerobic Base, 3-week sweet spot), an active plan, per-day status, "today's session" shortcut and a plan editor. Stored in `data/store/plans.json`.
+
+**YouTube mode** (header button, `#ytMode`): pastes a YouTube video or playlist URL (IFrame API) and overlays glass (iOS-style, backdrop-filter) data cards vertically centred on the right: speed, power with target and arrow, HR, cadence, time, distance, workout card. Cards have the same corner-notch icons. Bar at the top fades after 3.5 s of no mouse movement. Size S/M/L, H key hides the HUD, fullscreen supported. When a workout is running, a glass strip along the bottom shows the whole session across the full width, with watt labels inside blocks, dimmed completed portion, your actual power line and a lime "you are here" marker. The cards move up to make room while the strip is visible. Queue/autoplay-next is deliberately not built yet. Embedding is blocked for some videos (error codes 101, 150, 153).
+
+**Theme**: navy and lime. `--bg #08111f`, `--card #0f1c31`, `--card2 #14253f`, `--line #1f3453`, `--text #f2f6fc`, `--mute #8da0ba`, accent lime `#c6f31a`, blue `#4da3ff`, coral `#ff5d73`, gradient `linear-gradient(135deg,#c6f31a,#8fe03a)`. Primary buttons use dark text.
+
+## Electron desktop app
+`npm run app` runs it; `npm run dist:mac` / `dist:win` build installers. A custom Bluetooth picker replaces Chrome's. Mac builds use hardened runtime plus entitlements (bluetooth, network); notarisation uses `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID` (Graeme has an Apple Developer account). Windows ships as an unsigned NSIS installer, so SmartScreen will warn.
+
+## Testing approach
+`node --check` on the extracted inline script, Playwright/Chromium screenshots with a simulated workout state, Electron under xvfb. No real hardware or YouTube access in the sandbox.
+
+## Not yet tested on real hardware
+Zwift Hub over Bluetooth in the new build, Electron Bluetooth picker, Mac signing and notarisation, Windows build, real YouTube playback and the bottom strip over video, HR controller on a real rider, ramp and 20-minute tests on the trainer, phone companion in the new theme.
+
+## Open ideas
+- Native Android app (Capacitor wrapper vs Kotlin): undecided.
+- Android TV overlay: replaced for now by YouTube mode.
+- YouTube queue / autoplay next: deferred by Graeme.
+- Electron for non-technical friends: built-in Strava keys, first-run welcome, port fallback, friendlier Bluetooth errors.
+- Optional 5 W stepped ramps, recolouring logo and app icon to lime, scheduling an FTP retest in the base plan.
+- Branching: new features go on a git branch (`git switch -c feature/<name>`), merge via pull request.

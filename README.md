@@ -71,6 +71,27 @@ today's session is still to do. Plans and your custom sessions are stored in `da
 Everything you create lives in `data/` (`rides/`, `plans.json`, `custom.json`). Copy that folder to back it up.
 Never share `config.json`, `tokens.json` or `data/` publicly.
 
+## Desktop app (Mac and Windows)
+Freehub can be packaged as a normal app with its own window, using Electron.
+
+```bash
+npm install          # once
+npm run app          # run it as a desktop app without building
+npm run dist:mac     # on a Mac  -> dist/Freehub-1.0.0-arm64.dmg (+ x64)
+npm run dist:win     # on Windows -> dist/Freehub Setup 1.0.0.exe
+```
+- **Data:** the packaged app keeps rides, plans, `config.json` and `tokens.json` in its user-data folder
+  (macOS `~/Library/Application Support/Freehub`, Windows `%APPDATA%\Freehub`). Use the **Freehub** menu →
+  *Open data folder* or *Create config.json template for Strava*. `node server.js` still works as before.
+- **Bluetooth:** Electron has no built-in device picker, so Freehub shows its own "Choose a device" window.
+- **Signing and notarising (Mac):** with your Apple Developer ID Application certificate in your keychain, set
+  `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD` and `APPLE_TEAM_ID` in the terminal, then run `npm run dist:mac`.
+  electron-builder signs and notarises automatically. Without them it builds an unsigned app (right-click → Open).
+- **Windows** builds are unsigned unless you add a code-signing certificate; Windows SmartScreen will say
+  "unknown publisher" (More info → Run anyway).
+- **Both at once:** push the project to GitHub and run the *Build Freehub* workflow (Actions tab). Add the secrets
+  `MAC_CERT_P12_BASE64`, `MAC_CERT_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID` for a signed Mac build.
+
 ## Extras
 - Power-zone colouring (set your FTP).
 - ERG target power and free-ride mode via FTMS control (if your Hub firmware accepts it).

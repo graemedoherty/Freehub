@@ -1,0 +1,14 @@
+<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<style>
+body{margin:0;background:#15101f;color:#f6eeff;font:15px -apple-system,"Segoe UI",Helvetica,Arial,sans-serif;padding:20px}
+h2{margin:0 0 4px;font-size:18px}p{color:#9d90b8;margin:0 0 14px;font-size:13px}
+#l{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow:auto}
+button{font:inherit;color:inherit;background:#0b0813;border:1px solid #2d2243;border-radius:10px;padding:12px 14px;text-align:left;cursor:pointer}
+button:hover{border-color:#d946ef}.c{margin-top:16px;text-align:center}.c button{text-align:center;padding:9px 18px}
+</style>
+<h2>Choose a device</h2><p>Searching for nearby Bluetooth devices…</p><div id="l"></div><div class="c"><button id="x">Cancel</button></div>
+<script>
+const l=document.getElementById('l');
+window.picker.onDevices(ds=>{l.innerHTML='';ds.forEach(d=>{const b=document.createElement('button');b.textContent=d.name;b.onclick=()=>window.picker.pick(d.id);l.appendChild(b);});});
+document.getElementById('x').onclick=()=>window.picker.pick('');
+</script>
