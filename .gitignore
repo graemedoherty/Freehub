@@ -1,2 +1,7 @@
+node_modules/
+dist/
+data/
 config.json
 tokens.json
+.DS_Store
+**/.DS_Store
