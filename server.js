@@ -12,16 +12,18 @@ const path = require('path');
 
 const PORT = 3000;
 const BASE = `http://localhost:${PORT}`;
-const TOKEN_FILE = path.join(__dirname, 'tokens.json');
+// Packaged app: Electron points FREEHUB_DATA at the user's app-data folder (config.json, tokens.json and data/ live there).
+const HOME_DIR = process.env.FREEHUB_DATA || __dirname;
+const TOKEN_FILE = path.join(HOME_DIR, 'tokens.json');
 
 let cfg = {};
-const CFG_PATH = path.join(__dirname, 'config.json');
+const CFG_PATH = path.join(HOME_DIR, 'config.json');
 let cfgProblem = null;
 try { cfg = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8')); }
 catch (e) {
   if (e.code === 'ENOENT') {
     const txt = fs.existsSync(CFG_PATH + '.txt') ? ' (I found "config.json.txt": rename it to remove the ".txt")' : '';
-    cfgProblem = `No config.json found in ${__dirname}${txt}`;
+    cfgProblem = `No config.json found in ${HOME_DIR}${txt}`;
   } else cfgProblem = `config.json can't be read as JSON: ${e.message}. Check for curly quotes, a missing comma or brace, or rich-text formatting.`;
 }
 const CLIENT_ID = process.env.STRAVA_CLIENT_ID || cfg.clientId;
@@ -59,7 +61,7 @@ const readBody = (req, limit = 1e6) => new Promise((res, rej) => {
 });
 const json = (res, code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(obj)); };
 // ---- Persistent data (rides, custom sessions, plans) in ./data ----
-const DATA_DIR = path.join(__dirname, 'data'), RIDES_DIR = path.join(DATA_DIR, 'rides');
+const DATA_DIR = path.join(HOME_DIR, 'data'), RIDES_DIR = path.join(DATA_DIR, 'rides');
 fs.mkdirSync(RIDES_DIR, { recursive: true });
 const okId = (id) => /^[0-9A-Za-z_-]{1,64}$/.test(id);
 const readJson = (f, dflt) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return dflt; } };
@@ -257,6 +259,7 @@ function lanIps() {
   return out;
 }
 
+server.on('error', e => { console.error(e.code === 'EADDRINUSE' ? `Port ${PORT} is already in use — is Freehub already running?` : e.message); if (process.env.FREEHUB_DATA) process.exit(1); });
 server.listen(PORT, () => {
   console.log(`Freehub running → ${BASE}  (open in Google Chrome)`);
   if (cfgProblem) console.log('\n⚠ Strava is NOT set up: ' + cfgProblem + '\n');
