@@ -67,7 +67,7 @@ const okId = (id) => /^[0-9A-Za-z_-]{1,64}$/.test(id);
 const readJson = (f, dflt) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return dflt; } };
 const writeJson = (f, o) => { const tmp = f + '.tmp'; fs.writeFileSync(tmp, JSON.stringify(o)); fs.renameSync(tmp, f); };
 const STORES = new Set(['custom', 'plans']);
-const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon' };
+const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
 
 async function stravaUpload({ tcx, name, description }) {
   const token = await validToken();
@@ -104,7 +104,8 @@ const isLocal = (req) => ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.s
 let lastState = null;
 const companions = new Set();   // SSE clients watching the ride
 const hosts = new Set();        // SSE clients receiving commands (the dashboard on this Mac)
-const COMMANDS = new Set(['start', 'pause', 'resume', 'finish', 'upload', 'discard', 'done', 'skip']);
+const COMMANDS = new Set(['start', 'pause', 'resume', 'finish', 'upload', 'discard', 'done', 'skip',
+  'yt-open', 'yt-toggle', 'yt-mute', 'yt-hud', 'yt-size', 'yt-exit']);   // yt-* control YouTube mode on the dashboard
 
 function sse(res) {
   res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
@@ -119,10 +120,10 @@ const LAN_ROUTES = new Set(['/companion', '/api/state-stream', '/api/cmd']);
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, BASE);
   try {
-    if (!LAN_ROUTES.has(url.pathname) && !url.pathname.startsWith('/images/') && !isLocal(req)) { res.writeHead(403); return res.end('Local access only'); }
+    if (!LAN_ROUTES.has(url.pathname) && !url.pathname.startsWith('/images/') && !url.pathname.startsWith('/fonts/') && !isLocal(req)) { res.writeHead(403); return res.end('Local access only'); }
 
     if (url.pathname === '/') {
-      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.writeHead(200, { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' });
       return res.end(fs.readFileSync(path.join(__dirname, 'public', 'index.html')));
     }
     if (url.pathname === '/qrcode.js') {
@@ -130,7 +131,7 @@ const server = http.createServer(async (req, res) => {
       return res.end(fs.readFileSync(path.join(__dirname, 'public', 'qrcode.js')));
     }
     if (url.pathname === '/companion') {
-      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.writeHead(200, { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' });
       return res.end(fs.readFileSync(path.join(__dirname, 'public', 'companion.html')));
     }
     if (url.pathname === '/api/info') {
@@ -162,9 +163,9 @@ const server = http.createServer(async (req, res) => {
     }
     // Companion sends a command
     if (url.pathname === '/api/cmd' && req.method === 'POST') {
-      const { cmd, name } = JSON.parse(await readBody(req, 2e3));
+      const { cmd, name, url: link } = JSON.parse(await readBody(req, 2e3));
       if (!COMMANDS.has(cmd)) return json(res, 400, { error: 'Unknown command' });
-      send(hosts, { cmd, name: typeof name === 'string' ? name.slice(0, 100) : undefined });
+      send(hosts, { cmd, name: typeof name === 'string' ? name.slice(0, 100) : undefined, url: typeof link === 'string' ? link.slice(0, 300) : undefined });
       return json(res, 200, { ok: true, delivered: hosts.size > 0 });
     }
 
@@ -199,6 +200,14 @@ const server = http.createServer(async (req, res) => {
       const full = path.join(__dirname, 'public', 'images', path.basename(url.pathname));
       if (!fs.existsSync(full)) { res.writeHead(404); return res.end('Not found'); }
       res.writeHead(200, { 'Content-Type': MIME[path.extname(full).toLowerCase()] || 'application/octet-stream', 'Cache-Control': 'public, max-age=3600' });
+      return res.end(fs.readFileSync(full));
+    }
+
+    // ---- bundled font (served to the phone companion too) ----
+    if (url.pathname.startsWith('/fonts/')) {
+      const full = path.join(__dirname, 'public', 'fonts', path.basename(url.pathname));
+      if (!fs.existsSync(full)) { res.writeHead(404); return res.end('Not found'); }
+      res.writeHead(200, { 'Content-Type': MIME[path.extname(full).toLowerCase()] || 'application/octet-stream', 'Cache-Control': 'public, max-age=86400' });
       return res.end(fs.readFileSync(full));
     }
 

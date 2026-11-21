@@ -8,7 +8,8 @@
 <style>
   :root { --bg:#08111f; --card:#0f1c31; --card2:#14253f; --line:#1f3453; --text:#f2f6fc; --mute:#8da0ba; --accent:#c6f31a; --blue:#4da3ff; --pink:#ff5d73; --good:#c6f31a; --grad:linear-gradient(135deg,#c6f31a,#8fe03a); }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Inter,sans-serif; }
+  @font-face { font-family:'Nunito'; src:url(/fonts/nunito.woff2) format('woff2'); font-weight:200 1000; font-style:normal; font-display:swap; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:Nunito,ui-rounded,"SF Pro Rounded",-apple-system,BlinkMacSystemFont,sans-serif; }
   header { display:flex; align-items:center; justify-content:space-between; padding:16px 28px; border-bottom:1px solid var(--line); gap:12px; flex-wrap:wrap; }
   h1 { font-size:18px; margin:0; letter-spacing:.5px; } h1 span { background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
   .conn { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
@@ -40,11 +41,14 @@
   #ytBar { position:absolute; top:0; left:0; right:0; display:flex; gap:8px; align-items:center; padding:10px 14px; background:linear-gradient(rgba(4,10,20,.92),rgba(4,10,20,0)); transition:opacity .4s; z-index:2; } #ytBar.fade { opacity:0; } #ytBar .grow { flex:1; }
   #ytUrl { flex:0 1 460px; min-width:120px; background:rgba(21,16,31,.92); color:var(--text); border:1px solid var(--line); border-radius:10px; padding:9px 12px; font:inherit; } #ytUrl:focus { outline:none; border-color:var(--accent); }
   #ytBar button { padding:8px 14px; }
-  #ytStrip { position:absolute; left:0; right:0; bottom:0; height:118px; display:none; z-index:1; pointer-events:none; background:linear-gradient(rgba(4,10,20,0),rgba(4,10,20,.55)); } #ytMode.strip #ytStrip { display:block; } #ytStripCv { position:absolute; left:14px; right:14px; bottom:12px; width:calc(100% - 28px); height:92px; border-radius:18px; background:rgba(8,17,31,.42); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,.2); box-shadow:inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.35); }
+  #ytStrip { position:absolute; left:0; right:0; bottom:0; height:118px; display:none; z-index:1; pointer-events:none; background:linear-gradient(rgba(4,10,20,0),rgba(4,10,20,.55)); } #ytMode.strip #ytStrip { display:block; } #ytStripCv { position:absolute; left:14px; right:14px; bottom:12px; width:calc(100% - 28px); height:92px; border-radius:18px; background:rgba(8,17,31,.42); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.2); box-shadow:inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.35); }
   #ytMode.strip #ytHud { top:calc(50% - 52px); max-height:calc(100% - 96px - 118px); }
   #ytHud { position:absolute; top:50%; right:22px; transform:translateY(-50%); width:var(--yw,300px); max-height:calc(100% - 96px); display:flex; flex-direction:column; gap:12px; z-index:1; pointer-events:none; font-size:var(--yf,1); transition:opacity .25s; } #ytHud.off { opacity:0; }
-  #ytHud .yc { position:relative; background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.05)); -webkit-backdrop-filter:blur(26px) saturate(180%); backdrop-filter:blur(26px) saturate(180%); border:1px solid rgba(255,255,255,.22); border-radius:26px; padding:14px 18px;
+  #ytHud .yc { position:relative; background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.05)); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,.22); border-radius:26px; padding:14px 18px;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.4), inset 0 -1px 0 rgba(255,255,255,.06), 0 10px 32px rgba(0,0,0,.38); }
+  #ytMode.lite #ytHud .yc { -webkit-backdrop-filter:none; backdrop-filter:none; background:linear-gradient(145deg,rgba(18,32,56,.78),rgba(10,20,36,.7)); }
+  #ytMode.lite #ytStripCv { -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(8,17,31,.7); }
+  #ytHud { will-change:transform; }
   #ytHud #yPc::before { content:''; position:absolute; left:0; top:22%; bottom:22%; width:5px; border-radius:0 5px 5px 0; background:var(--zc,transparent); box-shadow:0 0 12px var(--zc,transparent); }
   #ytHud .yc { overflow:hidden; }
   #ytHud .ytb { position:absolute; top:0; right:0; width:50px; height:42px; display:flex; align-items:center; justify-content:center; background:linear-gradient(160deg,rgba(255,255,255,.26),rgba(255,255,255,.1)); border-left:1px solid rgba(255,255,255,.28); border-bottom:1px solid rgba(255,255,255,.28); border-radius:0 0 0 20px; box-shadow:inset 0 1px 0 rgba(255,255,255,.35); }
@@ -68,6 +72,8 @@
   .val { font-size:44px; font-weight:700; font-variant-numeric:tabular-nums; margin-top:6px; line-height:1; }
   .val small { font-size:15px; font-weight:500; color:var(--mute); margin-left:6px; }
   .sub { font-size:13px; color:var(--mute); margin-top:8px; font-variant-numeric:tabular-nums; }
+  .subrow { display:flex; justify-content:space-between; align-items:baseline; gap:10px; min-height:1.3em; } .subrow > span:last-child { margin-left:auto; font-weight:700; color:#c5d1e4; white-space:nowrap; }
+  .tile.big .avgr { position:absolute; right:22px; bottom:16px; font-size:13px; font-weight:700; color:#c5d1e4; font-variant-numeric:tabular-nums; white-space:nowrap; }
 
   .row1 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
   .row1 .tile { padding:24px 28px; background:linear-gradient(160deg,var(--card2),var(--card)); }
@@ -207,7 +213,7 @@
   </div>
 
   <div class="row1">
-    <div class="tile"><div class="label">Speed</div><div class="val" id="speed">--<small>km/h</small></div><div class="sub" id="speedAvg">avg --</div></div>
+    <div class="tile"><div class="label">Speed</div><div class="val" id="speed">--<small>km/h</small></div><div class="sub subrow"><span></span><span id="speedAvg">avg --</span></div></div>
     <div class="tile"><div class="label">Distance</div><div class="val" id="dist">0.00<small>km</small></div><div class="sub" id="kjSub">0 kJ burned</div></div>
   </div>
 
@@ -215,9 +221,9 @@
     <div class="tile big"><div class="pwrow"><div class="pcol"><div class="label">Power</div><div class="val" id="power">--<small>W</small></div></div>
       <div class="parrow" id="pArrow" aria-hidden="true"></div>
       <div class="pcol ptarget" id="pTarget"><div class="label">Target</div><div class="val" id="tgt">--<small>W</small></div></div></div>
-      <div class="sub" id="zone">Zone –</div></div>
-    <div class="tile"><div class="label">Heart rate</div><div class="val" id="hr">--<small>bpm</small></div><div class="sub" id="hrAvg">avg --</div></div>
-    <div class="tile"><div class="label">Cadence</div><div class="val" id="cad">--<small>rpm</small></div><div class="sub" id="cadAvg">avg --</div></div>
+      <div class="sub" id="zone">Zone –</div><span class="avgr" id="pavgR">avg --</span></div>
+    <div class="tile"><div class="label">Heart rate</div><div class="val" id="hr">--<small>bpm</small></div><div class="sub subrow"><span></span><span id="hrAvg">avg --</span></div></div>
+    <div class="tile"><div class="label">Cadence</div><div class="val" id="cad">--<small>rpm</small></div><div class="sub subrow"><span id="cadAvg"></span><span id="cadAvgR">avg --</span></div></div>
   </div>
 
   <div class="grid">
@@ -342,7 +348,7 @@
     <input id="ytUrl" type="text" placeholder="Paste a YouTube link…" autocomplete="off" spellcheck="false"><button id="ytLoad" class="primary">Play</button>
     <span class="grow"></span>
     <button id="ytStart" class="primary">▶ Start</button><button id="ytPause">⏸ Pause</button><button id="ytStop" class="danger">■ Finish</button>
-    <button id="ytSize" title="Data panel size">Aa</button><button id="ytHide" title="Hide or show the data panel">◧ Data</button><button id="ytFs" title="Full screen">⛶</button><button id="ytExit">✕ Exit</button>
+    <button id="ytSize" title="Data panel size">Aa</button><button id="ytGlass" title="Full glass blur looks best; Light is smoother on slower machines">Glass: Full</button><button id="ytHide" title="Hide or show the data panel">◧ Data</button><button id="ytFs" title="Full screen">⛶</button><button id="ytExit">✕ Exit</button>
   </div>
   <div id="ytStrip"><canvas id="ytStripCv"></canvas></div>
   <div id="ytHud">
@@ -710,6 +716,37 @@ const WORKOUTS = [
     steps:(() => { const a=[S('Warm-up',5,.5,.6)]; for (let i=0;i<22;i++) a.push(S(`Ramp ${i+1}`,1,+(.55+i*.05).toFixed(2))); a.push(S('Cool-down',5,.5,.4)); return a; })() },
   { id:'ftp20', test:'ftp20', name:'FTP Test 20 min (about 60 min)', desc:'The classic test: warm-up, a 5-minute hard effort, recovery, then 20 minutes as hard as you can steadily sustain (the trainer is in free mode, so you pick the power). Freehub estimates FTP as 95% of your 20-minute average. Start the 20 minutes at a pace you can hold; don’t go out too hard.',
     steps:[ S('Warm-up',10,.5,.75), S('Spin-up 1',1,.9), S('Easy',1,.5), S('Spin-up 2',1,.9), S('Easy',1,.5), S('Spin-up 3',1,.9), S('Easy',2,.5), { ...S('5 min hard effort',5,1.1), free:true }, S('Easy',10,.5,.45), { ...S('FTP test · 20 min',20,1), free:true }, S('Cool-down',10,.5,.35) ] },
+  // ---- 8-Week Hybrid Cycling Plan (Mondays & Wednesdays) ----
+  // Every session has a progressive warm-up and an easy cool-down. The minutes quoted in the plan are the main set; Zone 2 = 70% FTP (65–75%).
+  ...(() => {
+    const Z2 = .70, WU = (m = 12) => S('Warm-up',m,.5,.75), CD = (m = 8) => S('Cool-down',m,.6,.4), tag = 'Hybrid';
+    const blocks = (id, name, desc, n, m, f, rec) => ({ id, name: `${tag} ${name}`, desc, steps: (() => { const a = [WU()];
+      for (let i = 1; i <= n; i++) { a.push(S(`Interval ${i}/${n}`, m, f)); if (i < n) a.push(S('Recover · easy spin', rec, .5)); } a.push(CD()); return a; })() });
+    const endure = (id, name, desc, mins, cad) => ({ id, name: `${tag} ${name}`, desc, steps: [ WU(10), cad ? CAD(S('Zone 2 · steady',mins,Z2),cad[0],cad[1]) : S('Zone 2 · steady',mins,Z2), CD(5) ] });
+    const vo2 = (id, name, desc, mins, n) => ({ id, name: `${tag} ${name}`, desc, steps: (() => { const a = [WU(10), S('Zone 2 · steady',mins,Z2)];
+      for (let i = 1; i <= n; i++) { a.push(S(`VO2 ${i}/${n} · 110% FTP`,2,1.1)); if (i < n) a.push(S('Easy',2,.5)); } a.push(CD(8)); return a; })() });
+    return [
+      blocks('hy1m','W1 Mon · Sweet Spot 2×12','Week 1 Monday. Progressive warm-up, then 2 × 12 min at 89% FTP (88–90%) with 5 min easy spins, and a cool-down.',2,12,.89,5),
+      endure('hy1w','W1 Wed · Endurance 60','Week 1 Wednesday. 60 min steady Zone 2 (about 70% FTP) at a smooth 90+ rpm, with a warm-up and cool-down.',60,[90,105]),
+      blocks('hy2m','W2 Mon · Sweet Spot 2×15','Week 2 Monday. Progressive warm-up, then 2 × 15 min at 90% FTP with 5 min easy spins, and a cool-down.',2,15,.90,5),
+      endure('hy2w','W2 Wed · Endurance 75','Week 2 Wednesday. 75 min steady Zone 2, with a warm-up and cool-down.',75),
+      blocks('hy3m','W3 Mon · Sweet Spot 3×12','Week 3 Monday. Progressive warm-up, then 3 × 12 min at 91% FTP (90–92%) with 4 min easy spins, and a cool-down.',3,12,.91,4),
+      { id:'hy3w', name:`${tag} W3 Wed · Endurance 80 + spin-ups`, desc:'Week 3 Wednesday. 80 min steady Zone 2 with four 30-second high-cadence spin-ups (105+ rpm) to wake up the fast-twitch fibres. Keep the power easy during the spin-ups.',
+        steps:(() => { const a = [WU(10)]; for (let i = 1; i <= 4; i++) { a.push(S('Zone 2 · steady',19.5,Z2)); a.push(CAD(S(`Spin-up ${i}/4 · 105+ rpm`,.5,.75),105,125)); } a.push(CD(5)); return a; })() },
+      { id:'hy4m', name:`${tag} W4 Mon · Easy 45`, desc:'Week 4 (recovery) Monday. 45 min easy Zone 1–2, no intervals. Match this to your running cutback week.', steps:[ S('Warm-up',10,.45,.6), S('Easy · Zone 1–2',45,.6), CD(5) ] },
+      endure('hy4w','W4 Wed · Easy Endurance 50','Week 4 (recovery) Wednesday. 50 min easy Zone 2 (about 65% FTP). Keep it relaxed.',50),
+      blocks('hy5m','W5 Mon · FTP 2×15','Week 5 Monday. Progressive warm-up, then 2 × 15 min at 97.5% FTP (95–100%) with 6 min easy spins, and a cool-down.',2,15,.975,6),
+      vo2('hy5w','W5 Wed · Z2 + VO2 4×2','Week 5 Wednesday. 60 min Zone 2, finishing with 4 × 2 min at 110% FTP and 2 min easy between.',60,4),
+      blocks('hy6m','W6 Mon · FTP 2×20','Week 6 Monday. Progressive warm-up, then 2 × 20 min at 97.5% FTP (95–100%) with 6 min easy spins, and a cool-down.',2,20,.975,6),
+      vo2('hy6w','W6 Wed · Z2 + VO2 5×2','Week 6 Wednesday. 75 min Zone 2, finishing with 5 × 2 min at 110% FTP and 2 min easy between.',75,5),
+      blocks('hy7m','W7 Mon · FTP 3×15','Week 7 (peak load) Monday. Progressive warm-up, then 3 × 15 min at 100% FTP (98–102%) with 5 min easy spins, and a cool-down.',3,15,1.0,5),
+      endure('hy7w','W7 Wed · Endurance 90','Week 7 (peak load) Wednesday. 90 min steady Zone 2. Keep it purely aerobic to protect your late-week runs.',90),
+      { id:'hy8m', name:`${tag} W8 Mon · Taper 3×2 at FTP`, desc:'Week 8 (taper) Monday. 40 min easy Zone 2 with 3 × 2 min at 100% FTP, just enough tension to stay sharp, plus a warm-up and cool-down.',
+        steps:[ WU(10), S('Zone 2 · steady',8,Z2), S('FTP 1/3',2,1), S('Zone 2 · steady',6,Z2), S('FTP 2/3',2,1), S('Zone 2 · steady',6,Z2), S('FTP 3/3',2,1), S('Zone 2 · steady',14,Z2), CD(5) ] },
+      { id:'hy8w', test:'ftp20', name:`${tag} W8 Wed · 20-min FTP Retest`, desc:'Week 8 Wednesday. 15 min warm-up with three short openers, then 20 minutes as hard as you can steadily sustain (the trainer is in free mode, so you pick the power), and a 10 min cool-down. Freehub estimates FTP as 95% of your 20-minute average. Start at a pace you can hold.',
+        steps:[ S('Warm-up',9,.5,.75), S('Opener 1',1,.9), S('Easy',1,.5), S('Opener 2',1,.9), S('Easy',1,.5), S('Opener 3',1,.9), S('Easy',1,.5), { ...S('FTP test · 20 min',20,1), free:true }, S('Cool-down',10,.5,.35) ] },
+    ];
+  })(),
 ];
 for (const d of WORKOUTS) { let t = 0; d.offsets = d.steps.map(st => { const o = t; t += st.dur; return o; }); d.total = t; }
 $('wkSel').innerHTML = WORKOUTS.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
@@ -1000,7 +1037,7 @@ function drawProfile(cv, t0, t1, pos, o) {   // o = optional {W,H,def,ftp,actual
   const stepW = peak > 450 ? 100 : peak > 220 ? 50 : 25, maxW = Math.ceil(peak * 1.08 / stepW) * stepW;
   const X = t => padL + (t - t0) / (t1 - t0) * pw, Y = w => padT + ph - Math.min(w, maxW) / maxW * ph;
   cv._geo = mini ? null : { padL, pw, t0, t1, d, ftp };
-  g.font = `${11*sc}px -apple-system, Helvetica, Arial, sans-serif`; g.textBaseline = 'middle';
+  g.font = `${11*sc}px Nunito, -apple-system, Helvetica, Arial, sans-serif`; g.textBaseline = 'middle';
   // watt grid + labels
   for (let w = 0; !mini && !bare && w <= maxW; w += stepW) {
     g.strokeStyle = w === 0 ? '#2a4466' : '#182a45'; g.lineWidth = 1; g.beginPath(); g.moveTo(padL, Y(w)); g.lineTo(W - padR, Y(w)); g.stroke();
@@ -1021,7 +1058,7 @@ function drawProfile(cv, t0, t1, pos, o) {   // o = optional {W,H,def,ftp,actual
     if (!mini && i > 0) { g.globalAlpha = 1; g.strokeStyle = 'rgba(8,17,31,.95)'; g.lineWidth = 2 * sc; g.beginPath(); g.moveTo(x0, Y(0)); g.lineTo(x0, Math.min(y0, Y(0))); g.stroke(); }   // clear gap between steps
     const cx = (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, wA = Math.round(st.from * ftp), wB = Math.round(st.to * ftp), ramp = wA !== wB, wTxt = ramp ? `${wA}→${wB} W` : `${wA} W`;
     const showW = !mini && !st.free && Math.min(x1, W - padR) - Math.max(x0, padL) > (ramp ? 100 : 40) * sc && Y(0) - (ramp ? Math.max(y0, y1) : Math.min(y0, y1)) > 26 * sc, yTop = ramp ? Math.max(y0, y1) : Math.min(y0, y1), yOff = showW ? 17 * sc : 0;
-    if (showW) { const f = g.font; g.font = `700 ${12 * sc}px -apple-system, Helvetica, Arial, sans-serif`; g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(wTxt, cx, yTop + 6 * sc); g.font = f; }
+    if (showW) { const f = g.font; g.font = `700 ${12 * sc}px Nunito, -apple-system, Helvetica, Arial, sans-serif`; g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(wTxt, cx, yTop + 6 * sc); g.font = f; }
     if (st.free && !mini && x1 - x0 > 60 * sc) { g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText('free effort', (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, Math.min(y0, y1) + 6 * sc + yOff); }
     if (st.cad && !st.hr && !mini && x1 - x0 > 60 * sc) { g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(`${st.cad[0]}–${st.cad[1]} rpm`, (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, Math.min(y0, y1) + 6 * sc + yOff); }
     if (st.hr && !mini && x1 - x0 > 50 * sc) { g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(`♥ ${st.hr} bpm`, (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, Math.min(y0, y1) + 6 * sc + yOff); }
@@ -1043,16 +1080,18 @@ function drawProfile(cv, t0, t1, pos, o) {   // o = optional {W,H,def,ftp,actual
   g.fillStyle = bare ? '#c6f31a' : '#ffffff'; g.beginPath(); g.moveTo(px - 6, padT); g.lineTo(px + 6, padT); g.lineTo(px, padT + 9); g.closePath(); g.fill(); g.shadowBlur = 0; }
   g.restore();
 }
-function drawWorkout() {
+function drawWorkout(covered) {
+  if (covered) {                                                      // YouTube mode: only the bottom strip is visible, redraw it once a second
+    const now = performance.now();
+    if (wk.active && now - (drawWorkout._t || 0) > 1000) { drawWorkout._t = now; const cv = $('ytStripCv'); cv._bare = true; drawProfile(cv, 0, wk.def.total, playPos()); }
+    return;
+  }
   const d = curDef(), T = d.total;
   drawProfile($('wkChart'), 0, T, playPos());
   if (wk.active) {
     const pos = playPos(), win = Math.min(720, T);
     let t0 = Math.max(0, pos - 90), t1 = t0 + win; if (t1 > T) { t1 = T; t0 = Math.max(0, T - win); }
     drawProfile($('wkZoom'), t0, t1, pos);
-  }
-  if (wk.active && $('ytMode').classList.contains('open')) {       // session strip along the bottom of YouTube mode
-    const cv = $('ytStripCv'); cv._bare = true; drawProfile(cv, 0, wk.def.total, playPos());   // whole session across the screen
   }
 }
 
@@ -1078,9 +1117,9 @@ function render() {
       $('pArrow').innerHTML = `<svg viewBox="0 0 24 24" class="${off ? 'on' : ''}" fill="${up ? '#c6f31a' : '#ff4d6d'}"><title>${up ? 'Push harder' : 'Ease off'}</title><path d="${up ? 'M12 3 2.5 14H8v7h8v-7h5.5z' : 'M12 21 2.5 10H8V3h8v7h5.5z'}"/></svg>`; }
   } else if (wk.active) { $('tgt').firstChild.nodeValue = freeStep ? '--' : currentTarget(); $('tgt').classList.remove('hit'); if ($('pArrow').dataset.k) { $('pArrow').dataset.k = ''; $('pArrow').innerHTML = ''; }
   } else if ($('pArrow').dataset.k) { $('pArrow').dataset.k = ''; $('pArrow').innerHTML = ''; }
-  $('hr').firstChild.nodeValue = live.hr ?? '--'; $('hrAvg').textContent = `avg ${avg(s.hrSum, s.hrN)}`;
-  $('cad').firstChild.nodeValue = live.cadence != null ? Math.round(live.cadence) : '--'; $('cadAvg').textContent = `avg ${avg(s.cadSum, s.cadN)}`;
-  { const cs = wk.active && wk.def.steps[wk.idx].cad, c = live.cadence, el = $('cadAvg'); el.style.color = '';
+  $('hr').firstChild.nodeValue = live.hr ?? '--'; $('hrAvg').textContent = `avg ${avg(s.hrSum, s.hrN)} bpm`;
+  $('cad').firstChild.nodeValue = live.cadence != null ? Math.round(live.cadence) : '--'; $('cadAvgR').textContent = `avg ${avg(s.cadSum, s.cadN)} rpm`;
+  { const cs = wk.active && wk.def.steps[wk.idx].cad, c = live.cadence, el = $('cadAvg'); el.style.color = ''; el.textContent = '';
     if (cs) { const lo = cs[0], hi = cs[1]; el.textContent = `Target ${lo}–${hi} rpm`;
       if (c != null && session.state === 'running') { if (c < lo - 3) { el.textContent = `▲ Speed up · ${lo}–${hi} rpm`; el.style.color = '#c6f31a'; } else if (c > hi + 3) { el.textContent = `▼ Slow down · ${lo}–${hi} rpm`; el.style.color = '#ff4d6d'; } else { el.style.color = '#c6f31a'; } } } }
   $('time').textContent = fmtTime(s.elapsed);
@@ -1088,13 +1127,15 @@ function render() {
   $('speedAvg').textContent = `avg ${s.spdN ? (s.spdSum/s.spdN).toFixed(1) : '--'} km/h`;
   $('dist').firstChild.nodeValue = (s.distance/1000).toFixed(2);
   $('kjSub').textContent = `${Math.round(s.joules/1000)} kJ burned`;
-  $('pavg').firstChild.nodeValue = avg(s.pSum, s.pN); $('pmax').textContent = `max ${s.pN ? s.pMax : '--'}`;
+  $('pavg').firstChild.nodeValue = avg(s.pSum, s.pN); $('pavgR').textContent = `avg ${avg(s.pSum, s.pN)} W`; $('pmax').textContent = `max ${s.pN ? s.pMax : '--'}`;
   $('kj').firstChild.nodeValue = Math.round(s.joules/1000);
   $('np').firstChild.nodeValue = s.npN ? Math.round((s.npSum4/s.npN) ** .25) : '--';
   $('p3').firstChild.nodeValue = s.p3.length ? Math.round(s.p3.reduce((a,b)=>a+b,0)/s.p3.length) : '--';
   $('hrmax').firstChild.nodeValue = s.hrMax || '--';
-  drawChart(); updateWorkoutUi(); drawWorkout();
-  requestAnimationFrame(render);
+  const covered = $('ytMode').classList.contains('open');            // dashboard hidden behind YouTube mode: skip its charts
+  if (!covered) drawChart();
+  updateWorkoutUi(); drawWorkout(covered);
+  setTimeout(() => requestAnimationFrame(render), covered ? 400 : 50);   // ~20 fps normally, ~2.5 fps behind YouTube, so the video gets the CPU/GPU
 }
 function drawChart() {
   const cv = $('chart'), dpr = devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
@@ -1171,7 +1212,7 @@ function drawSeriesChart(g, x, y, w, h, series) {
 function buildShareImage(rec) {
   rec = rec || rideRecord();
   const W = 1600, H = 1200, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
-  const g = cv.getContext('2d'), def = defOf(rec), ftp = rec.ftp || 200, FONT = '-apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif', X0 = 120, X1 = W - 120;
+  const g = cv.getContext('2d'), def = defOf(rec), ftp = rec.ftp || 200, FONT = 'Nunito, -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif', X0 = 120, X1 = W - 120;
   const bg = g.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#14253f'); bg.addColorStop(1, '#08111f'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
   g.textBaseline = 'alphabetic'; g.textAlign = 'left';
   // Strava puts a "Virtual" badge over the top-left corner, so the title starts below it.
@@ -1265,6 +1306,9 @@ const TEMPLATES = [
     days:[ [null,'erg',null,'ss',null,null,'ss30'], [null,'3030',null,'ss',null,null,'ss30'], [null,'3030',null,'ss30',null,null,'kos'], [null,'erg',null,'3030',null,null,null] ] },
   { id:'t-base4', name:'4-Week Aerobic Base (Bike)', desc:'Three easy heart-rate rides a week, building duration and finishing with a lighter recovery week. Adjust the days to fit around your runs.', weeks:4,
     days:[ [null,'ab60',null,'ab60',null,null,'ab90'], [null,'ab60',null,'abl',null,null,'ab90'], [null,'ab90',null,'abl',null,null,'ab90'], [null,'rec45',null,'ab60',null,null,'ab60'] ] },
+  { id:'t-hybrid8', name:'8-Week Hybrid Cycling Plan (Mon & Wed)', desc:'Two bike sessions a week, Mondays and Wednesdays, to sit alongside your running. Weeks 1–3 build sweet spot and aerobic base, week 4 absorbs, weeks 5–7 extend FTP with some VO2, and week 8 tapers and retests FTP.', weeks:8,
+    days:[ ['hy1m',null,'hy1w',null,null,null,null], ['hy2m',null,'hy2w',null,null,null,null], ['hy3m',null,'hy3w',null,null,null,null], ['hy4m',null,'hy4w',null,null,null,null],
+           ['hy5m',null,'hy5w',null,null,null,null], ['hy6m',null,'hy6w',null,null,null,null], ['hy7m',null,'hy7w',null,null,null,null], ['hy8m',null,'hy8w',null,null,null,null] ] },
   { id:'t-ss3', name:'3-Week Sweet Spot Block', desc:'Two sweet-spot sessions a week plus a longer weekend ride.', weeks:3,
     days:[ [null,'ss',null,'ss30',null,null,'kos'], [null,'ss30',null,'ss',null,null,'kos'], [null,'ss',null,'ss30',null,null,null] ] },
 ];
@@ -1381,6 +1425,7 @@ $('planBody').addEventListener('click', async e => {
 document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (planOpen() && planView !== 'edit') closePlan(); else if (histOpen()) closeHistory(); });
 
 // ---- Corner icon badge on each data tile ----
+try { document.fonts.load('400 14px Nunito'); } catch {}   // make sure the rounded font is ready before the canvases and share image use it
 const TILE_ICONS = {
   'speed': ['#4da3ff', '<path d="M4 17a8 8 0 1 1 16 0"/><path d="m12 17 4-5"/><circle cx="12" cy="17" r="1"/>'],
   'distance': ['#c6f31a', '<path d="m8 21 2-18M16 21l-2-18"/><path d="M12 5v2M12 11v2M12 17v2"/>'],
@@ -1423,7 +1468,7 @@ function ytLoadApi() {
 const YT_ERR = { 2: 'That link doesn’t look like a valid video.', 5: 'The video couldn’t be played in this player.', 100: 'The video was removed or is private.', 101: 'The owner doesn’t allow this video to be played outside YouTube.', 150: 'The owner doesn’t allow this video to be played outside YouTube.', 153: 'YouTube refused to embed this video here.' };
 async function ytPlay(v) {
   ytMsg('Loading…', ''); try { await ytLoadApi(); } catch { return ytMsg('Can’t reach YouTube', 'Check your internet connection and try again.', true); }
-  const vars = { autoplay: 1, rel: 0, playsinline: 1, modestbranding: 1, origin: location.origin };
+  const vars = { autoplay: 1, rel: 0, playsinline: 1, modestbranding: 1, fs: 0, origin: location.origin };   // fs:0 hides YouTube's own fullscreen button (it would fullscreen only the video and hide our data); use the ⛶ button in our bar
   if (ytPlayer && ytReady) { if (v.id) ytPlayer.loadVideoById(v.id); else ytPlayer.loadPlaylist({ list: v.list, listType: 'playlist' }); ytMsg(''); return; }
   if (v.list) { vars.listType = 'playlist'; vars.list = v.list; }
   ytReady = false;
@@ -1440,18 +1485,19 @@ function ytGo() {
 function ytWake() { const b = $('ytBar'); b.classList.remove('fade'); clearTimeout(ytFade); ytFade = setTimeout(() => { if (document.activeElement !== $('ytUrl') && ytReady) b.classList.add('fade'); }, 3500); }
 let ytSizeIdx = 1; try { ytSizeIdx = +localStorage.getItem('freehub.ytsize') || 1; } catch {}
 const ytApplySize = () => { const z = [[260, .85], [300, 1], [380, 1.3]][ytSizeIdx % 3]; $('ytMode').style.setProperty('--yw', z[0] + 'px'); $('ytMode').style.setProperty('--yf', z[1]); };
+const _yc = {}; function yset(id, v) { v = String(v); if (_yc[id] !== v) { _yc[id] = v; $(id).textContent = v; } }
 function ytUpdate() {
   const s = session, p = live.power, z = p != null ? zoneInfo(p) : null, h = $('ytHud');
-  $('ySpeed').textContent = live.speed != null ? live.speed.toFixed(1) : '--';
-  $('yPower').textContent = p ?? '--'; $('yPc').style.setProperty('--zc', z ? z[2] : 'transparent');
+  yset('ySpeed', live.speed != null ? live.speed.toFixed(1) : '--');
+  yset('yPower', p ?? '--'); if (_yc.zc !== (z ? z[2] : 'transparent')) { _yc.zc = z ? z[2] : 'transparent'; $('yPc').style.setProperty('--zc', _yc.zc); }
   const hasT = $('pTarget').parentNode.classList.contains('hasTarget'); h.classList.toggle('hasT', hasT);
-  $('yTgt').textContent = $('tgt').firstChild.nodeValue; $('yZone').textContent = $('zone').textContent;
+  yset('yTgt', $('tgt').firstChild.nodeValue); yset('yZone', $('zone').textContent);
   if ($('yArrow').dataset.k !== $('pArrow').dataset.k || !$('pArrow').dataset.k) { $('yArrow').dataset.k = $('pArrow').dataset.k || ''; $('yArrow').innerHTML = $('pArrow').innerHTML; }
-  $('yHr').textContent = live.hr ?? '--'; $('yCad').textContent = live.cadence != null ? Math.round(live.cadence) : '--';
-  $('yCadSub').textContent = wk.active && wk.def.steps[wk.idx].cad ? $('cadAvg').textContent : ''; $('yCadSub').style.color = $('cadAvg').style.color;
+  yset('yHr', live.hr ?? '--'); yset('yCad', live.cadence != null ? Math.round(live.cadence) : '--');
+  yset('yCadSub', wk.active && wk.def.steps[wk.idx].cad ? $('cadAvg').textContent : ''); $('yCadSub').style.color = $('cadAvg').style.color;
   $('ytMode').classList.toggle('strip', !!wk.active);
-  $('yTime').textContent = fmtTime(s.elapsed); $('yDist').textContent = (s.distance / 1000).toFixed(2);
-  if (wk.active) { const i = wkInfo(); $('yWkName').textContent = i.name; $('yLeft').textContent = mmss(i.left); $('yStep').textContent = i.step; $('yNext').textContent = i.next ? 'Next: ' + i.next : 'Last step'; $('yProg').style.width = Math.min(100, wk.stepElapsed / (stepDur() || 1) * 100) + '%'; }
+  yset('yTime', fmtTime(s.elapsed)); yset('yDist', (s.distance / 1000).toFixed(2));
+  if (wk.active) { const i = wkInfo(); yset('yWkName', i.name); yset('yLeft', mmss(i.left)); yset('yStep', i.step); yset('yNext', i.next ? 'Next: ' + i.next : 'Last step'); const w = Math.min(100, wk.stepElapsed / (stepDur() || 1) * 100).toFixed(1) + '%'; if (_yc.pw !== w) { _yc.pw = w; $('yProg').style.width = w; } }
   for (const [a, b] of [['ytStart', 'btnStart'], ['ytPause', 'btnPause'], ['ytStop', 'btnStop']]) { $(a).disabled = $(b).disabled; $(a).textContent = $(b).textContent; }
 }
 const YT_ICONS = { ...TILE_ICONS, 'time': TILE_ICONS['3s power'], 'workout': ['#c6f31a', '<path d="M5 21V4M5 4h12l-2.5 4L17 12H5"/>'] };
@@ -1459,8 +1505,8 @@ document.querySelectorAll('#ytHud .yc').forEach(c => {
   const k = c.dataset.ic || c.querySelector('.yl').textContent.trim().toLowerCase(), ic = YT_ICONS[k]; if (!ic) return;
   const b = document.createElement('div'); b.className = 'ytb'; b.style.setProperty('--ic', ic[0]); b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${ic[1]}</svg>`; c.appendChild(b);
 });
-setInterval(() => { if (ytOpen()) ytUpdate(); }, 250);
-$('btnYt').onclick = () => { $('ytMode').classList.add('open'); ytApplySize(); try { const l = localStorage.getItem('freehub.yt'); if (l && !$('ytUrl').value) $('ytUrl').value = l; } catch {} ytUpdate(); ytWake(); if (!ytPlayer) setTimeout(() => $('ytUrl').focus(), 50); else if (ytReady && ytPlayer.playVideo) ytPlayer.playVideo(); };
+setInterval(() => { if (ytOpen()) ytUpdate(); }, 500);
+$('btnYt').onclick = () => { $('ytMode').classList.add('open'); drawWorkout._t = 0; ytApplySize(); try { const l = localStorage.getItem('freehub.yt'); if (l && !$('ytUrl').value) $('ytUrl').value = l; } catch {} ytUpdate(); ytWake(); if (!ytPlayer) setTimeout(() => $('ytUrl').focus(), 50); else if (ytReady && ytPlayer.playVideo) ytPlayer.playVideo(); };
 $('ytExit').onclick = () => { $('ytMode').classList.remove('open'); if (ytReady && ytPlayer.pauseVideo) ytPlayer.pauseVideo(); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); };
 $('ytLoad').onclick = ytGo; $('ytUrl').addEventListener('keydown', e => { if (e.key === 'Enter') ytGo(); });
 $('ytUrl').addEventListener('paste', () => setTimeout(ytGo, 30));
@@ -1469,6 +1515,26 @@ $('ytSize').onclick = () => { ytSizeIdx = (ytSizeIdx + 1) % 3; try { localStorag
 $('ytFs').onclick = () => { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}); };
 for (const [a, b] of [['ytStart', 'btnStart'], ['ytPause', 'btnPause'], ['ytStop', 'btnStop']]) $(a).onclick = () => $(b).click();
 $('ytMode').addEventListener('mousemove', ytWake); $('ytBar').addEventListener('mouseenter', () => $('ytBar').classList.remove('fade'));
+function ytApplyGlass() { let lite = false; try { lite = localStorage.getItem('freehub.ytglass') === 'lite'; } catch {} $('ytMode').classList.toggle('lite', lite); $('ytGlass').textContent = lite ? 'Glass: Light' : 'Glass: Full'; }
+$('ytGlass').onclick = () => { let lite = false; try { lite = localStorage.getItem('freehub.ytglass') === 'lite'; localStorage.setItem('freehub.ytglass', lite ? 'full' : 'lite'); } catch {} ytApplyGlass(); };
+ytApplyGlass();
+// Commands from the phone companion. (Browsers only allow fullscreen from a click on this page, so ⛶ can't be triggered remotely; if it is already fullscreen it stays that way.)
+function ytRemote(cmd, url) {
+  if (cmd === 'yt-open') {
+    if (!ytOpen()) $('btnYt').click();
+    if (url && url.trim()) { $('ytUrl').value = url.trim(); ytGo(); }
+    else if (!ytPlayer) { try { const l = localStorage.getItem('freehub.yt'); if (l) { $('ytUrl').value = l; ytGo(); } } catch {} }
+    return;
+  }
+  if (!ytOpen()) return;
+  if (cmd === 'yt-exit') $('ytExit').click();
+  else if (cmd === 'yt-hud') $('ytHide').click();
+  else if (cmd === 'yt-size') $('ytSize').click();
+  else if (ytReady && ytPlayer) {
+    if (cmd === 'yt-toggle') ytPlayer.getPlayerState() === 1 ? ytPlayer.pauseVideo() : ytPlayer.playVideo();
+    else if (cmd === 'yt-mute') ytPlayer.isMuted() ? ytPlayer.unMute() : ytPlayer.mute();
+  }
+}
 document.addEventListener('keydown', e => { if (ytOpen() && e.key.toLowerCase() === 'h' && document.activeElement !== $('ytUrl') && !modalOpen) $('ytHide').click(); });
 
 loadRides(); loadStores();
@@ -1519,8 +1585,15 @@ function snapshot() {
             zone: live.power != null ? zoneInfo(live.power).slice(0,3) : null },
     elapsed: s.elapsed, distance: s.distance, kj: Math.round(s.joules/1000),
     avgSpeed: s.spdN ? s.spdSum/s.spdN : 0, avgPower: s.pN ? Math.round(s.pSum/s.pN) : 0, maxPower: s.pMax,
-    hrAvg: s.hrN ? Math.round(s.hrSum/s.hrN) : 0,
-    summary: modalOpen ? stats() : null, name: $('actName').value, upload, workout: wk.active ? wkInfo() : null };
+    hrAvg: s.hrN ? Math.round(s.hrSum/s.hrN) : 0, cadAvg: s.cadN ? Math.round(s.cadSum/s.cadN) : 0, ver: 3,
+    summary: modalOpen ? stats() : null, name: $('actName').value, upload, workout: wk.active ? wkInfo() : null, yt: ytSnap() };
+}
+// YouTube state for the phone companion. Wrapped in try/catch because the player variables are declared further down the file.
+function ytSnap() {
+  try {
+    const ok = ytReady && ytPlayer && ytPlayer.getPlayerState;
+    return { open: ytOpen(), ready: !!ok, playing: ok ? ytPlayer.getPlayerState() === 1 : false, muted: ok && ytPlayer.isMuted ? ytPlayer.isMuted() : false, hud: !$('ytHud').classList.contains('off'), last: localStorage.getItem('freehub.yt') || '' };
+  } catch { return null; }
 }
 let lastPush = 0;
 function pushState() { lastPush = Date.now(); fetch('/api/state', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(snapshot()), keepalive:true }).catch(()=>{}); }
@@ -1528,7 +1601,8 @@ setInterval(pushState, 1000);
 
 const cmdSrc = new EventSource('/api/cmd-stream');
 cmdSrc.onmessage = e => {
-  const { cmd, name } = JSON.parse(e.data);
+  const { cmd, name, url } = JSON.parse(e.data);
+  if (cmd && cmd.startsWith('yt-')) { ytRemote(cmd, url); pushState(); return; }
   if (cmd === 'start') start();
   else if (cmd === 'pause' && !modalOpen) pause();
   else if (cmd === 'resume') { if (modalOpen) closeModal(); resume(); }
