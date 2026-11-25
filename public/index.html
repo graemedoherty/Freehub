@@ -34,21 +34,22 @@
 
   .tile { position:relative; overflow:hidden; }
   #ptip { position:fixed; display:none; z-index:200; pointer-events:none; background:#0f1c31; border:1px solid #2a4466; border-radius:10px; padding:8px 12px; font-size:13px; box-shadow:0 8px 24px rgba(0,0,0,.5); } #ptip .t { font-size:15px; font-weight:700; margin-top:2px; } #ptip .m { color:var(--mute); font-size:12px; margin-top:2px; }
-  #ytMode { position:fixed; inset:0; z-index:30; background:#000; display:none; } #ytMode.open { display:block; }
+  #ytMode { position:absolute; inset:0; z-index:1; background:#000; display:none; } #ytMode.open { display:block; } #ytMode.full { position:fixed; inset:0; z-index:30; }
   #ytStage, #ytPlayer { position:absolute; inset:0; width:100%; height:100%; border:0; } #ytPlayer iframe { width:100%; height:100%; border:0; }
   #ytMsg .sub { color:rgba(255,255,255,.8); text-shadow:0 1px 6px rgba(0,0,0,.6); }
-  #ytMsg { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:0 380px 0 40px; pointer-events:none; color:#f2f6fc; } #ytMsg .big { font-size:26px; font-weight:700; margin-bottom:8px; } #ytMsg.err .big { color:#ff8a9b; } #ytMsg:empty, #ytMsg.hide { display:none; } #ytMsg a { pointer-events:auto; color:#c6f31a; }
+  #ytMsg { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:0 40px; pointer-events:none; color:#f2f6fc; } #ytMode.full #ytMsg { padding:0 380px 0 40px; } #ytMsg .big { font-size:26px; font-weight:700; margin-bottom:8px; } #ytMsg.err .big { color:#ff8a9b; } #ytMsg:empty, #ytMsg.hide { display:none; } #ytMsg a { pointer-events:auto; color:#c6f31a; }
   #ytBar { position:absolute; top:0; left:0; right:0; display:flex; gap:8px; align-items:center; padding:10px 14px; background:linear-gradient(rgba(4,10,20,.92),rgba(4,10,20,0)); transition:opacity .4s; z-index:2; } #ytBar.fade { opacity:0; } #ytBar .grow { flex:1; }
   #ytUrl { flex:0 1 460px; min-width:120px; background:rgba(21,16,31,.92); color:var(--text); border:1px solid var(--line); border-radius:10px; padding:9px 12px; font:inherit; } #ytUrl:focus { outline:none; border-color:var(--accent); }
   #ytBar button { padding:8px 14px; }
-  #ytStrip { position:absolute; left:0; right:0; bottom:0; height:118px; display:none; z-index:1; pointer-events:none; background:linear-gradient(rgba(4,10,20,0),rgba(4,10,20,.55)); } #ytMode.strip #ytStrip { display:block; } #ytStripCv { position:absolute; left:14px; right:14px; bottom:12px; width:calc(100% - 28px); height:92px; border-radius:18px; background:rgba(8,17,31,.42); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.2); box-shadow:inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.35); }
-  #ytMode.strip #ytHud { top:calc(50% - 52px); max-height:calc(100% - 96px - 118px); }
+  #ytStrip { position:absolute; left:0; right:0; bottom:0; height:118px; display:none; z-index:1; pointer-events:none; background:linear-gradient(rgba(4,10,20,0),rgba(4,10,20,.55)); } #ytMode.full.strip #ytStrip { display:block; } #ytStripCv { position:absolute; left:14px; right:14px; bottom:12px; width:calc(100% - 28px); height:92px; border-radius:18px; background:rgba(8,17,31,.42); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.2); box-shadow:inset 0 1px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.35); }
+  #ytMode.full.strip #ytHud { top:calc(50% - 52px); max-height:calc(100% - 96px - 118px); }
   #ytHud { position:absolute; top:50%; right:22px; transform:translateY(-50%); width:var(--yw,300px); max-height:calc(100% - 96px); display:flex; flex-direction:column; gap:12px; z-index:1; pointer-events:none; font-size:var(--yf,1); transition:opacity .25s; } #ytHud.off { opacity:0; }
   #ytHud .yc { position:relative; background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.05)); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,.22); border-radius:26px; padding:14px 18px;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.4), inset 0 -1px 0 rgba(255,255,255,.06), 0 10px 32px rgba(0,0,0,.38); }
   #ytMode.lite #ytHud .yc { -webkit-backdrop-filter:none; backdrop-filter:none; background:linear-gradient(145deg,rgba(18,32,56,.78),rgba(10,20,36,.7)); }
   #ytMode.lite #ytStripCv { -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(8,17,31,.7); }
   #ytHud { will-change:transform; }
+  #ytHud #yRt { display:none; } #ytHud.hasR #yRt { display:block; }
   #ytHud #yPc::before { content:''; position:absolute; left:0; top:22%; bottom:22%; width:5px; border-radius:0 5px 5px 0; background:var(--zc,transparent); box-shadow:0 0 12px var(--zc,transparent); }
   #ytHud .yc { overflow:hidden; }
   #ytHud .ytb { position:absolute; top:0; right:0; width:50px; height:42px; display:flex; align-items:center; justify-content:center; background:linear-gradient(160deg,rgba(255,255,255,.26),rgba(255,255,255,.1)); border-left:1px solid rgba(255,255,255,.28); border-bottom:1px solid rgba(255,255,255,.28); border-radius:0 0 0 20px; box-shadow:inset 0 1px 0 rgba(255,255,255,.35); }
@@ -185,56 +186,151 @@
   .planbar { height:6px; background:var(--card); border-radius:99px; overflow:hidden; margin-top:8px; } .planbar i { display:block; height:100%; background:linear-gradient(90deg,#8fe03a,#c6f31a); }
   .today-banner { display:flex; gap:14px; align-items:center; margin:12px 0; padding:14px 16px; border:1px solid var(--accent); border-radius:12px; background:var(--bg); }
   .pmatrix { display:grid; grid-template-columns:60px repeat(7,minmax(0,1fr)); gap:6px; align-items:center; } .pmatrix select { width:100%; font-size:12.5px; padding:6px 4px; background:var(--bg); color:var(--text); border:1px solid var(--line); border-radius:8px; }
+  .insight { margin-top:12px; padding:14px 16px; background:var(--bg); border:1px solid var(--line); border-radius:14px; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 10px; }
+  .chip { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:7px 12px; font-size:11.5px; color:var(--mute); letter-spacing:.04em; text-transform:uppercase; } .chip b { display:block; font-size:18px; color:var(--text); font-weight:800; margin-top:1px; letter-spacing:0; text-transform:none; font-variant-numeric:tabular-nums; } .chip b small { font-size:11px; color:var(--mute); font-weight:600; }
+  .zbar { display:flex; height:10px; border-radius:6px; overflow:hidden; background:var(--line); margin:6px 0 6px; } .zbar i { display:block; height:100%; }
+  .zleg { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:11.5px; color:var(--mute); } .zleg span::before { content:''; display:inline-block; width:8px; height:8px; border-radius:3px; background:var(--c); margin-right:5px; }
+  .notes { margin:10px 0 0; padding-left:18px; font-size:14px; line-height:1.5; } .notes li { margin:4px 0; }
+  .feel { display:flex; gap:6px; flex-wrap:wrap; margin-top:12px; align-items:center; } .feel .label { width:100%; } .feel button { padding:7px 11px; font-size:13px; border-radius:10px; } .feel button.on { border-color:var(--accent); color:var(--accent); background:rgba(198,243,26,.08); }
+  .progtiles { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:14px; }
+  .pcard { background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin-bottom:12px; } .pcard h3 { margin:0 0 4px; font-size:15px; } .pcard .sub { margin:0 0 8px; } .pcard svg { width:100%; height:auto; display:block; }
+  .ztable { width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; } .ztable td { padding:7px 4px; border-top:1px solid var(--line); } .ztable td:first-child::before { content:''; display:inline-block; width:9px; height:9px; border-radius:3px; background:var(--c); margin-right:8px; } .ztable td:last-child { text-align:right; font-weight:700; }
+  .dv { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:12px 0; } .dv > div { background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:10px 12px; } .dv .v { font-size:20px; font-weight:800; margin-top:3px; font-variant-numeric:tabular-nums; } .dv .s { font-size:12px; color:var(--mute); margin-top:2px; }
+  @media(max-width:820px){ .progtiles{grid-template-columns:repeat(2,minmax(0,1fr));} }
   @media(max-width:820px){ .pdays{grid-template-columns:repeat(2,1fr);} .histrow{grid-template-columns:1fr 1fr;} .histtotals{grid-template-columns:1fr;} .pmatrix{grid-template-columns:repeat(2,1fr);} }
   @media(max-width:1180px){ main{grid-template-columns:minmax(0,1fr);} .side{position:static;} .qrmin{align-items:flex-start;} .qrbox{width:150px;} }
   @media(max-width:820px){ .row1 .val{font-size:72px;} .row2{grid-template-columns:1fr 1fr;} .row2 .big{grid-column:1/-1;} .mstats{grid-template-columns:repeat(2,1fr);} }
+
+  /* ======== Layout v4: header pills, main tile, tile column, bottom bar ======== */
+  header.top { padding:16px 24px; border-bottom:0; }
+  .brand { gap:14px; }
+  .nav { display:flex; gap:10px; flex-wrap:wrap; margin-left:8px; }
+  .nav button, .conn button, .conn .pill { height:40px; border-radius:20px; padding:0 18px; font-size:14px; font-weight:700; display:inline-flex; align-items:center; gap:8px; }
+  .conn .pill { padding:0 14px; font-size:13px; background:var(--card); }
+  .nav button.on { border-color:var(--accent); background:rgba(198,243,26,.12); color:var(--accent); }
+  .qrwrap { position:relative; }
+  .qrpop { display:none; position:absolute; right:0; top:48px; z-index:35; width:250px; padding:16px; background:var(--card); border:1px solid var(--line); border-radius:20px; box-shadow:0 22px 56px rgba(0,0,0,.6); }
+  .qrpop.open { display:block; }
+  .qrbox { background:#fff; padding:10px; border-radius:14px; }
+  .qrurl { font-size:12px; color:var(--mute); word-break:break-all; text-align:center; }
+  main.app { max-width:none; margin:0; padding:4px 24px 0; display:grid; grid-template-columns:minmax(0,1fr) minmax(380px,460px); gap:20px; align-items:stretch; height:max(640px,calc(100vh - 176px)); }
+  .stage { display:flex; flex-direction:column; gap:16px; min-height:0; min-width:0; }
+  .mainTile { position:relative; flex:1; min-height:0; display:flex; flex-direction:column; background:var(--card); border:1px solid var(--line); border-radius:24px; overflow:hidden; }
+  .mtHead { display:flex; align-items:center; gap:12px; padding:10px 14px; border-bottom:1px solid var(--line); flex:none; }
+  .seg { display:inline-flex; gap:4px; padding:4px; background:var(--bg); border:1px solid var(--line); border-radius:18px; }
+  .seg button { border:0; background:transparent; height:30px; padding:0 16px; border-radius:14px; font-size:13px; font-weight:700; color:var(--mute); }
+  .seg button.on { background:var(--accent); color:#08111f; }
+  .mtNote { font-size:13px; color:var(--mute); margin-left:auto; }
+  .mtBody { position:relative; flex:1; min-height:0; }
+  .view { position:absolute; inset:0; display:none; overflow:auto; padding:16px 18px; }
+  .mainTile[data-view=workout] #viewWorkout, .mainTile[data-view=route] #viewRoute { display:block; }
+  #viewRoute { padding:0; overflow:hidden; background:#0a1628; }
+  .stripCard { flex:none; height:176px; background:var(--card); border:1px solid var(--line); border-radius:24px; padding:12px 18px 10px; display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .stripHead { display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+  .stripHead .meta { font-size:13px; font-weight:700; color:var(--mute); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .stripBody { position:relative; flex:1; min-height:0; }
+  #stripCv { position:absolute; inset:0; width:100%; height:100%; background:transparent; }
+
+  .tiles { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:1.4fr repeat(3,1fr); gap:16px; min-height:0; }
+  .tiles .tile { border-radius:24px; padding:16px 18px; display:flex; flex-direction:column; min-width:0; }
+  .tiles .tile.big { grid-column:1 / -1; padding:18px 22px; }
+  .tiles .label { font-size:11px; letter-spacing:1.4px; }
+  .tiles .val { font-size:clamp(34px,5.4vh,52px); margin-top:12px; white-space:nowrap; }
+  .tiles .tile.big .val { font-size:clamp(64px,11vh,104px); margin-top:6px; letter-spacing:-1px; transition:color .3s; }
+  .tiles .tile.big .ptarget .val { font-size:clamp(34px,5vh,52px); margin-top:12px; }
+  .tiles .val small { font-size:16px; }
+  .tiles .sub { margin-top:auto; padding-top:6px; }
+  .tiles .tile.big .sub { margin-top:10px; }
+  .tiles .tile:not(.big) .tbadge { width:42px; height:38px; } .tiles .tile:not(.big) .tbadge svg { width:19px; height:19px; }
+  .more { padding:20px 24px 110px; display:grid; gap:0; }
+  .mgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; }
+  .bottombar { position:sticky; bottom:0; z-index:20; display:flex; align-items:center; gap:12px; padding:14px 24px 16px; background:linear-gradient(rgba(8,17,31,0),rgba(8,17,31,.96) 40%); }
+  .bottombar button { height:48px; border-radius:24px; padding:0 28px; font-weight:800; font-size:16px; }
+  .bottombar .pill { height:44px; padding:0 16px; font-size:14px; font-weight:700; background:var(--card); }
+  .chip { height:44px; padding:0 16px; border-radius:22px; display:inline-flex; align-items:center; font-size:14px; font-weight:800; background:rgba(198,243,26,.12); border:1px solid var(--accent); color:var(--accent); }
+  #wkCard .wkactive { margin-top:0; }
+
+  /* ---- Route view ---- */
+  #rtMap { position:absolute; inset:0; width:100%; height:100%; display:block; background:transparent; }
+  #viewRoute:not(.has) #rtMap, #viewRoute:not(.has) .rtHud { display:none; }
+  #viewRoute.has .rtEmpty { display:none; }
+  .rtEmpty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:24px; background:radial-gradient(circle at 50% 40%,#10233c,#0a1628 70%); }
+  #viewRoute.drag .rtEmpty, #viewRoute.drag { outline:2px dashed var(--accent); outline-offset:-10px; }
+  .rtEmptyCard { max-width:470px; text-align:center; } .rtEmptyCard .big { font-size:26px; font-weight:800; margin-bottom:8px; } .rtEmptyCard .mactions { justify-content:center; }
+  .rtSaved { display:flex; flex-direction:column; gap:8px; margin-top:16px; text-align:left; }
+  .rtSaved button { text-align:left; display:flex; justify-content:space-between; gap:12px; border-radius:14px; }
+  .rtSaved button span:last-child { color:var(--mute); font-size:13px; }
+  .rtc { position:absolute; padding:12px 16px; border-radius:18px; background:rgba(15,28,49,.88); border:1px solid var(--line); z-index:2; }
+  #rtInfo { left:16px; top:16px; max-width:280px; } .rtName { font-size:18px; font-weight:800; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .rtMeta { font-size:13px; font-weight:600; color:var(--mute); margin-top:2px; }
+  #rtNext { left:310px; top:16px; display:none; border-color:var(--pink); font-size:15px; font-weight:800; max-width:calc(100% - 340px); }
+  .rtLegend { left:16px; top:100px; display:flex; flex-direction:column; gap:6px; padding:10px 14px; } .rtLegend div { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; } .rtLegend .label { display:block; }
+  .rtLegend i { display:inline-block; width:22px; height:6px; border-radius:3px; }
+  #rtGradeBox { right:16px; bottom:16px; text-align:right; border-color:#27c4a8; } .rtg { font-size:40px; font-weight:800; line-height:1.05; font-variant-numeric:tabular-nums; }
+  .rtbar { position:absolute; left:16px; right:190px; bottom:16px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; z-index:2; }
+  .rtbar button, .rtbar select { height:36px; font-size:13px; font-weight:700; border-radius:18px; padding:0 14px; background:rgba(15,28,49,.92); }
+  .rtbar select { border:1px solid var(--line); color:var(--text); max-width:200px; font-family:inherit; }
+  .rtbar label { font-size:12px; font-weight:700; color:var(--mute); display:flex; align-items:center; gap:6px; background:rgba(15,28,49,.92); border:1px solid var(--line); border-radius:18px; padding:0 6px 0 12px; height:36px; } .rtbar label select { border:0; background:transparent; padding:0 4px; }
+  .rtAttr { display:none; position:absolute; right:12px; top:8px; font-size:11px; color:var(--mute); z-index:2; } #viewRoute.tilesOn .rtAttr { display:block; }
+
+  /* ---- YouTube: embedded in the tile vs full screen ---- */
+  #ytBar .fsonly { display:none; } #ytMode.full #ytBar .fsonly { display:inline-block; } #ytMode.full #ytBar .embonly { display:none; }
+  #ytHud { display:none; } #ytMode.full #ytHud { display:flex; }
+  #ytStrip { display:none; }
+  #ytMode:not(.full) #ytBar { padding:10px 12px; }
+  @media (max-width:1100px) {
+    main.app { grid-template-columns:minmax(0,1fr); height:auto; }
+    .stage { min-height:560px; } .mainTile { min-height:480px; }
+    .tiles { grid-template-rows:auto; grid-auto-rows:minmax(130px,auto); }
+  }
+
+  /* polish: one-row header, app height follows the real header, tidier route bar */
+  .conn .pill { display:none; }
+  .nav button, .conn button { padding:0 16px; }
+  .nav { gap:8px; } .conn { gap:8px; }
+  main.app { height:max(640px,calc(100vh - var(--hdr,72px) - 104px)); }
+  .rtbar { gap:6px; } .rtbar button, .rtbar select, .rtbar label { height:34px; font-size:12.5px; } .rtbar select { max-width:150px; }
+  @media (max-width:1100px) { main.app { height:auto; } }
 </style>
 </head>
 <body>
-<header>
-  <div class="brand"><img class="logo" src="/images/freehub_mark.png" alt=""><h1>FREE<span>HUB</span></h1><button id="btnSessions" title="Browse your sessions or build a new one">☰ Sessions</button><button id="btnPlan" title="Your training plan">📅 Plan<i class="pdot" id="planDot"></i></button><button id="btnHist" title="Past rides">⟲ History</button><button id="btnYt" title="Watch a YouTube video with your ride data on top">▶ YouTube</button></div>
+<header class="top">
+  <div class="brand"><img class="logo" src="/images/freehub_mark.png" alt=""><h1>FREE<span>HUB</span></h1>
+    <nav class="nav" aria-label="Main">
+      <button id="btnSessions" title="Browse your sessions or build a new one">Sessions</button>
+      <button id="btnPlan" title="Your training plan">Plan<i class="pdot" id="planDot"></i></button>
+      <button id="btnRoute" title="Ride a real route from a GPX file">Route</button>
+      <button id="btnHist" title="Past rides">History</button>
+      <button id="btnProg" title="FTP history, fitness trends and your zones">Progress</button>
+      <button id="btnYt" title="Watch a YouTube video with your ride data">YouTube</button>
+    </nav>
+  </div>
   <div class="conn">
     <div class="pill"><span class="dot" id="dotTrainer"></span><span id="txtTrainer">Trainer: not connected</span></div>
     <button id="btnTrainer" title="Connect your trainer over Bluetooth">Connect Zwift Hub</button>
     <div class="pill"><span class="dot" id="dotHr"></span><span id="txtHr">HR: not connected</span></div>
     <button id="btnHr" title="Connect a Bluetooth heart-rate strap">Connect HR strap</button>
     <button id="btnStrava" title="Checking Strava…">Strava…</button>
+    <div class="qrwrap" id="qrWrap">
+      <button id="btnQr" aria-haspopup="true" aria-expanded="false" title="Open the companion on your phone">Phone app</button>
+      <div class="qrpop" id="qrPop" role="dialog" aria-label="Phone companion">
+        <div class="qrurl" id="qrNone" style="font-size:13px">Looking for your Wi-Fi address…</div>
+        <div class="qrmin" id="qrPanel"><div class="qrbox" id="qrBox"></div><div class="qrcap">Scan with your phone</div><div class="qrurl" id="qrUrl"></div></div>
+      </div>
+    </div>
   </div>
 </header>
 
-<main>
-<div class="content">
-  <div class="controls">
-    <button id="btnStart" class="primary" disabled>▶ Start</button>
-    <button id="btnPause" disabled>⏸ Pause</button>
-    <button id="btnStop" class="danger" disabled>■ Finish</button>
-    <span class="pill" id="state">Idle</span>
-    <div class="timer"><div class="label">Time</div><div class="t" id="time">0:00:00</div></div>
-  </div>
-
-  <div class="row1">
-    <div class="tile"><div class="label">Speed</div><div class="val" id="speed">--<small>km/h</small></div><div class="sub subrow"><span></span><span id="speedAvg">avg --</span></div></div>
-    <div class="tile"><div class="label">Distance</div><div class="val" id="dist">0.00<small>km</small></div><div class="sub" id="kjSub">0 kJ burned</div></div>
-  </div>
-
-  <div class="row2">
-    <div class="tile big"><div class="pwrow"><div class="pcol"><div class="label">Power</div><div class="val" id="power">--<small>W</small></div></div>
-      <div class="parrow" id="pArrow" aria-hidden="true"></div>
-      <div class="pcol ptarget" id="pTarget"><div class="label">Target</div><div class="val" id="tgt">--<small>W</small></div></div></div>
-      <div class="sub" id="zone">Zone –</div><span class="avgr" id="pavgR">avg --</span></div>
-    <div class="tile"><div class="label">Heart rate</div><div class="val" id="hr">--<small>bpm</small></div><div class="sub subrow"><span></span><span id="hrAvg">avg --</span></div></div>
-    <div class="tile"><div class="label">Cadence</div><div class="val" id="cad">--<small>rpm</small></div><div class="sub subrow"><span id="cadAvg"></span><span id="cadAvgR">avg --</span></div></div>
-  </div>
-
-  <div class="grid">
-    <div class="tile"><div class="label">Avg power</div><div class="val" id="pavg">--<small>W</small></div><div class="sub" id="pmax">max --</div></div>
-    <div class="tile"><div class="label">Norm. power</div><div class="val" id="np">--<small>W</small></div></div>
-    <div class="tile"><div class="label">3s power</div><div class="val" id="p3">--<small>W</small></div></div>
-    <div class="tile"><div class="label">Energy</div><div class="val" id="kj">0<small>kJ</small></div></div>
-    <div class="tile"><div class="label">Max HR</div><div class="val" id="hrmax">--<small>bpm</small></div></div>
-  </div>
-
-  <div class="chart" id="wkCard">
+<main class="app" id="app">
+<section class="stage">
+  <div class="mainTile" id="mainTile" data-view="workout">
+    <div class="mtHead">
+      <div class="seg" role="tablist" aria-label="Main view"><button data-v="workout" class="on">Workout</button><button data-v="route">Route</button><button data-v="video">Video</button></div>
+      <span class="mtNote" id="mtNote"></span>
+    </div>
+    <div class="mtBody">
+      <div class="view" id="viewWorkout">
+        <div id="wkCard">
     <div class="wkhead">
       <div class="label">Workout</div>
       <select id="wkSel"></select>
@@ -258,10 +354,94 @@
     <div class="label wkcap" id="wkCapAll" style="display:none">Full workout</div>
     <canvas id="wkChart"></canvas>
     <div class="sub" id="wkDesc"></div>
+        </div>
+      </div>
+
+      <div class="view" id="viewRoute">
+        <canvas id="rtMap"></canvas>
+        <div class="rtEmpty" id="rtEmpty">
+          <div class="rtEmptyCard">
+            <div class="big">Ride a real route</div>
+            <div class="sub">Import a GPX file of an outdoor ride (export one from Strava or Garmin Connect). Freehub draws the route, follows your progress along it, and the Hub changes resistance with every hill.</div>
+            <div class="mactions"><button class="primary" id="rtImport">Import a GPX file</button></div>
+            <div class="sub" style="margin-top:10px">Or drop a .gpx file onto this panel.</div>
+            <div class="rtSaved" id="rtSavedList"></div>
+          </div>
+        </div>
+        <div class="rtHud" id="rtHud">
+          <div class="rtc" id="rtInfo"><div class="label">Route</div><div class="rtName" id="rtName">–</div><div class="rtMeta" id="rtMeta"></div></div>
+          <div class="rtc" id="rtNext"></div>
+          <div class="rtc rtLegend" aria-label="Gradient colours"><div class="label">Gradient</div>
+            <div><i style="background:#4da3ff"></i>Downhill</div><div><i style="background:#27c4a8"></i>Flat</div><div><i style="background:#ffd84d"></i>2–4%</div><div><i style="background:#ff9a3d"></i>4–7%</div><div><i style="background:#ff5d73"></i>7%+</div></div>
+          <div class="rtc" id="rtGradeBox"><div class="label" id="rtGradeLbl">Trainer grade</div><div class="rtg" id="rtGrade">0.0%</div></div>
+          <div class="rtbar">
+            <select id="rtSel" aria-label="Saved routes"></select>
+            <button id="rtImport2" title="Import another GPX file">Import</button>
+            <button id="rtMapBtn" title="Show real map tiles under the route (needs internet)">Map: Off</button>
+            <label>Max <select id="rtMax"><option>8</option><option>10</option><option selected>12</option><option>15</option></select></label>
+            <label title="Scales how hard the hills feel. 100% is the real gradient.">Hills <select id="rtStr"><option value="50">50%</option><option value="75">75%</option><option value="100" selected>100%</option></select></label>
+            <button id="rtClear" title="Stop using this route">Clear</button>
+            <button id="rtDel" class="ghost-danger" title="Delete this saved route">Remove</button>
+          </div>
+          <div class="rtAttr" id="rtAttr">© OpenStreetMap contributors</div>
+        </div>
+        <input type="file" id="rtFile" accept=".gpx,application/gpx+xml,text/xml,application/xml" hidden>
+      </div>
+
+      <div id="ytMode" aria-label="YouTube video">
+        <div id="ytStage"><div id="ytPlayer"></div>
+          <div id="ytMsg"><div><div class="big">Paste a YouTube link above</div><div class="sub">A match, a race, a scenic ride, a film — anything that allows embedding. Press Full screen to put your ride data on top of the video.</div></div></div></div>
+        <div id="ytBar">
+          <input id="ytUrl" type="text" placeholder="Paste a YouTube link…" autocomplete="off" spellcheck="false"><button id="ytLoad" class="primary">Play</button>
+          <span class="grow"></span>
+          <button id="ytStart" class="primary fsonly">▶ Start</button><button id="ytPause" class="fsonly">⏸ Pause</button><button id="ytStop" class="danger fsonly">■ Finish</button>
+          <button id="ytSize" class="fsonly" title="Data panel size">Aa</button><button id="ytGlass" class="fsonly" title="Full glass blur looks best; Light is smoother on slower machines">Glass: Full</button><button id="ytHide" class="fsonly" title="Hide or show the data panel">◧ Data</button>
+          <button id="ytFs" class="embonly" title="Full screen, with your ride data and the strip over the video">⛶ Full screen</button><button id="ytExit" class="fsonly">✕ Exit full screen</button>
+        </div>
+        <div id="ytStrip"><canvas id="ytStripCv"></canvas></div>
+        <div id="ytHud">
+          <div class="yc"><div class="yl">Speed</div><div class="yrow"><span class="yv big" id="ySpeed">--</span><span class="yu">km/h</span></div></div>
+          <div class="yc" id="yPc"><div class="yl">Power</div><div class="yrow"><span class="yv big" id="yPower">--</span><span class="yu">W</span><span class="ytgt" id="yTgtWrap"><span class="yl">Target</span><b id="yTgt">--</b></span><span class="yarrow" id="yArrow"></span></div><div class="ys" id="yZone"></div></div>
+          <div class="ygrid"><div class="yc"><div class="yl">Heart rate</div><div class="yrow"><span class="yv" id="yHr">--</span><span class="yu">bpm</span></div></div>
+            <div class="yc"><div class="yl">Cadence</div><div class="yrow"><span class="yv" id="yCad">--</span><span class="yu">rpm</span></div><div class="ys" id="yCadSub"></div></div>
+            <div class="yc"><div class="yl">Time</div><div class="yrow"><span class="yv" id="yTime">0:00:00</span></div></div>
+            <div class="yc"><div class="yl">Distance</div><div class="yrow"><span class="yv" id="yDist">0.00</span><span class="yu">km</span></div></div></div>
+          <div class="yc" id="yRt" data-ic="route"><div class="yl">Gradient</div><div class="yrow"><span class="yv" id="yGrade">0.0</span><span class="yu">%</span></div><div class="ys" id="yRtSub"></div></div>
+          <div class="yc" id="yWk" data-ic="workout"><div class="yl" id="yWkName">Workout</div><div class="yrow"><span class="yv" id="yLeft">0:00</span><span class="yu">left in step</span></div><div class="ys" id="yStep"></div><div class="ybar"><i id="yProg"></i></div><div class="ys" id="yNext"></div></div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="chart"><div class="label" style="margin-bottom:8px">Power &amp; heart rate (last 5 min)</div><canvas id="chart"></canvas></div>
+  <div class="stripCard" id="stripCard" style="display:none">
+    <div class="stripHead"><span class="label" id="stripTitle">Elevation</span><span class="meta" id="stripMeta"></span></div>
+    <div class="stripBody"><canvas id="stripCv"></canvas></div>
+  </div>
+</section>
 
+<section class="tiles">
+  <div class="tile big"><div class="pwrow"><div class="pcol"><div class="label">Power</div><div class="val" id="power">--<small>W</small></div></div>
+      <div class="parrow" id="pArrow" aria-hidden="true"></div>
+      <div class="pcol ptarget" id="pTarget"><div class="label">Target</div><div class="val" id="tgt">--<small>W</small></div></div></div>
+      <div class="sub" id="zone">Zone –</div><span class="avgr" id="pavgR">avg --</span></div>
+  <div class="tile"><div class="label">Heart rate</div><div class="val" id="hr">--<small>bpm</small></div><div class="sub subrow"><span></span><span id="hrAvg">avg --</span></div></div>
+  <div class="tile"><div class="label">Cadence</div><div class="val" id="cad">--<small>rpm</small></div><div class="sub subrow"><span id="cadAvg"></span><span id="cadAvgR">avg --</span></div></div>
+  <div class="tile"><div class="label">Speed</div><div class="val" id="speed">--<small>km/h</small></div><div class="sub subrow"><span></span><span id="speedAvg">avg --</span></div></div>
+  <div class="tile" id="t7"><div class="label" id="t7Label">Norm. power</div><div class="val" id="t7v">--<small id="t7u">W</small></div><div class="sub subrow"><span></span><span id="t7Sub"></span></div></div>
+  <div class="tile"><div class="label">Distance</div><div class="val" id="dist">0.00<small>km</small></div><div class="sub subrow"><span></span><span id="kjSub">0 kJ burned</span></div></div>
+  <div class="tile"><div class="label">Time</div><div class="val" id="time">0:00:00</div><div class="sub subrow"><span></span><span></span></div></div>
+</section>
+</main>
+
+<section class="more">
+  <div class="mgrid">
+    <div class="tile"><div class="label">Avg power</div><div class="val" id="pavg">--<small>W</small></div><div class="sub" id="pmax">max --</div></div>
+    <div class="tile"><div class="label">Norm. power</div><div class="val" id="np">--<small>W</small></div></div>
+    <div class="tile"><div class="label">3s power</div><div class="val" id="p3">--<small>W</small></div></div>
+    <div class="tile"><div class="label">Energy</div><div class="val" id="kj">0<small>kJ</small></div></div>
+    <div class="tile"><div class="label">Max HR</div><div class="val" id="hrmax">--<small>bpm</small></div></div>
+  </div>
+  <div class="chart"><div class="label" style="margin-bottom:8px">Power &amp; heart rate (last 5 min)</div><canvas id="chart"></canvas></div>
   <div class="panel">
     <label>ERG target <input type="number" id="erg" value="150" min="0" max="1000"> W
       <button id="btnErg" disabled>Set</button></label>
@@ -269,13 +449,16 @@
     <label title="Used to work out your speed from your power">Rider weight <input type="number" id="weight" value="75" min="30" max="200"> kg</label>
     <label>Speed <select id="speedSrc" style="background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 8px;font:inherit"><option value="calc">Calculated (Zwift-style)</option><option value="hub">Hub reading</option></select></label>
   </div>
+</section>
 
-
+<div class="bottombar">
+  <span class="pill" id="state">Idle</span>
+  <span class="chip" id="rideChip">Free ride</span>
+  <span style="flex:1"></span>
+  <button id="btnStart" class="primary" disabled>▶ Start</button>
+  <button id="btnPause" disabled>⏸ Pause</button>
+  <button id="btnStop" class="danger" disabled>■ Finish</button>
 </div>
-<aside class="side">
-<div class="qrmin" id="qrPanel"><div class="qrbox" id="qrBox"></div><div class="qrcap">Companion</div></div>
-</aside>
-</main>
 
 <!-- Finish dialog -->
 <div class="overlay" id="overlay">
@@ -285,6 +468,7 @@
     <div class="sub" id="mDate"></div>
     <canvas id="mChart"></canvas>
     <div class="mstats" id="mStats"></div>
+    <div id="mCoach"></div>
     <div id="nameBlock">
       <label class="field"><span class="label">Activity name on Strava</span>
         <input type="text" id="actName" maxlength="100" placeholder="Name your ride"></label>
@@ -341,27 +525,8 @@
     </div>
   </div>
 </div>
-<div id="ytMode" aria-label="YouTube mode">
-  <div id="ytStage"><div id="ytPlayer"></div>
-    <div id="ytMsg"><div><div class="big">Paste a YouTube link above</div><div class="sub">A match, a race, a scenic ride, a film — anything that allows embedding. Your ride data floats on the right.</div></div></div></div>
-  <div id="ytBar">
-    <input id="ytUrl" type="text" placeholder="Paste a YouTube link…" autocomplete="off" spellcheck="false"><button id="ytLoad" class="primary">Play</button>
-    <span class="grow"></span>
-    <button id="ytStart" class="primary">▶ Start</button><button id="ytPause">⏸ Pause</button><button id="ytStop" class="danger">■ Finish</button>
-    <button id="ytSize" title="Data panel size">Aa</button><button id="ytGlass" title="Full glass blur looks best; Light is smoother on slower machines">Glass: Full</button><button id="ytHide" title="Hide or show the data panel">◧ Data</button><button id="ytFs" title="Full screen">⛶</button><button id="ytExit">✕ Exit</button>
-  </div>
-  <div id="ytStrip"><canvas id="ytStripCv"></canvas></div>
-  <div id="ytHud">
-    <div class="yc"><div class="yl">Speed</div><div class="yrow"><span class="yv big" id="ySpeed">--</span><span class="yu">km/h</span></div></div>
-    <div class="yc" id="yPc"><div class="yl">Power</div><div class="yrow"><span class="yv big" id="yPower">--</span><span class="yu">W</span><span class="ytgt" id="yTgtWrap"><span class="yl">Target</span><b id="yTgt">--</b></span><span class="yarrow" id="yArrow"></span></div><div class="ys" id="yZone"></div></div>
-    <div class="ygrid"><div class="yc"><div class="yl">Heart rate</div><div class="yrow"><span class="yv" id="yHr">--</span><span class="yu">bpm</span></div></div>
-      <div class="yc"><div class="yl">Cadence</div><div class="yrow"><span class="yv" id="yCad">--</span><span class="yu">rpm</span></div><div class="ys" id="yCadSub"></div></div>
-      <div class="yc"><div class="yl">Time</div><div class="yrow"><span class="yv" id="yTime">0:00:00</span></div></div>
-      <div class="yc"><div class="yl">Distance</div><div class="yrow"><span class="yv" id="yDist">0.00</span><span class="yu">km</span></div></div></div>
-    <div class="yc" id="yWk" data-ic="workout"><div class="yl" id="yWkName">Workout</div><div class="yrow"><span class="yv" id="yLeft">0:00</span><span class="yu">left in step</span></div><div class="ys" id="yStep"></div><div class="ybar"><i id="yProg"></i></div><div class="ys" id="yNext"></div></div>
-  </div>
-</div>
 <div class="overlay" id="testOverlay"><div class="modal" role="dialog" aria-modal="true" aria-label="FTP test result" style="max-width:520px"><div id="testBody"></div></div></div>
+<div class="overlay" id="progOverlay"><div class="modal cat-modal" role="dialog" aria-modal="true" aria-label="Progress"><div id="progBody"></div></div></div>
 <div class="overlay" id="histOverlay"><div class="modal cat-modal" role="dialog" aria-modal="true" aria-label="Ride history"><div id="histBody"></div></div></div>
 <div class="overlay" id="planOverlay"><div class="modal cat-modal" role="dialog" aria-modal="true" aria-label="Training plan"><div id="planBody"></div></div></div>
 <div id="toast"></div>
@@ -399,9 +564,10 @@ let vSim = 0;
 function stepSpeed(dt) {
   const m = (+$('weight').value || 75) + MODEL.bike;
   const P = Math.max(0, live.power || 0) * MODEL.eff;
-  let Pres = MODEL.crr * m * MODEL.g * vSim + 0.5 * MODEL.rho * MODEL.cda * vSim ** 3;
+  let Pres = MODEL.crr * m * MODEL.g * vSim + 0.5 * MODEL.rho * MODEL.cda * vSim ** 3
+    + (rt.on ? m * MODEL.g * Math.max(-.15, Math.min(.15, rt.gradeNow / 100)) * vSim : 0);   // route rides: climbing costs power, descending gives some back
   if (!live.cadence) Pres += 40 * vSim * vSim;                 // not pedalling: slow down quickly, like a trainer does
-  vSim = Math.sqrt(Math.max(0, vSim * vSim + 2 * dt * (P - Pres) / (m + 1)));   // +1 kg ≈ wheel inertia
+  vSim = Math.min(22, Math.sqrt(Math.max(0, vSim * vSim + 2 * dt * (P - Pres) / (m + 1))));   // +1 kg ≈ wheel inertia
 }
 try { const w = localStorage.getItem('hubrider.weight'); if (w) $('weight').value = w; const src = localStorage.getItem('hubrider.speedsrc'); if (src) $('speedSrc').value = src; } catch {}
 $('weight').addEventListener('change', () => { try { localStorage.setItem('hubrider.weight', $('weight').value); } catch {} });
@@ -527,7 +693,7 @@ function start() {
 const pedalling = () => (live.power || 0) > 5 || (live.cadence || 0) > 0;
 function begin() {
   if (session.state !== 'waiting') return;
-  session.state = 'running'; session.startTime = new Date(); rideId = rid(session.startTime);
+  session.state = 'running'; session.startTime = new Date(); rideId = rid(session.startTime); rideFeel = null;
   if (wk.active) wk.tickAt = performance.now();
   beep(1040, 120); updateButtons(); pushState();
 }
@@ -607,7 +773,7 @@ function openSummary() {
   const st = stats(); saveRide();
   $('overlay').classList.add('open');
   $('mDate').textContent = session.startTime.toLocaleString([], { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' });
-  renderStats(st);
+  renderStats(st); renderCoach();
   $('actName').value = $('actName').value || defaultName();
   $('discardConfirm').style.display = 'none';
   setModalMode('review');
@@ -716,6 +882,9 @@ const WORKOUTS = [
     steps:(() => { const a=[S('Warm-up',5,.5,.6)]; for (let i=0;i<22;i++) a.push(S(`Ramp ${i+1}`,1,+(.55+i*.05).toFixed(2))); a.push(S('Cool-down',5,.5,.4)); return a; })() },
   { id:'ftp20', test:'ftp20', name:'FTP Test 20 min (about 60 min)', desc:'The classic test: warm-up, a 5-minute hard effort, recovery, then 20 minutes as hard as you can steadily sustain (the trainer is in free mode, so you pick the power). Freehub estimates FTP as 95% of your 20-minute average. Start the 20 minutes at a pace you can hold; don’t go out too hard.',
     steps:[ S('Warm-up',10,.5,.75), S('Spin-up 1',1,.9), S('Easy',1,.5), S('Spin-up 2',1,.9), S('Easy',1,.5), S('Spin-up 3',1,.9), S('Easy',2,.5), { ...S('5 min hard effort',5,1.1), free:true }, S('Easy',10,.5,.45), { ...S('FTP test · 20 min',20,1), free:true }, S('Cool-down',10,.5,.35) ] },
+  ...[65, 70, 75].map(pc => ({ id:`drift${pc}`, test:'drift', name:`Zone 2 Drift Test · ${pc}% FTP (75 min)`,
+    desc:`Finds out whether ${pc}% of your FTP is truly aerobic. Ride 60 minutes at one steady power with a comfortable 85–95 rpm. Afterwards Freehub compares your heart rate in the first half with the second half at the same power. Under about 3% drift means you could go higher; 3–5% means this is about your Zone 2 ceiling; over 5% means it was too hard. Do it fresh, fed and not after a hard day. If you are not sure where to start, begin with 70%.`,
+    steps:[ S('Warm-up',10,.5,pc/100), CAD(S(`Steady Zone 2 · ${pc}% FTP`,60,pc/100),85,95), S('Cool-down',5,pc/100,.4) ] })),
   // ---- 8-Week Hybrid Cycling Plan (Mondays & Wednesdays) ----
   // Every session has a progressive warm-up and an easy cool-down. The minutes quoted in the plan are the main set; Zone 2 = 70% FTP (65–75%).
   ...(() => {
@@ -747,6 +916,13 @@ const WORKOUTS = [
         steps:[ S('Warm-up',9,.5,.75), S('Opener 1',1,.9), S('Easy',1,.5), S('Opener 2',1,.9), S('Easy',1,.5), S('Opener 3',1,.9), S('Easy',1,.5), { ...S('FTP test · 20 min',20,1), free:true }, S('Cool-down',10,.5,.35) ] },
     ];
   })(),
+  // ---- Rebuilt from Strava: Zwift "Double Sweet Anchor", ridden 21 Nov 2026. Watts are what was actually ridden, expressed for an FTP of 180 W (they scale if you change FTP). ----
+  (() => { const R = 180, st = (watts, sec) => S('Warm-up', sec / 60, watts / R), cd = watts => S('Cool-down', 100 / 60, watts / R), blk = (n, watts) => S(`Sweet spot ${n}/2 · ${watts} W`, 20, watts / R);
+    return { id:'zw-dsa', name:'Double Sweet Anchor 2×20 (from Zwift)',
+      desc:'Rebuilt from your Zwift ride on 21 Nov 2026 (average heart rate about 121 bpm in the blocks). 10 min stepped warm-up (65 to 100 W in 5 W steps), 2 min at 120 W, 3 min easy, 2 × 20 min at 130 W with 5 min easy between, then a 10 min stepped cool-down. The watts are the ones you rode, set for an FTP of 180 W, and they scale if you change your FTP.',
+      steps:[ st(65,40), st(70,80), st(75,80), st(80,80), st(85,80), st(90,80), st(95,80), st(100,80),
+              S('Spin-up · 2 min',2,120/R), S('Easy',3,90/R), blk(1,130), S('Easy',5,90/R), blk(2,130),
+              cd(95), cd(90), cd(85), cd(80), cd(75), cd(70) ] }; })(),
 ];
 for (const d of WORKOUTS) { let t = 0; d.offsets = d.steps.map(st => { const o = t; t += st.dur; return o; }); d.total = t; }
 $('wkSel').innerHTML = WORKOUTS.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
@@ -799,7 +975,7 @@ $('catGrid').addEventListener('click', e => {
   const running = wk.active && wk.def.id === id;
   if (act === 'use') {
     $('wkSel').value = id; try { localStorage.setItem('hubrider.sel', id); } catch {}
-    closeCatalogue(); updateWorkoutUi(); $('wkCard').scrollIntoView({ behavior:'smooth', block:'center' }); toast(`Selected: ${w.name}`, 2500);
+    closeCatalogue(); updateWorkoutUi(); setView('workout'); toast(`Selected: ${w.name}`, 2500);
   } else if (act === 'dup') openBuilder({ name: w.name + ' (copy)', desc: w.desc, steps: w.steps }, null);
   else if (act === 'edit') { if (running) return toast('End the running workout before editing it.'); openBuilder(w, id); }
   else if (act === 'del') {
@@ -886,7 +1062,7 @@ $('catNew').onclick = () => openBuilder(null, null);
 
 try { const v = localStorage.getItem('hubrider.ftp'); if (v) $('ftp').value = v; } catch {}
 $('ftp').addEventListener('input', () => { if (wk.active) applyTarget(true); });
-$('ftp').addEventListener('change', () => { try { localStorage.setItem('hubrider.ftp', $('ftp').value); } catch {} });
+$('ftp').addEventListener('change', () => { try { localStorage.setItem('hubrider.ftp', $('ftp').value); } catch {} logFtp($('ftp').value, pendingFtpSrc || 'Manual'); pendingFtpSrc = null; });
 
 let wk = { active:false, def:null, idx:0, stepElapsed:0, extra:0, actual:[] };
 let lastTarget = null, actx = null;
@@ -966,6 +1142,7 @@ function endWorkout(sendFreeRide) {
 // ---- FTP tests: work out an estimate from what you actually rode ----
 function testResult() {
   const d = wk.def, a = wk.actual || []; if (!d || !d.test || a.length < 60) return;
+  if (d.test === 'drift') return driftResult(d);
   let ftp = null, how = '';
   if (d.test === 'ramp') {                                   // 75% of your best 1-minute power
     let best = 0; for (let i = 59; i < a.length; i++) { let sum = 0; for (let j = i - 59; j <= i; j++) sum += a[j].p; best = Math.max(best, sum / 60); }
@@ -981,7 +1158,7 @@ function testResult() {
       <div class="mactions"><button class="primary" id="testUse">Use ${ftp} W as my FTP</button><button id="testKeep">Keep ${cur} W</button></div>`
     : `<h2 style="margin:6px 0 4px">Not enough data for an FTP estimate</h2><div class="sub">The ramp test needs at least 8 minutes, and the 20-minute test needs the full effort. Nothing has been changed.</div><div class="mactions"><button id="testKeep">OK</button></div>`;
   $('testOverlay').classList.add('open');
-  if ($('testUse')) $('testUse').onclick = () => { $('ftp').value = ftp; try { localStorage.setItem('hubrider.ftp', ftp); } catch {} $('ftp').dispatchEvent(new Event('input')); $('ftp').dispatchEvent(new Event('change')); updateWorkoutUi(); $('testOverlay').classList.remove('open'); toast(`FTP set to ${ftp} W. All sessions now use it.`, 4000); };
+  if ($('testUse')) $('testUse').onclick = () => { pendingFtpSrc = d.test === 'ramp' ? 'Ramp test' : '20-min test'; $('ftp').value = ftp; try { localStorage.setItem('hubrider.ftp', ftp); } catch {} $('ftp').dispatchEvent(new Event('input')); $('ftp').dispatchEvent(new Event('change')); updateWorkoutUi(); $('testOverlay').classList.remove('open'); toast(`FTP set to ${ftp} W. All sessions now use it.`, 4000); };
   $('testKeep').onclick = () => $('testOverlay').classList.remove('open');
 }
 $('wkStart').onclick = startWorkout;
@@ -998,7 +1175,7 @@ function updateWorkoutUi() {
   for (const id of ['wkSkip','wkExt','wkEnd']) $(id).style.display = on ? '' : 'none';
   $('wkActive').style.display = on ? 'grid' : 'none';
   $('wkZoom').style.display = $('wkCapNow').style.display = $('wkCapAll').style.display = on ? '' : 'none';
-  $('wkChart').style.height = on ? '110px' : '200px';
+  $('wkChart').style.height = on ? '110px' : Math.max(200, Math.min(420, Math.round(innerHeight * .4))) + 'px';
   if (!on) { $('wkActive').classList.remove('alert'); return; }
   const i = wkInfo(), cur = wk.def.steps[wk.idx], nx = wk.def.steps[wk.idx + 1];
   const hardNext = nx && nx.from > cur.to + .15;            // a real step up in effort
@@ -1083,7 +1260,7 @@ function drawProfile(cv, t0, t1, pos, o) {   // o = optional {W,H,def,ftp,actual
 function drawWorkout(covered) {
   if (covered) {                                                      // YouTube mode: only the bottom strip is visible, redraw it once a second
     const now = performance.now();
-    if (wk.active && now - (drawWorkout._t || 0) > 1000) { drawWorkout._t = now; const cv = $('ytStripCv'); cv._bare = true; drawProfile(cv, 0, wk.def.total, playPos()); }
+    if (now - (drawWorkout._t || 0) > 1000) { drawWorkout._t = now; const cv = $('ytStripCv'); if (wk.active) { cv._bare = true; drawProfile(cv, 0, wk.def.total, playPos()); } else if (rt.on) rtElev(cv, true); }
     return;
   }
   const d = curDef(), T = d.total;
@@ -1093,6 +1270,238 @@ function drawWorkout(covered) {
     let t0 = Math.max(0, pos - 90), t1 = t0 + win; if (t1 > T) { t1 = T; t0 = Math.max(0, T - win); }
     drawProfile($('wkZoom'), t0, t1, pos);
   }
+}
+
+// ---------- Route rides: a GPX file becomes a map, an elevation profile and hills on the trainer ----------
+const rt = { on: false, id: null, name: '', n: 0, step: 10, total: 0, lat: null, lon: null, wx: null, wy: null, ele: null, grade: null, gain: null, climb: 0, hasEle: true, runs: [], bb: null, rec: null,
+  pos: 0, gradeNow: 0, applied: 0, sent: null, lastSend: 0, done: false, tiles: false, maxGrade: 12, strength: 100, saved: [], base: null, baseKey: '', proj: null, tilesLoaded: 0, lastDraw: 0, dirty: true };
+try { rt.tiles = localStorage.getItem('freehub.rt.tiles') === '1'; rt.maxGrade = +localStorage.getItem('freehub.rt.max') || 12; rt.strength = +localStorage.getItem('freehub.rt.str') || 100; } catch {}
+const RT_ICONS = { climbed: ['#ff9a3d', '<path d="M3 19l6-10 4 6 3-4 5 8z"/>'], np: ['#9bd90f', '<path d="M3 15c3 0 3-8 6-8s3 10 6 10 3-6 6-6"/>'] };
+const _rc = {}; function rset(id, v) { v = String(v); if (_rc[id] !== v) { _rc[id] = v; $(id).textContent = v; } }
+const gradeColor = g => g < -2 ? '#4da3ff' : g < 2 ? '#27c4a8' : g < 4 ? '#ffd84d' : g < 7 ? '#ff9a3d' : '#ff5d73';
+const rad = x => x * Math.PI / 180;
+function hav(a, b) { const dLat = rad(b[0] - a[0]), dLon = rad(b[1] - a[1]), s = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a[0])) * Math.cos(rad(b[0])) * Math.sin(dLon / 2) ** 2; return 12742000 * Math.asin(Math.min(1, Math.sqrt(s))); }
+const mercX = lon => (lon + 180) / 360;
+const mercY = lat => { const s = Math.sin(rad(Math.max(-85, Math.min(85, lat)))); return .5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI); };
+const fmtDist = m => m < 1000 ? `${Math.max(10, Math.round(m / 10) * 10)} m` : `${(m / 1000).toFixed(1)} km`;
+
+function parseGpx(text) {
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  if (doc.getElementsByTagName('parsererror').length) throw new Error('That file isn’t a valid GPX file.');
+  let nodes = [...doc.getElementsByTagName('trkpt')]; if (nodes.length < 2) nodes = [...doc.getElementsByTagName('rtept')];
+  if (nodes.length < 2) throw new Error('No route points found in that GPX file.');
+  const pts = [];
+  for (const n of nodes) {
+    const lat = parseFloat(n.getAttribute('lat')), lon = parseFloat(n.getAttribute('lon')); if (!isFinite(lat) || !isFinite(lon)) continue;
+    const e = n.getElementsByTagName('ele')[0], ele = e ? parseFloat(e.textContent) : NaN;
+    pts.push([lat, lon, isFinite(ele) ? ele : null]);
+  }
+  const nm = doc.getElementsByTagName('name')[0];
+  return { name: nm ? nm.textContent.trim() : '', pts };
+}
+
+// Turn raw points [lat, lon, ele|null] into an evenly spaced, smoothed route with gradients.
+function rtBuild(name, pts, id) {
+  pts = pts.map(p => p.slice());
+  const anyEle = pts.some(p => p[2] != null);
+  let last = null; for (const p of pts) { if (p[2] != null) last = p[2]; else if (last != null) p[2] = last; }
+  const first = pts.find(p => p[2] != null); if (first) for (const p of pts) { if (p[2] == null) p[2] = first[2]; else break; }
+  const n0 = pts.length, cum = new Float64Array(n0);
+  for (let i = 1; i < n0; i++) cum[i] = cum[i - 1] + hav(pts[i - 1], pts[i]);
+  const total = cum[n0 - 1];
+  if (!(total >= 500)) throw new Error('That route is shorter than 500 m.');
+  const step = Math.min(40, Math.max(10, Math.ceil(total / 5000 / 5) * 5)), n = Math.floor(total / step) + 1;
+  const lat = new Float64Array(n), lon = new Float64Array(n), e0 = new Float64Array(n);
+  for (let i = 0, j = 0; i < n; i++) {
+    const d = i * step; while (j < n0 - 2 && cum[j + 1] < d) j++;
+    const span = cum[j + 1] - cum[j], t = span > 0 ? Math.min(1, Math.max(0, (d - cum[j]) / span)) : 0;
+    lat[i] = pts[j][0] + (pts[j + 1][0] - pts[j][0]) * t; lon[i] = pts[j][1] + (pts[j + 1][1] - pts[j][1]) * t;
+    e0[i] = anyEle ? pts[j][2] + (pts[j + 1][2] - pts[j][2]) * t : 0;
+  }
+  const ele = new Float64Array(n), h = Math.max(1, Math.round(60 / step));
+  for (let i = 0; i < n; i++) { let s = 0, c = 0; for (let k = Math.max(0, i - h); k <= Math.min(n - 1, i + h); k++) { s += e0[k]; c++; } ele[i] = s / c; }
+  const g0 = new Float64Array(n), k = Math.max(1, Math.round(40 / step));
+  for (let i = 0; i < n; i++) { const a = Math.max(0, i - k), b = Math.min(n - 1, i + k); g0[i] = anyEle && b > a ? Math.max(-25, Math.min(25, (ele[b] - ele[a]) / ((b - a) * step) * 100)) : 0; }
+  const grade = new Float64Array(n); for (let i = 0; i < n; i++) grade[i] = (g0[Math.max(0, i - 1)] + 2 * g0[i] + g0[Math.min(n - 1, i + 1)]) / 4;
+  const gain = new Float64Array(n); for (let i = 1; i < n; i++) gain[i] = gain[i - 1] + Math.max(0, ele[i] - ele[i - 1]);
+  const gs = new Float64Array(n), kc = Math.max(1, Math.round(100 / step));   // colours use a wider average so they don't flicker
+  for (let i = 0; i < n; i++) { let a = 0, c = 0; for (let k2 = Math.max(0, i - kc); k2 <= Math.min(n - 1, i + kc); k2++) { a += grade[k2]; c++; } gs[i] = a / c; }
+  const runs = []; let r0 = 0, rc = gradeColor(gs[0]);
+  for (let i = 1; i < n; i++) { const c = gradeColor(gs[i - 1]); if (c !== rc) { runs.push([r0, i, rc]); r0 = i; rc = c; } }
+  runs.push([r0, n - 1, rc]);
+  const mruns = []; for (const r of runs) { const p = mruns[mruns.length - 1]; if (p && ((r[1] - r[0]) * step < 60 || p[2] === r[2])) p[1] = r[1]; else mruns.push(r.slice()); }   // no flicker from tiny colour changes
+  const wx = new Float64Array(n), wy = new Float64Array(n); let x0 = 9, x1 = -9, y0 = 9, y1 = -9;
+  for (let i = 0; i < n; i++) { wx[i] = mercX(lon[i]); wy[i] = mercY(lat[i]); x0 = Math.min(x0, wx[i]); x1 = Math.max(x1, wx[i]); y0 = Math.min(y0, wy[i]); y1 = Math.max(y1, wy[i]); }
+  const rid_ = id || 'r' + Date.now().toString(36);
+  Object.assign(rt, { on: true, id: rid_, name: name || 'Route', n, step, total: (n - 1) * step, lat, lon, wx, wy, ele, grade, gain, climb: gain[n - 1], hasEle: anyEle, runs: mruns, bb: { x0, x1, y0, y1 },
+    pos: 0, gradeNow: 0, applied: 0, sent: null, done: false, base: null, baseKey: '', proj: null, dirty: true, _nsKey: null });
+  const r5 = (a, d) => Array.from(a, v => +v.toFixed(d));
+  rt.rec = { id: rid_, name: rt.name, total: Math.round(rt.total), climb: Math.round(rt.climb), hasEle: anyEle, lat: r5(lat, 5), lon: r5(lon, 5), ele: r5(e0, 1) };
+}
+const rtFromRec = r => rtBuild(r.name, r.lat.map((la, i) => [la, r.lon[i], r.hasEle ? r.ele[i] : null]), r.id);
+
+const gradeAt = d => { const x = Math.max(0, d) / rt.step, i = Math.min(rt.n - 2, Math.floor(x)), t = Math.min(1, x - i); return rt.grade[i] + (rt.grade[i + 1] - rt.grade[i]) * t; };
+const gainAt = d => { const x = Math.max(0, d) / rt.step, i = Math.min(rt.n - 2, Math.floor(x)), t = Math.min(1, x - i); return rt.gain[i] + (rt.gain[i + 1] - rt.gain[i]) * t; };
+const eleAt = d => { const x = Math.max(0, d) / rt.step, i = Math.min(rt.n - 2, Math.floor(x)), t = Math.min(1, x - i); return rt.ele[i] + (rt.ele[i + 1] - rt.ele[i]) * t; };
+
+// Called every frame: where am I on the route, and what gradient does the trainer get?
+function rtTick() {
+  if (!rt.on) return;
+  const d = Math.min(rt.total, Math.max(0, session.distance || 0)); rt.pos = d;
+  rt.gradeNow = rt.hasEle ? gradeAt(d) : 0;
+  const done = d >= rt.total - 1 && session.distance > 0;
+  if (done && !rt.done) toast('Route complete! Keep spinning or finish your ride.', 6000);
+  rt.done = done;
+  rt.applied = done ? 0 : Math.max(-6, Math.min(rt.maxGrade, rt.gradeNow * rt.strength / 100));
+}
+// Send the gradient to the Hub (simulation mode: wind 0, grade in 0.01 %, crr 0.004, cw 0.51). Not while an ERG workout is running.
+setInterval(() => {
+  if (!rt.on || !ftmsControl || session.state !== 'running' || wk.active) { rt.sent = null; return; }
+  const g = Math.round(rt.applied * 100), now = Date.now();
+  if (g !== rt.sent || now - rt.lastSend > 5000) { rt.sent = g; rt.lastSend = now; writeCtl([0x11, 0, 0, g & 0xFF, (g >> 8) & 0xFF, 40, 51]).catch(() => {}); }
+}, 1000);
+
+function nextSteep() {
+  const key = Math.floor(rt.pos / 40); if (rt._nsKey === key && rt._nsId === rt.id) return rt._ns;
+  rt._nsKey = key; rt._nsId = rt.id; rt._ns = null;
+  const g = rt.grade, n = rt.n; let i = Math.floor(rt.pos / rt.step);
+  while (i < n) {
+    while (i < n && g[i] < 6) i++; if (i >= n) break;
+    let j = i; while (j < n && g[j] >= 4) j++;
+    if ((j - i) * rt.step >= 200) { let s = 0; for (let k = i; k < j; k++) s += g[k]; rt._ns = { s: i * rt.step, e: j * rt.step, avg: s / (j - i) }; break; }
+    i = j;
+  }
+  return rt._ns;
+}
+
+let t7Mode = '';
+function renderRouteBits() {
+  const s = session, on = rt.on;
+  if ((on ? 'c' : 'n') !== t7Mode) {
+    t7Mode = on ? 'c' : 'n'; $('t7Label').textContent = on ? 'Climbed' : 'Norm. power'; $('t7u').textContent = on ? 'm' : 'W';
+    const ic = on ? RT_ICONS.climbed : RT_ICONS.np, b = $('t7').querySelector('.tbadge'); if (b) { b.style.setProperty('--ic', ic[0]); b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${ic[1]}</svg>`; }
+  }
+  if (on) { $('t7v').firstChild.nodeValue = Math.round(gainAt(rt.pos)); rset('t7Sub', rt.hasEle ? `of ${Math.round(rt.climb)} m` : 'no elevation'); rset('kjSub', `of ${(rt.total / 1000).toFixed(1)} km`); }
+  else { $('t7v').firstChild.nodeValue = s.npN ? Math.round((s.npSum4 / s.npN) ** .25) : '--'; rset('t7Sub', s.p3.length ? `3s ${Math.round(s.p3.reduce((a, b) => a + b, 0) / s.p3.length)} W` : ''); rset('kjSub', `${Math.round(s.joules / 1000)} kJ burned`); }
+  rset('rideChip', wk.active ? (on ? 'Workout running · route grade paused' : 'Workout · ERG') : on ? 'Route ride · slope simulation' : 'Free ride');
+  if (on && $('mainTile').dataset.view === 'route') {
+    const shown = wk.active ? rt.gradeNow : rt.applied;
+    rset('rtGrade', `${shown >= 0 ? '+' : ''}${shown.toFixed(1)}%`); rset('rtGradeLbl', wk.active ? 'Route grade' : 'Trainer grade');
+    const c = gradeColor(rt.gradeNow); if (_rc.gc !== c) { _rc.gc = c; $('rtGradeBox').style.borderColor = c; $('rtGrade').style.color = c; }
+    rset('rtMeta', `${(rt.pos / 1000).toFixed(1)} of ${(rt.total / 1000).toFixed(1)} km · ${rt.hasEle ? Math.round(rt.climb) + ' m climbing' : 'no elevation data'}`);
+    const ns = rt.hasEle ? nextSteep() : null, nx = $('rtNext');
+    if (ns) { const inside = ns.s <= rt.pos + rt.step; rset('rtNext', inside ? `Steep section · ${fmtDist(ns.e - rt.pos)} left at ${ns.avg.toFixed(0)}%` : `Steep section in ${fmtDist(ns.s - rt.pos)} · ${fmtDist(ns.e - ns.s)} at ${ns.avg.toFixed(0)}%`); nx.style.display = 'block'; }
+    else nx.style.display = 'none';
+  }
+  rset('mtNote', $('mainTile').dataset.view === 'route' && !rt.on ? 'No route loaded' : '');
+}
+
+// ---- Map ----
+function rtView(W, H) {
+  const pad = Math.min(90, Math.min(W, H) * .2), b = rt.bb, bw = Math.max(b.x1 - b.x0, 1e-7), bh = Math.max(b.y1 - b.y0, 1e-7);
+  const s = Math.min((W - 2 * pad) / bw, (H - 2 * pad) / bh, 256 * 2 ** 17);
+  return { s, cx: (b.x0 + b.x1) / 2, cy: (b.y0 + b.y1) / 2, W, H };
+}
+const rtTileCache = new Map();
+function rtTile(z, x, y) {
+  const k = z + '/' + x + '/' + y; let t = rtTileCache.get(k);
+  if (!t) {
+    t = new Image(); t.onload = () => { t.ok = true; rt.tilesLoaded++; }; t.onerror = () => { t.bad = true; };
+    t.src = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`; rtTileCache.set(k, t);
+    if (rtTileCache.size > 300) rtTileCache.delete(rtTileCache.keys().next().value);
+  }
+  return t;
+}
+function rtTilesDraw(g, v) {
+  const z = Math.max(1, Math.min(17, Math.floor(Math.log2(v.s / 256) + .3))), n = 2 ** z, ts = v.s / n;
+  const wx0 = v.cx - v.W / 2 / v.s, wx1 = v.cx + v.W / 2 / v.s, wy0 = v.cy - v.H / 2 / v.s, wy1 = v.cy + v.H / 2 / v.s;
+  const tx0 = Math.floor(wx0 * n), tx1 = Math.floor(wx1 * n), ty0 = Math.max(0, Math.floor(wy0 * n)), ty1 = Math.min(n - 1, Math.floor(wy1 * n));
+  if ((tx1 - tx0 + 1) * (ty1 - ty0 + 1) > 60) return;
+  g.save(); g.filter = 'invert(1) hue-rotate(200deg) saturate(.45) brightness(.72) contrast(1.05)';
+  for (let ty = ty0; ty <= ty1; ty++) for (let tx = tx0; tx <= tx1; tx++) {
+    const t = rtTile(z, ((tx % n) + n) % n, ty); if (!t.ok) continue;
+    g.drawImage(t, v.W / 2 + (tx / n - v.cx) * v.s, v.H / 2 + (ty / n - v.cy) * v.s, ts + .5, ts + .5);
+  }
+  g.restore(); g.fillStyle = 'rgba(8,17,31,.38)'; g.fillRect(0, 0, v.W, v.H);
+}
+function rtBase(W, H, dpr) {
+  const key = `${W}x${H}x${dpr}|${rt.id}|${rt.tiles}|${rt.tilesLoaded}`; if (rt.base && rt.baseKey === key) return rt.base;
+  const cv = rt.base || (rt.base = document.createElement('canvas')); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); const v = rtView(W, H), n = rt.n;
+  g.fillStyle = '#0a1628'; g.fillRect(0, 0, W, H);
+  if (rt.tiles) rtTilesDraw(g, v);
+  else { g.strokeStyle = 'rgba(31,52,83,.35)'; g.lineWidth = 1; g.beginPath(); for (let x = 30; x < W; x += 60) { g.moveTo(x, 0); g.lineTo(x, H); } for (let y = 30; y < H; y += 60) { g.moveTo(0, y); g.lineTo(W, y); } g.stroke(); }
+  const X = new Float32Array(n), Y = new Float32Array(n);
+  for (let i = 0; i < n; i++) { X[i] = W / 2 + (rt.wx[i] - v.cx) * v.s; Y[i] = H / 2 + (rt.wy[i] - v.cy) * v.s; }
+  rt.proj = { X, Y }; g.lineCap = 'round'; g.lineJoin = 'round';
+  g.beginPath(); g.moveTo(X[0], Y[0]); for (let i = 1; i < n; i++) g.lineTo(X[i], Y[i]); g.strokeStyle = '#06101d'; g.lineWidth = 13; g.stroke();
+  g.globalAlpha = .45; g.lineWidth = 7;
+  for (const [i0, i1, c] of rt.runs) { g.beginPath(); g.moveTo(X[i0], Y[i0]); for (let i = i0 + 1; i <= i1; i++) g.lineTo(X[i], Y[i]); g.strokeStyle = c; g.stroke(); }
+  g.globalAlpha = 1;
+  // kilometre markers
+  const km = rt.total / 1000, sk = [1, 2, 5, 10, 20, 50].find(s => km / s <= 10) || 100;
+  g.font = '800 11px Nunito, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  for (let k = sk; k * 1000 < rt.total - 300; k += sk) { const i = Math.round(k * 1000 / rt.step); g.beginPath(); g.arc(X[i], Y[i], 10, 0, 7); g.fillStyle = '#0f1c31'; g.fill(); g.strokeStyle = '#1f3453'; g.lineWidth = 1.5; g.stroke(); g.fillStyle = '#8da0ba'; g.fillText(k, X[i], Y[i] + .5); }
+  g.beginPath(); g.arc(X[0], Y[0], 9, 0, 7); g.fillStyle = '#e8f0ff'; g.fill(); g.strokeStyle = '#06101d'; g.lineWidth = 3; g.stroke();
+  g.beginPath(); g.arc(X[n - 1], Y[n - 1], 9, 0, 7); g.fillStyle = '#06101d'; g.fill(); g.strokeStyle = '#c6f31a'; g.lineWidth = 3; g.stroke();
+  rt.baseKey = key; return cv;
+}
+function rtDraw() {
+  const cv = $('rtMap'), W = cv.clientWidth, H = cv.clientHeight; if (!rt.on || !W || !H) return;
+  const now = performance.now(); if (!rt.dirty && now - rt.lastDraw < 240) return; rt.lastDraw = now; rt.dirty = false;
+  const dpr = devicePixelRatio || 1; if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  g.drawImage(rtBase(W, H, dpr), 0, 0, W, H);
+  const { X, Y } = rt.proj, idx = Math.min(rt.n - 2, Math.floor(rt.pos / rt.step)), f = Math.min(1, rt.pos / rt.step - idx);
+  const rx = X[idx] + (X[idx + 1] - X[idx]) * f, ry = Y[idx] + (Y[idx + 1] - Y[idx]) * f;
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  for (const pass of [[15, .3], [8, 1]]) {
+    g.lineWidth = pass[0]; g.globalAlpha = pass[1];
+    for (const [i0, i1, c] of rt.runs) {
+      if (i0 > idx) break; g.beginPath(); g.moveTo(X[i0], Y[i0]); const e = Math.min(i1, idx);
+      for (let i = i0 + 1; i <= e; i++) g.lineTo(X[i], Y[i]); if (i1 >= idx) g.lineTo(rx, ry); g.strokeStyle = c; g.stroke();
+    }
+  }
+  g.globalAlpha = 1;
+  g.beginPath(); g.arc(rx, ry, 21, 0, 7); g.fillStyle = 'rgba(198,243,26,.22)'; g.fill();
+  g.beginPath(); g.arc(rx, ry, 11, 0, 7); g.fillStyle = '#c6f31a'; g.fill(); g.strokeStyle = '#06101d'; g.lineWidth = 3.5; g.stroke();
+}
+
+// ---- Elevation strip ----
+function rtElev(cv, bare) {
+  const dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight; if (!W || !H || !rt.on) return;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const padL = 8, padR = 8, padT = 10, padB = bare ? 8 : 20, pw = W - padL - padR, ph = H - padT - padB;
+  let lo = Infinity, hi = -Infinity; for (let i = 0; i < rt.n; i++) { const e = rt.ele[i]; if (e < lo) lo = e; if (e > hi) hi = e; }
+  const span = Math.max(60, hi - lo), lo2 = lo - span * .15, hi2 = lo2 + span * 1.35;
+  const X = i => padL + i * rt.step / rt.total * pw, Y = e => padT + ph - (e - lo2) / (hi2 - lo2) * ph, base = padT + ph, px = padL + rt.pos / rt.total * pw;
+  const poly = (i0, i1) => { g.beginPath(); g.moveTo(X(i0), base); for (let i = i0; i <= i1; i++) g.lineTo(X(i), Y(rt.ele[i])); g.lineTo(X(i1) + .8, Y(rt.ele[i1])); g.lineTo(X(i1) + .8, base); g.closePath(); };
+  const mix = (hex, a) => { const v = parseInt(hex.slice(1), 16), r = v >> 16, gg = (v >> 8) & 255, b = v & 255; return `rgb(${Math.round(15 + (r - 15) * a)},${Math.round(28 + (gg - 28) * a)},${Math.round(49 + (b - 49) * a)})`; };   // opaque, so neighbouring pieces leave no seams
+  for (const pass of [0, 1]) {
+    g.save(); if (pass) { g.beginPath(); g.rect(0, 0, px, H); g.clip(); }
+    for (const [i0, i1, c] of rt.runs) { poly(i0, i1); g.fillStyle = mix(c, pass ? .78 : .28); g.fill(); }
+    g.restore();
+  }
+  g.globalAlpha = 1; g.lineWidth = 2.6; g.lineJoin = 'round'; g.lineCap = 'round';
+  for (const [i0, i1, c] of rt.runs) { g.beginPath(); for (let i = i0; i <= i1; i++) i === i0 ? g.moveTo(X(i), Y(rt.ele[i])) : g.lineTo(X(i), Y(rt.ele[i])); g.strokeStyle = c; g.stroke(); }
+  if (!bare) {
+    const km = rt.total / 1000, sk = [1, 2, 5, 10, 20, 50].find(s => km / s <= 10) || 100;
+    g.font = '700 11px Nunito, sans-serif'; g.fillStyle = '#8da0ba'; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+    for (let k = 0; k * 1000 <= rt.total; k += sk) { const x = padL + k * 1000 / rt.total * pw; g.fillText(k === 0 ? '0 km' : k, Math.min(W - 14, Math.max(14, x)), H - 4); }
+  }
+  g.strokeStyle = '#c6f31a'; g.lineWidth = 2; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(px, padT); g.lineTo(px, base); g.stroke(); g.setLineDash([]);
+  g.beginPath(); g.arc(px, Y(eleAt(rt.pos)), 7, 0, 7); g.fillStyle = '#c6f31a'; g.fill(); g.strokeStyle = '#0f1c31'; g.lineWidth = 3; g.stroke();
+}
+let _stripT = 0;
+function drawStripCard(view) {
+  const k = wk.active ? 'wk' : rt.on ? 'rt' : '', show = !!k && view !== 'workout', sv = show ? k : '';
+  if (_rc.sv !== sv) { _rc.sv = sv; $('stripCard').style.display = show ? '' : 'none'; _stripT = 0; }
+  if (!show) return;
+  const now = performance.now(); if (now - _stripT < 250) return; _stripT = now;
+  const cv = $('stripCv');
+  if (k === 'wk') { cv._bare = false; drawProfile(cv, 0, wk.def.total, playPos()); rset('stripTitle', 'Workout · ' + (wk.def.name || '')); rset('stripMeta', wkInfo().step || ''); }
+  else { rtElev(cv, false); rset('stripTitle', 'Elevation'); rset('stripMeta', `${(rt.pos / 1000).toFixed(1)} of ${(rt.total / 1000).toFixed(1)} km`); }
 }
 
 // ---------- Rendering ----------
@@ -1126,16 +1535,17 @@ function render() {
   $('speed').firstChild.nodeValue = live.speed != null ? live.speed.toFixed(1) : '--';
   $('speedAvg').textContent = `avg ${s.spdN ? (s.spdSum/s.spdN).toFixed(1) : '--'} km/h`;
   $('dist').firstChild.nodeValue = (s.distance/1000).toFixed(2);
-  $('kjSub').textContent = `${Math.round(s.joules/1000)} kJ burned`;
   $('pavg').firstChild.nodeValue = avg(s.pSum, s.pN); $('pavgR').textContent = `avg ${avg(s.pSum, s.pN)} W`; $('pmax').textContent = `max ${s.pN ? s.pMax : '--'}`;
   $('kj').firstChild.nodeValue = Math.round(s.joules/1000);
   $('np').firstChild.nodeValue = s.npN ? Math.round((s.npSum4/s.npN) ** .25) : '--';
   $('p3').firstChild.nodeValue = s.p3.length ? Math.round(s.p3.reduce((a,b)=>a+b,0)/s.p3.length) : '--';
   $('hrmax').firstChild.nodeValue = s.hrMax || '--';
-  const covered = $('ytMode').classList.contains('open');            // dashboard hidden behind YouTube mode: skip its charts
-  if (!covered) drawChart();
+  const view = $('mainTile').dataset.view, covered = $('ytMode').classList.contains('full'), vid = view === 'video';   // covered: full-screen video hides the dashboard
+  rtTick(); renderRouteBits();
+  if (!covered && !vid) drawChart();
   updateWorkoutUi(); drawWorkout(covered);
-  setTimeout(() => requestAnimationFrame(render), covered ? 400 : 50);   // ~20 fps normally, ~2.5 fps behind YouTube, so the video gets the CPU/GPU
+  if (!covered) { if (view === 'route') rtDraw(); drawStripCard(view); }
+  setTimeout(() => requestAnimationFrame(render), covered ? 400 : vid ? 250 : 50);   // ~20 fps normally, ~4 fps beside a video and ~2.5 fps over it, so the video gets the CPU/GPU
 }
 function drawChart() {
   const cv = $('chart'), dpr = devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
@@ -1157,7 +1567,7 @@ render();
 
 // ---------- Persistence, ride image, history and plans ----------
 const markImg = new Image(); markImg.src = '/images/freehub_mark.png';
-let rideId = null, rides = [];
+let rideId = null, rides = [], rideFeel = null;
 const rid = d => d.toISOString().slice(0, 19).replace(/:/g, '-');
 const dkey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const parseDay = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d, 12); };
@@ -1178,11 +1588,13 @@ function rideRecord() {
     const a = s.samples.slice(i, i + 5), m = k => a.reduce((x, y) => x + y[k], 0) / a.length;
     series.p.push(Math.round(m('p'))); series.hr.push(Math.round(m('h'))); series.cad.push(Math.round(m('c'))); series.spd.push(+m('v').toFixed(1));
   }
-  return { id: rideId, name: rideName(), start: s.startTime.toISOString(), elapsed: st.elapsed, distance: Math.round(st.distance), avgSpeed: +st.avgSpeed.toFixed(2),
+  const rec = { id: rideId, name: rideName(), start: s.startTime.toISOString(), elapsed: st.elapsed, distance: Math.round(st.distance), avgSpeed: +st.avgSpeed.toFixed(2),
     avgPower: st.avgPower, maxPower: st.maxPower, np: st.np, kj: st.kj, avgHr: st.avgHr, maxHr: st.maxHr, avgCad: st.avgCad,
     ftp: +$('ftp').value || 200, weight: +$('weight').value || null,
     workout: d ? { id: d.id, name: d.name, steps: d.steps.map(x => ({ label: x.label, dur: x.dur, from: x.from, to: x.to, ...(x.hr ? { hr: x.hr } : {}), ...(x.cad ? { cad: x.cad } : {}), ...(x.free ? { free: 1 } : {}) })) } : null,
-    wkActual: d && wk.def === d ? wk.actual.filter((_, i) => i % 5 === 0).map(a => [a.x, a.p]) : [], series };
+    wkActual: d && wk.def === d ? wk.actual.filter((_, i) => i % 5 === 0).map(a => [a.x, a.p]) : [], series, feel: rideFeel };
+  try { const a = analyse(rec); if (a) rec.an = { tss: a.tss, if: a.IF != null ? +a.IF.toFixed(2) : null, ef: a.ef, drift: a.drift && a.drift.steady ? +a.drift.val.toFixed(1) : null, steady: !!(a.drift && a.drift.steady) }; } catch {}
+  return rec;
 }
 async function saveRide() {
   if (!rideId || !session.startTime || session.samples.length < 10) return;
@@ -1251,7 +1663,7 @@ function renderHistory() {
   $('histBody').innerHTML = `<div class="cathead"><h2>History</h2><button data-act="close">Close</button></div>
     <div class="histtotals">${sets.map(([l, list]) => { const t = tot(list); return `<div class="htile"><div class="label">${l}</div><div class="v">${t.n} ${t.n === 1 ? 'ride' : 'rides'}</div><div class="s">${hm(t.sec)} · ${t.km.toFixed(0)} km</div></div>`; }).join('')}</div>` +
     (rides.length ? rides.map(r => `<div class="histrow" data-id="${esc(r.id)}"><div class="m">${fmtWhen(r.start)}</div>
-        <div><div class="n">${esc(r.name)}</div><div class="m">${r.workout ? esc(r.workout.name) : 'Free ride'}</div></div>
+        <div><div class="n">${esc(r.name)}</div><div class="m">${r.workout ? esc(r.workout.name) : 'Free ride'}${r.an && r.an.tss ? ' · TSS ' + r.an.tss : ''}</div></div>
         <div><div class="m">Time</div>${fmtTime(r.elapsed)}</div><div><div class="m">Distance</div>${(r.distance / 1000).toFixed(1)} km</div>
         <div><div class="m">Avg power</div>${r.avgPower ? r.avgPower + ' W' : '–'}</div><div><div class="m">Norm. power</div>${r.np ? r.np + ' W' : '–'}</div>
         <div title="${r.strava ? 'On Strava' : 'Not uploaded'}">${r.strava ? '<span class="sdot"></span>' : ''}</div></div>`).join('')
@@ -1271,6 +1683,7 @@ function renderRide(msg, cls) {
     <div class="mstats">${statTile('Time', fmtTime(r.elapsed), '', true) + statTile('Distance', (r.distance / 1000).toFixed(2), 'km', true) + statTile('Avg speed', (r.avgSpeed || 0).toFixed(1), 'km/h') +
       statTile('Avg power', r.avgPower || '–', r.avgPower ? 'W' : '') + statTile('Max power', r.maxPower || '–', r.maxPower ? 'W' : '') + statTile('Norm. power', r.np || '–', r.np ? 'W' : '') +
       statTile('Energy', r.kj, 'kJ') + statTile('Avg HR', r.avgHr || '–', r.avgHr ? 'bpm' : '') + statTile('Avg cadence', r.avgCad || '–', r.avgCad ? 'rpm' : '')}</div>
+    ${insightHtml(r)}${feelHtml(r.feel)}
     <div id="hMsg" class="${cls || ''}" style="min-height:20px;font-size:14px">${msg || ''}</div>
     <div class="mactions"><button class="primary" data-act="img">⬇ Download image</button><a href="/api/rides/${encodeURIComponent(r.id)}/tcx"><button>Download .tcx</button></a>
       ${link ? `<a href="${link}" target="_blank"><button>View on Strava ↗</button></a>` : `<button data-act="up" ${stravaConnected ? '' : 'disabled title="Connect Strava first"'}>Upload to Strava</button>`}
@@ -1278,6 +1691,7 @@ function renderRide(msg, cls) {
 }
 $('histBody').addEventListener('click', async e => {
   const row = e.target.closest('.histrow'); if (row) return openRide(row.dataset.id);
+  const fb = e.target.closest('[data-feel]'); if (fb && histRec) { histRec.feel = +fb.dataset.feel; try { await putJson('/api/rides/' + encodeURIComponent(histRec.id), { record: histRec }); loadRides(); } catch {} return renderRide(); }
   const b = e.target.closest('button'); if (!b || b.disabled) return; const act = b.dataset.act, r = histRec;
   if (act === 'close') closeHistory();
   else if (act === 'back') { await loadRides(); renderHistory(); }
@@ -1299,6 +1713,135 @@ $('histBody').addEventListener('change', async e => {
 $('btnHist').onclick = openHistory;
 $('histOverlay').addEventListener('mousedown', e => { if (e.target === $('histOverlay') && !histRec_inDetail()) closeHistory(); });
 const histRec_inDetail = () => !!$('hImg');
+
+// ---- Coach foundations: ride analysis, how-it-felt rating, FTP history, Zone 2 profile, Progress screen ----
+const COACH_ZONES = [['Z1 Recovery', 0, .55, '#5fd0ff'], ['Z2 Endurance', .55, .75, '#4da3ff'], ['Z3 Tempo', .75, .9, '#2dd4bf'], ['Z4 Threshold', .9, 1.05, '#c6f31a'], ['Z5 VO2 max', 1.05, 1.2, '#ffb020'], ['Z6 Anaerobic', 1.2, 9, '#ff5d73']];
+let profile = { ftpHistory: [], zone2: null }, pendingFtpSrc = null;
+const saveProfile = () => putJson('/api/store/profile', profile).catch(() => {});
+function logFtp(w, src) {
+  w = Math.round(+w); if (!(w > 40 && w < 600)) return;
+  const last = profile.ftpHistory[profile.ftpHistory.length - 1]; if (last && last.w === w) return;
+  profile.ftpHistory.push({ d: new Date().toISOString(), w, src: src || 'Manual' }); saveProfile();
+}
+
+// What a ride tells you. Works on the 5-second series saved with every ride.
+function analyse(rec) {
+  const P = (rec.series && rec.series.p) || [], H = (rec.series && rec.series.hr) || [], dt = 5, n = P.length, ftp = rec.ftp || 200;
+  if (n < 24) return null;
+  const secs = n * dt, out = { ftp, tss: null, IF: null, ef: null, zones: null, drift: null };
+  const np = rec.np > 0 ? rec.np : (rec.avgPower || 0);            // normalised power, or plain average if the ride was too short for it
+  if (np > 0 && secs >= 300) { out.IF = np / ftp; out.tss = Math.round(secs * np * out.IF / (ftp * 3600) * 100); }
+  if (np > 0 && rec.avgHr > 40) out.ef = +(np / rec.avgHr).toFixed(2);
+  const bounds = COACH_ZONES.slice(0, 5).map(z => z[2]), zs = [0, 0, 0, 0, 0, 0]; let cnt = 0;
+  for (const p of P) { if (p < 5) continue; cnt++; let z = bounds.findIndex(b => p / ftp < b); if (z < 0) z = 5; zs[z]++; }
+  out.zones = cnt ? zs.map(x => x / cnt) : null;
+  // Aerobic drift (Pw:HR): compare watts-per-heartbeat in the first and second half of the main part of the ride
+  const a = secs >= 3000 ? 120 : secs >= 1500 ? 60 : 0, b = n - (secs >= 3000 ? 60 : 0);
+  if ((b - a) * dt >= 1200) {
+    const seg = []; for (let i = a; i < b; i++) seg.push([P[i], H[i] || 0]);
+    const sorted = seg.map(x => x[0]).sort((x, y) => x - y), med = sorted[sorted.length >> 1];
+    const steady = med > 20 && seg.filter(x => Math.abs(x[0] - med) <= .15 * med).length / seg.length >= .85;
+    const hrOk = seg.filter(x => x[1] > 40).length / seg.length >= .8;
+    if (hrOk) {
+      const half = arr => { const v = arr.filter(x => x[1] > 40); if (v.length < 5) return [0, 1]; return [v.reduce((q, x) => q + x[0], 0) / v.length, v.reduce((q, x) => q + x[1], 0) / v.length]; };
+      const mid = seg.length >> 1, [p1, h1] = half(seg.slice(0, mid)), [p2, h2] = half(seg.slice(mid)), e1 = p1 / h1, e2 = p2 / h2;
+      if (e1 > 0) out.drift = { val: (e1 - e2) / e1 * 100, p1, h1, p2, h2, minutes: seg.length * dt / 60, steady };
+    }
+  }
+  return out;
+}
+const driftVerdict = v => v < 3 ? { tone: 'up', t: 'Very little drift: this power was comfortably inside your aerobic zone, so you can go a little higher or longer next time.' }
+  : v <= 5 ? { tone: 'hold', t: 'Drift is in the normal 3–5% range, so this is about the top of your Zone 2 at this length. A good power to build on.' }
+  : { tone: 'down', t: 'Your heart rate climbed relative to your power. It was a bit too hard or too long today, or heat, tiredness or low fuel played a part. Go a little lower next time.' };
+function coachNotes(rec, an) {
+  const out = [], IF = an.IF, dr = an.drift;
+  if (IF != null && rec.elapsed >= 600) out.push(IF < .55 ? 'A recovery-level ride. Good for freshening the legs, but it will not build much fitness on its own.'
+    : IF < .75 ? 'An endurance-level ride, which is exactly what builds your aerobic base.'
+    : IF < .9 ? 'A tempo or sweet-spot effort. Productive, but have an easier day around it.'
+    : 'A hard ride. Make the next one easy.');
+  if (dr && dr.steady) out.push(`Aerobic drift ${dr.val.toFixed(1)}% (${Math.round(dr.p1)} W at ${Math.round(dr.h1)} bpm, then ${Math.round(dr.p2)} W at ${Math.round(dr.h2)} bpm). ` + driftVerdict(dr.val).t);
+  else if (dr && rec.elapsed >= 1500) out.push('Drift is not worked out for interval sessions. Steady rides and the Zone 2 drift test give the best read on your aerobic fitness.');
+  if (rec.feel >= 4 && IF != null && IF < .75) out.push('You rated this hard even though the power was easy. That usually means tiredness, heat or low fuel, so keep tomorrow easy.');
+  if (rec.feel === 1 && IF != null && IF > .8) out.push('You rated this very easy at that power, so your FTP setting may be too low. A ramp test would tell you.');
+  if (rec.feel === 5) out.push('Too hard is useful information: the next sessions should be easier until you feel fresh again.');
+  return out;
+}
+function insightHtml(rec) {
+  const an = analyse(rec); if (!an) return ''; const dr = an.drift && an.drift.steady ? an.drift : null;
+  const chips = [['Load', an.tss != null ? an.tss : '–', 'TSS'], ['Intensity', an.IF != null ? an.IF.toFixed(2) : '–', 'IF'], ['Efficiency', an.ef != null ? an.ef : '–', 'W per bpm']];
+  if (dr) chips.push(['Drift', dr.val.toFixed(1), '%']);
+  const z = an.zones, notes = coachNotes(rec, an);
+  return `<div class="insight"><div class="label">Coach notes</div>
+    <div class="chips">${chips.map(c => `<div class="chip">${c[0]}<b>${c[1]} <small>${c[2]}</small></b></div>`).join('')}</div>
+    ${z ? `<div class="zbar">${z.map((f, i) => `<i style="width:${(f * 100).toFixed(1)}%;background:${COACH_ZONES[i][3]}" title="${COACH_ZONES[i][0]} ${(f * 100).toFixed(0)}%"></i>`).join('')}</div>
+    <div class="zleg">${z.map((f, i) => f >= .02 ? `<span style="--c:${COACH_ZONES[i][3]}">${COACH_ZONES[i][0]} ${(f * 100).toFixed(0)}%</span>` : '').join('')}</div>` : ''}
+    ${notes.length ? `<ul class="notes">${notes.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}</div>`;
+}
+const FEELS = [[1, '😌 Very easy'], [2, '🙂 Easy'], [3, '👍 Just right'], [4, '😤 Hard'], [5, '🥵 Too hard']];
+const feelHtml = cur => `<div class="feel"><span class="label">How did it feel?</span>${FEELS.map(f => `<button data-feel="${f[0]}" class="${cur === f[0] ? 'on' : ''}">${f[1]}</button>`).join('')}</div>`;
+function renderCoach() { const rec = rideRecord(); $('mCoach').innerHTML = insightHtml(rec) + feelHtml(rec.feel); }
+$('mCoach').addEventListener('click', e => { const b = e.target.closest('[data-feel]'); if (!b) return; rideFeel = +b.dataset.feel; saveRide(); renderCoach(); });
+
+// ---- Zone 2 drift test result ----
+function driftResult(d) {
+  const rec = rideRecord(), an = analyse(rec), dr = an && an.drift, cur = +$('ftp').value || 200;
+  if (!dr || dr.minutes < 25 || !dr.steady) {
+    $('testBody').innerHTML = `<div class="label">${esc(d.name)}</div><h2 style="margin:6px 0 4px">Not enough steady data</h2><div class="sub">The drift test needs the full hour at one steady power with your heart-rate strap connected, so there is nothing to report this time. Nothing has been changed.</div><div class="mactions"><button id="testKeep">OK</button></div>`;
+  } else {
+    const v = driftVerdict(dr.val), w = Math.round((dr.p1 + dr.p2) / 2), hr = Math.round((dr.h1 + dr.h2) / 2);
+    const next = v.tone === 'up' ? `Next time try ${w + 5}–${w + 10} W (or ride 15 minutes longer at ${w} W).` : v.tone === 'hold' ? `Use about ${w} W as your Zone 2 ceiling for rides of this length, and build duration at that power.` : `Next time try ${Math.max(40, w - 10)}–${Math.max(40, w - 5)} W.`;
+    $('testBody').innerHTML = `<div class="label">${esc(d.name)}</div><h2 style="margin:6px 0 4px">Aerobic drift: ${dr.val.toFixed(1)}%</h2>
+      <div class="dv"><div><div class="label">First half</div><div class="v">${Math.round(dr.p1)} W</div><div class="s">${Math.round(dr.h1)} bpm</div></div><div><div class="label">Second half</div><div class="v">${Math.round(dr.p2)} W</div><div class="s">${Math.round(dr.h2)} bpm</div></div><div><div class="label">Efficiency</div><div class="v">${(dr.p1 / dr.h1).toFixed(2)} → ${(dr.p2 / dr.h2).toFixed(2)}</div><div class="s">watts per heartbeat</div></div></div>
+      <div class="sub">${esc(v.t)}</div><div class="sub" style="margin-top:8px"><b>${esc(next)}</b> That is ${Math.round(w / cur * 100)}% of your current FTP of ${cur} W.</div>
+      <div class="mactions">${v.tone !== 'down' ? `<button class="primary" id="testZ2">Save ${w} W · ${hr} bpm as my Zone 2</button>` : ''}<button id="testKeep">Close</button></div>`;
+    if (v.tone !== 'down') setTimeout(() => { const b = $('testZ2'); if (b) b.onclick = () => { profile.zone2 = { w, hr, drift: +dr.val.toFixed(1), d: new Date().toISOString(), ftp: cur }; saveProfile(); $('testOverlay').classList.remove('open'); toast(`Zone 2 saved: about ${w} W at ${hr} bpm. See the Progress screen.`, 5000); }; }, 0);
+  }
+  $('testOverlay').classList.add('open'); $('testKeep').onclick = () => $('testOverlay').classList.remove('open');
+}
+
+// ---- Progress screen ----
+function svgBars(vals, labels, color, unit) {
+  const W = 600, H = 150, pL = 34, pB = 22, pT = 8, n = vals.length, max = Math.max(1, ...vals) * 1.15, bw = (W - pL) / n; let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  for (let i = 0; i <= 3; i++) { const y = pT + (H - pT - pB) * (1 - i / 3), v = max * i / 3; s += `<line x1="${pL}" x2="${W}" y1="${y}" y2="${y}" stroke="#1f3453"/><text x="${pL - 6}" y="${y + 4}" text-anchor="end" fill="#8da0ba" font-size="11">${v.toFixed(v < 10 ? 1 : 0)}</text>`; }
+  vals.forEach((v, i) => { const h = (H - pT - pB) * v / max, x = pL + i * bw + bw * .18; s += `<rect x="${x.toFixed(1)}" y="${(H - pB - h).toFixed(1)}" width="${(bw * .64).toFixed(1)}" height="${Math.max(h, 0).toFixed(1)}" rx="4" fill="${color}"><title>${labels[i]}: ${v.toFixed(1)} ${unit || ''}</title></rect><text x="${(x + bw * .32).toFixed(1)}" y="${H - 6}" text-anchor="middle" fill="#8da0ba" font-size="10">${labels[i]}</text>`; });
+  return s + '</svg>';
+}
+function svgLine(vals, labels, color, dec) {
+  const W = 600, H = 150, pL = 40, pB = 22, pT = 10, n = vals.length; let lo = Math.min(...vals), hi = Math.max(...vals); const padv = (hi - lo || 1) * .25; lo -= padv; hi += padv;
+  const X = i => pL + (n === 1 ? (W - pL) / 2 : i / (n - 1) * (W - pL - 12)), Y = v => pT + (H - pT - pB) * (1 - (v - lo) / (hi - lo)); let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  for (let i = 0; i <= 3; i++) { const v = lo + (hi - lo) * i / 3, y = Y(v); s += `<line x1="${pL}" x2="${W}" y1="${y}" y2="${y}" stroke="#1f3453"/><text x="${pL - 6}" y="${y + 4}" text-anchor="end" fill="#8da0ba" font-size="11">${v.toFixed(dec)}</text>`; }
+  s += `<polyline fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" points="${vals.map((v, i) => X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ')}"/>`;
+  vals.forEach((v, i) => { s += `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4" fill="${color}"><title>${labels[i]}: ${v.toFixed(dec)}</title></circle>`; });
+  s += `<text x="${X(0)}" y="${H - 6}" fill="#8da0ba" font-size="10" text-anchor="start">${labels[0]}</text>`; if (n > 1) s += `<text x="${X(n - 1)}" y="${H - 6}" fill="#8da0ba" font-size="10" text-anchor="end">${labels[n - 1]}</text>`;
+  return s + '</svg>';
+}
+const shortDate = iso => new Date(iso).toLocaleDateString([], { day: 'numeric', month: 'short' });
+const progOpen = () => $('progOverlay').classList.contains('open');
+async function openProgress() { $('progOverlay').classList.add('open'); $('progBody').innerHTML = '<div class="sub">Loading…</div>'; await loadRides(); renderProgress(); }
+function renderProgress() {
+  const f = +$('ftp').value || 200, fh = profile.ftpHistory, z2 = profile.zone2, wk0 = d => { const x = mondayOf(d); x.setHours(0, 0, 0, 0); return x; }, thisWk = wk0(new Date());
+  const weeks = []; for (let i = 11; i >= 0; i--) { const d = new Date(thisWk); d.setDate(d.getDate() - 7 * i); weeks.push(d); }
+  const hrs = weeks.map(w => { const e = new Date(w); e.setDate(e.getDate() + 7); return rides.filter(r => { const t = new Date(r.start); return t >= w && t < e; }).reduce((a, r) => a + (r.elapsed || 0), 0) / 3600; });
+  const last4 = hrs.slice(-5, -1).reduce((a, b) => a + b, 0) / 4, steady = rides.filter(r => r.an && r.an.steady && r.an.ef).slice().reverse().slice(-20), drifts = rides.filter(r => r.an && r.an.steady && r.an.drift != null).slice().reverse().slice(-20);
+  const first = fh[0], zRows = COACH_ZONES.map(z => `<tr style="--c:${z[3]}"><td>${z[0]}</td><td>${z[2] >= 9 ? Math.round(z[1] * f) + '+' : Math.round(z[1] * f) + '–' + Math.round(z[2] * f)} W</td></tr>`).join('');
+  const z2pct = z2 ? Math.round(z2.w / f * 100) : null;
+  $('progBody').innerHTML = `<div class="cathead"><h2>Progress</h2><button data-act="close">Close</button></div>
+    <div class="progtiles"><div class="htile"><div class="label">FTP now</div><div class="v">${f} W</div><div class="s">${first && first.w !== f ? `${f - first.w >= 0 ? '+' : ''}${f - first.w} W since ${shortDate(first.d)}` : 'Test to track changes'}</div></div>
+      <div class="htile"><div class="label">This week</div><div class="v">${hrs[11].toFixed(1)} h</div><div class="s">${rides.filter(r => new Date(r.start) >= thisWk).length} rides</div></div>
+      <div class="htile"><div class="label">Last 4 weeks</div><div class="v">${last4.toFixed(1)} h / wk</div><div class="s">average</div></div>
+      <div class="htile"><div class="label">Zone 2 (measured)</div><div class="v">${z2 ? z2.w + ' W' : '–'}</div><div class="s">${z2 ? `${z2.hr} bpm · ${z2pct}% of FTP` : 'Do a drift test'}</div></div></div>
+    <div class="pcard"><h3>Weekly riding hours</h3><div class="sub">Last 12 weeks. Build gently: about 10% more per week, with an easier week every fourth.</div>${svgBars(hrs, weeks.map(w => w.getDate() + '/' + (w.getMonth() + 1)), '#c6f31a', 'h')}</div>
+    <div class="pcard"><h3>FTP history</h3><div class="sub">${fh.length > 1 ? 'Each point is a time you changed your FTP.' : 'Only one FTP value so far. Run a ramp or 20-minute test and it will show here.'}</div>${fh.length > 1 ? svgLine(fh.map(x => x.w), fh.map(x => shortDate(x.d)), '#4da3ff', 0) : ''}
+      <div class="zleg" style="margin-top:6px">${fh.slice(-5).reverse().map(x => `<span style="--c:#4da3ff">${shortDate(x.d)}: ${x.w} W (${esc(x.src)})</span>`).join('')}</div></div>
+    <div class="pcard"><h3>Aerobic efficiency</h3><div class="sub">Watts per heartbeat on steady rides. If this creeps up over weeks at the same effort, your aerobic base is growing.</div>${steady.length >= 2 ? svgLine(steady.map(r => r.an.ef), steady.map(r => shortDate(r.start)), '#c6f31a', 2) : '<div class="sub">Ride a couple of steady Zone 2 rides with your heart-rate strap and the trend appears here.</div>'}</div>
+    <div class="pcard"><h3>Aerobic drift</h3><div class="sub">Lower is better. Under 5% on longer steady rides shows a solid aerobic engine.</div>${drifts.length >= 2 ? svgLine(drifts.map(r => r.an.drift), drifts.map(r => shortDate(r.start)), '#ff8fa3', 1) : '<div class="sub">Steady rides of 25 minutes or more with a heart-rate strap show up here.</div>'}</div>
+    <div class="pcard"><h3>Your power zones</h3><div class="sub">Based on an FTP of ${f} W.${z2 ? ` Your measured Zone 2 is ${z2.w} W (${z2pct}% of FTP)${z2pct > 75 ? ', above the usual 55–75%. Either your real FTP is higher than the number set, or your aerobic base is strong. A ramp test will tell you which.' : '.'}` : ' Do a Zone 2 drift test to measure your own.'}</div>
+      <table class="ztable">${zRows}${z2 ? `<tr style="--c:#fff"><td>Zone 2, measured</td><td>${z2.w} W · ${z2.hr} bpm</td></tr>` : ''}</table></div>
+    <div class="sub" style="margin-top:6px">Guidance from standard training rules, not medical advice. Stop if you feel unwell.</div>`;
+}
+$('progBody').addEventListener('click', e => { const b = e.target.closest('button'); if (b && b.dataset.act === 'close') $('progOverlay').classList.remove('open'); });
+$('progOverlay').addEventListener('mousedown', e => { if (e.target === $('progOverlay')) $('progOverlay').classList.remove('open'); });
+$('btnProg').onclick = openProgress;
 
 // ---- Training plans ----
 const TEMPLATES = [
@@ -1324,6 +1867,9 @@ async function loadStores() {
     const cur = $('wkSel').value; refreshSelect(cur); try { const v = localStorage.getItem('hubrider.sel'); if (v && WORKOUTS.some(w => w.id === v)) $('wkSel').value = v; } catch {}
   } catch {}
   try { const p = await (await fetch('/api/store/plans')).json(); if (p && Array.isArray(p.plans)) planStore = p; } catch {}
+  try { const pr = await (await fetch('/api/store/profile')).json(); if (pr && Array.isArray(pr.ftpHistory)) profile = { ftpHistory: pr.ftpHistory, zone2: pr.zone2 || null }; } catch {}
+  try { const rs = await (await fetch('/api/store/routes')).json(); if (Array.isArray(rs)) { rt.saved = rs; let last = null; try { last = localStorage.getItem('freehub.rt.id'); } catch {} const r = last && rs.find(x => x.id === last); if (r && !rt.on) rtFromRec(r); rtSyncUi(); } } catch {}
+  if (!profile.ftpHistory.length) logFtp(+$('ftp').value, 'Starting value');
   updatePlanDot();
 }
 const savePlans = () => putJson('/api/store/plans', planStore).catch(() => toast('Could not save the plan to the server.'));
@@ -1401,7 +1947,7 @@ $('planBody').addEventListener('click', async e => {
   else if (act === 'load') {
     if (wk.active) return toast('A workout is running. End it first.'); const w = sessionById(b.dataset.sid); if (!w) return;
     $('wkSel').value = w.id; try { localStorage.setItem('hubrider.sel', w.id); } catch {}
-    closePlan(); updateWorkoutUi(); $('wkCard').scrollIntoView({ behavior: 'smooth', block: 'center' }); toast(`Loaded: ${w.name}`, 2500);
+    closePlan(); updateWorkoutUi(); setView('workout'); toast(`Loaded: ${w.name}`, 2500);
   }
   else if (act === 'activate') { planStore.active = b.dataset.id; await savePlans(); planView = 'schedule'; planWeek = null; updatePlanDot(); renderPlan(); }
   else if (act === 'tpl') { const t = TEMPLATES.find(x => x.id === b.dataset.id), p = newPlanFrom(t); planStore.plans.push(p); planStore.active = p.id; await savePlans(); planView = 'schedule'; planWeek = null; updatePlanDot(); renderPlan(); toast(`Started “${p.name}”.`, 2500); }
@@ -1436,6 +1982,7 @@ const TILE_ICONS = {
   'norm. power': ['#9bd90f', '<path d="M3 15c3 0 3-8 6-8s3 10 6 10 3-6 6-6"/>'],
   '3s power': ['#c6f31a', '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/>'],
   'energy': ['#ff8a9b', '<path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-4 3-7 1 1 2 2 3 3 0-3 0-5 0-8z"/>'],
+  'time': ['#8da0ba', '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'],
   'max hr': ['#ff5d73', '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M12 8v4M10 10h4"/>'],
 };
 document.querySelectorAll('.tile').forEach(t => {
@@ -1446,7 +1993,7 @@ document.querySelectorAll('.tile').forEach(t => {
 
 // ---- YouTube mode: a video fills the screen and your ride data floats on the right ----
 let ytPlayer = null, ytReady = false, ytPending = null, ytLast = 0, ytFade = null, ytApi = null;
-const ytOpen = () => $('ytMode').classList.contains('open');
+const ytOpen = () => $('mainTile').dataset.view === 'video', ytFull = () => $('ytMode').classList.contains('full');
 function parseYt(str) {
   str = (str || '').trim(); if (!str) return null;
   if (/^[\w-]{11}$/.test(str)) return { id: str };
@@ -1495,24 +2042,44 @@ function ytUpdate() {
   if ($('yArrow').dataset.k !== $('pArrow').dataset.k || !$('pArrow').dataset.k) { $('yArrow').dataset.k = $('pArrow').dataset.k || ''; $('yArrow').innerHTML = $('pArrow').innerHTML; }
   yset('yHr', live.hr ?? '--'); yset('yCad', live.cadence != null ? Math.round(live.cadence) : '--');
   yset('yCadSub', wk.active && wk.def.steps[wk.idx].cad ? $('cadAvg').textContent : ''); $('yCadSub').style.color = $('cadAvg').style.color;
-  $('ytMode').classList.toggle('strip', !!wk.active);
+  $('ytMode').classList.toggle('strip', !!(wk.active || rt.on)); h.classList.toggle('hasR', rt.on);
+  if (rt.on) { yset('yGrade', (rt.gradeNow >= 0 ? '+' : '') + rt.gradeNow.toFixed(1)); yset('yRtSub', `${(rt.pos / 1000).toFixed(1)} of ${(rt.total / 1000).toFixed(1)} km`); }
   yset('yTime', fmtTime(s.elapsed)); yset('yDist', (s.distance / 1000).toFixed(2));
   if (wk.active) { const i = wkInfo(); yset('yWkName', i.name); yset('yLeft', mmss(i.left)); yset('yStep', i.step); yset('yNext', i.next ? 'Next: ' + i.next : 'Last step'); const w = Math.min(100, wk.stepElapsed / (stepDur() || 1) * 100).toFixed(1) + '%'; if (_yc.pw !== w) { _yc.pw = w; $('yProg').style.width = w; } }
   for (const [a, b] of [['ytStart', 'btnStart'], ['ytPause', 'btnPause'], ['ytStop', 'btnStop']]) { $(a).disabled = $(b).disabled; $(a).textContent = $(b).textContent; }
 }
-const YT_ICONS = { ...TILE_ICONS, 'time': TILE_ICONS['3s power'], 'workout': ['#c6f31a', '<path d="M5 21V4M5 4h12l-2.5 4L17 12H5"/>'] };
+const YT_ICONS = { ...TILE_ICONS, 'time': TILE_ICONS['3s power'], 'route': ['#ff9a3d', '<path d="M3 19l6-10 4 6 3-4 5 8z"/>'], 'workout': ['#c6f31a', '<path d="M5 21V4M5 4h12l-2.5 4L17 12H5"/>'] };
 document.querySelectorAll('#ytHud .yc').forEach(c => {
   const k = c.dataset.ic || c.querySelector('.yl').textContent.trim().toLowerCase(), ic = YT_ICONS[k]; if (!ic) return;
   const b = document.createElement('div'); b.className = 'ytb'; b.style.setProperty('--ic', ic[0]); b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${ic[1]}</svg>`; c.appendChild(b);
 });
-setInterval(() => { if (ytOpen()) ytUpdate(); }, 500);
-$('btnYt').onclick = () => { $('ytMode').classList.add('open'); drawWorkout._t = 0; ytApplySize(); try { const l = localStorage.getItem('freehub.yt'); if (l && !$('ytUrl').value) $('ytUrl').value = l; } catch {} ytUpdate(); ytWake(); if (!ytPlayer) setTimeout(() => $('ytUrl').focus(), 50); else if (ytReady && ytPlayer.playVideo) ytPlayer.playVideo(); };
-$('ytExit').onclick = () => { $('ytMode').classList.remove('open'); if (ytReady && ytPlayer.pauseVideo) ytPlayer.pauseVideo(); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); };
+setInterval(() => { if (ytFull()) ytUpdate(); }, 500);
+$('btnYt').onclick = () => setView('video');
+// The main tile shows one of three things: the workout, the route map, or a YouTube video. The video can also go full screen with data over it.
+let prevView = 'workout', ytFsReq = false;
+function setView(v) {
+  const mt = $('mainTile'), cur = mt.dataset.view; if (v === cur) return;
+  if (cur !== 'video') prevView = cur;
+  if (cur === 'video') { ytLeaveFull(); try { if (ytReady && ytPlayer.pauseVideo) ytPlayer.pauseVideo(); } catch {} }
+  mt.dataset.view = v; $('ytMode').classList.toggle('open', v === 'video');
+  document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  $('btnRoute').classList.toggle('on', v === 'route'); $('btnYt').classList.toggle('on', v === 'video');
+  drawWorkout._t = 0; rt.dirty = true; _stripT = 0;
+  if (v === 'video') { ytApplySize(); try { const l = localStorage.getItem('freehub.yt'); if (l && !$('ytUrl').value) $('ytUrl').value = l; } catch {} ytUpdate(); ytWake(); if (!ytPlayer) setTimeout(() => $('ytUrl').focus(), 50); else if (ytReady && ytPlayer.playVideo) ytPlayer.playVideo(); }
+}
+function ytEnterFull() {
+  $('ytMode').classList.add('full'); drawWorkout._t = 0; ytUpdate(); ytWake();
+  const el = document.documentElement; if (!document.fullscreenElement && el.requestFullscreen) el.requestFullscreen().then(() => { ytFsReq = true; }).catch(() => {});
+}
+function ytLeaveFull() { ytFsReq = false; $('ytMode').classList.remove('full'); drawWorkout._t = 0; rt.dirty = true; _stripT = 0; if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && ytFsReq && ytFull()) ytLeaveFull(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && ytFull() && !document.fullscreenElement) ytLeaveFull(); });
+$('ytExit').onclick = () => ytLeaveFull();
 $('ytLoad').onclick = ytGo; $('ytUrl').addEventListener('keydown', e => { if (e.key === 'Enter') ytGo(); });
 $('ytUrl').addEventListener('paste', () => setTimeout(ytGo, 30));
 $('ytHide').onclick = () => $('ytHud').classList.toggle('off');
 $('ytSize').onclick = () => { ytSizeIdx = (ytSizeIdx + 1) % 3; try { localStorage.setItem('freehub.ytsize', ytSizeIdx); } catch {} ytApplySize(); };
-$('ytFs').onclick = () => { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}); };
+$('ytFs').onclick = ytEnterFull;
 for (const [a, b] of [['ytStart', 'btnStart'], ['ytPause', 'btnPause'], ['ytStop', 'btnStop']]) $(a).onclick = () => $(b).click();
 $('ytMode').addEventListener('mousemove', ytWake); $('ytBar').addEventListener('mouseenter', () => $('ytBar').classList.remove('fade'));
 function ytApplyGlass() { let lite = false; try { lite = localStorage.getItem('freehub.ytglass') === 'lite'; } catch {} $('ytMode').classList.toggle('lite', lite); $('ytGlass').textContent = lite ? 'Glass: Light' : 'Glass: Full'; }
@@ -1527,7 +2094,7 @@ function ytRemote(cmd, url) {
     return;
   }
   if (!ytOpen()) return;
-  if (cmd === 'yt-exit') $('ytExit').click();
+  if (cmd === 'yt-exit') { if (ytFull()) ytLeaveFull(); else setView(prevView); }
   else if (cmd === 'yt-hud') $('ytHide').click();
   else if (cmd === 'yt-size') $('ytSize').click();
   else if (ytReady && ytPlayer) {
@@ -1535,7 +2102,62 @@ function ytRemote(cmd, url) {
     else if (cmd === 'yt-mute') ytPlayer.isMuted() ? ytPlayer.unMute() : ytPlayer.mute();
   }
 }
-document.addEventListener('keydown', e => { if (ytOpen() && e.key.toLowerCase() === 'h' && document.activeElement !== $('ytUrl') && !modalOpen) $('ytHide').click(); });
+document.addEventListener('keydown', e => { if (ytFull() && e.key.toLowerCase() === 'h' && document.activeElement !== $('ytUrl') && !modalOpen) $('ytHide').click(); });
+
+// ---- Route view wiring ----
+const rtLocked = () => { if (['running', 'paused', 'waiting'].includes(session.state)) { toast('Finish your ride before changing the route.', 3500); return true; } return false; };
+function rtSyncUi() {
+  $('viewRoute').classList.toggle('has', rt.on); $('viewRoute').classList.toggle('tilesOn', rt.tiles);
+  $('rtName').textContent = rt.on ? rt.name : '–'; $('rtMapBtn').textContent = rt.tiles ? 'Map: On' : 'Map: Off';
+  $('rtMax').value = String(rt.maxGrade); $('rtStr').value = String(rt.strength);
+  $('rtSel').innerHTML = `<option value="">${rt.saved.length ? 'Saved routes…' : 'No saved routes'}</option>` + rt.saved.map(r => `<option value="${esc(r.id)}"${r.id === rt.id ? ' selected' : ''}>${esc(r.name)} · ${(r.total / 1000).toFixed(1)} km</option>`).join('');
+  $('rtSavedList').innerHTML = rt.saved.length ? '<div class="label">Saved routes</div>' + rt.saved.map(r => `<button data-id="${esc(r.id)}"><span>${esc(r.name)}</span><span>${(r.total / 1000).toFixed(1)} km${r.hasEle ? ' · ' + r.climb + ' m' : ''}</span></button>`).join('') : '';
+  $('rtDel').style.display = rt.on && rt.saved.some(r => r.id === rt.id) ? '' : 'none';
+  rt.dirty = true; rt.base = null; _rc.gc = ''; rt._nsKey = null;
+}
+async function rtImportFile(file) {
+  if (!file) return;
+  try {
+    if (file.size > 25e6) throw new Error('That file is too big to be a GPX route.');
+    const raw = parseGpx(await file.text()); rtBuild((raw.name || file.name.replace(/\.gpx$/i, '')).slice(0, 80) || 'Route', raw.pts);
+    rt.saved = [rt.rec, ...rt.saved.filter(r => r.id !== rt.rec.id)].slice(0, 20); putJson('/api/store/routes', rt.saved).catch(() => {});
+    try { localStorage.setItem('freehub.rt.id', rt.id); } catch {}
+    rtSyncUi(); setView('route');
+    toast(rt.hasEle ? `Loaded “${rt.name}”: ${(rt.total / 1000).toFixed(1)} km, ${Math.round(rt.climb)} m climbing.` : `Loaded “${rt.name}”. This file has no elevation data, so the ride will be flat.`, 5000);
+  } catch (e) { toast(e.message || 'Could not read that GPX file.', 6000); }
+}
+function rtLoadSaved(id) {
+  if (rtLocked()) return rtSyncUi(); const r = rt.saved.find(x => x.id === id); if (!r) return;
+  try { rtFromRec(r); try { localStorage.setItem('freehub.rt.id', r.id); } catch {} rtSyncUi(); } catch (e) { toast(e.message); }
+}
+$('rtImport').onclick = $('rtImport2').onclick = () => { if (!rtLocked()) $('rtFile').click(); };
+$('rtFile').onchange = e => { rtImportFile(e.target.files[0]); e.target.value = ''; };
+{ const rv = $('viewRoute');
+  rv.addEventListener('dragover', e => { e.preventDefault(); rv.classList.add('drag'); });
+  rv.addEventListener('dragleave', () => rv.classList.remove('drag'));
+  rv.addEventListener('drop', e => { e.preventDefault(); rv.classList.remove('drag'); if (!rtLocked()) rtImportFile(e.dataTransfer.files[0]); }); }
+$('rtSel').onchange = e => { if (e.target.value) rtLoadSaved(e.target.value); else rtSyncUi(); };
+$('rtSavedList').onclick = e => { const b = e.target.closest('button[data-id]'); if (b) rtLoadSaved(b.dataset.id); };
+$('rtMapBtn').onclick = () => { rt.tiles = !rt.tiles; try { localStorage.setItem('freehub.rt.tiles', rt.tiles ? '1' : '0'); } catch {} rtSyncUi(); };
+$('rtMax').onchange = e => { rt.maxGrade = +e.target.value; try { localStorage.setItem('freehub.rt.max', rt.maxGrade); } catch {} };
+$('rtStr').onchange = e => { rt.strength = +e.target.value; try { localStorage.setItem('freehub.rt.str', rt.strength); } catch {} };
+$('rtClear').onclick = () => { if (rtLocked()) return; rt.on = false; rt.id = null; try { localStorage.removeItem('freehub.rt.id'); } catch {} rtSyncUi(); };
+$('rtDel').onclick = () => {
+  const b = $('rtDel'); if (rtLocked()) return;
+  if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Confirm'; setTimeout(() => { delete b.dataset.armed; b.textContent = 'Remove'; }, 3000); return; }
+  delete b.dataset.armed; b.textContent = 'Remove'; rt.saved = rt.saved.filter(r => r.id !== rt.id); putJson('/api/store/routes', rt.saved).catch(() => {});
+  rt.on = false; rt.id = null; try { localStorage.removeItem('freehub.rt.id'); } catch {} rtSyncUi(); toast('Route removed.', 2000);
+};
+document.querySelectorAll('.seg button').forEach(b => { b.onclick = () => setView(b.dataset.v); });
+$('btnRoute').onclick = () => setView('route');
+rtSyncUi();
+{ const hd = document.querySelector('header.top'), sync = () => document.documentElement.style.setProperty('--hdr', hd.offsetHeight + 'px'); sync(); if (window.ResizeObserver) new ResizeObserver(sync).observe(hd); }
+
+// ---- Phone companion dropdown ----
+$('btnQr').onclick = e => { e.stopPropagation(); const o = !$('qrPop').classList.contains('open'); $('qrPop').classList.toggle('open', o); $('btnQr').setAttribute('aria-expanded', String(o)); };
+document.addEventListener('click', e => { if (!e.target.closest('#qrWrap')) { $('qrPop').classList.remove('open'); $('btnQr').setAttribute('aria-expanded', 'false'); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('qrPop').classList.remove('open'); $('btnQr').setAttribute('aria-expanded', 'false'); } });
+
 
 loadRides(); loadStores();
 
@@ -1585,14 +2207,15 @@ function snapshot() {
             zone: live.power != null ? zoneInfo(live.power).slice(0,3) : null },
     elapsed: s.elapsed, distance: s.distance, kj: Math.round(s.joules/1000),
     avgSpeed: s.spdN ? s.spdSum/s.spdN : 0, avgPower: s.pN ? Math.round(s.pSum/s.pN) : 0, maxPower: s.pMax,
-    hrAvg: s.hrN ? Math.round(s.hrSum/s.hrN) : 0, cadAvg: s.cadN ? Math.round(s.cadSum/s.cadN) : 0, ver: 3,
-    summary: modalOpen ? stats() : null, name: $('actName').value, upload, workout: wk.active ? wkInfo() : null, yt: ytSnap() };
+    hrAvg: s.hrN ? Math.round(s.hrSum/s.hrN) : 0, cadAvg: s.cadN ? Math.round(s.cadSum/s.cadN) : 0, ver: 4,
+    summary: modalOpen ? stats() : null, name: $('actName').value, upload, workout: wk.active ? wkInfo() : null, yt: ytSnap(),
+    route: rt.on ? { name: rt.name, total: Math.round(rt.total), pos: Math.round(rt.pos), grade: +rt.gradeNow.toFixed(1), climbed: Math.round(gainAt(rt.pos)), climb: Math.round(rt.climb) } : null };
 }
 // YouTube state for the phone companion. Wrapped in try/catch because the player variables are declared further down the file.
 function ytSnap() {
   try {
     const ok = ytReady && ytPlayer && ytPlayer.getPlayerState;
-    return { open: ytOpen(), ready: !!ok, playing: ok ? ytPlayer.getPlayerState() === 1 : false, muted: ok && ytPlayer.isMuted ? ytPlayer.isMuted() : false, hud: !$('ytHud').classList.contains('off'), last: localStorage.getItem('freehub.yt') || '' };
+    return { open: ytOpen(), full: ytFull(), ready: !!ok, playing: ok ? ytPlayer.getPlayerState() === 1 : false, muted: ok && ytPlayer.isMuted ? ytPlayer.isMuted() : false, hud: !$('ytHud').classList.contains('off'), last: localStorage.getItem('freehub.yt') || '' };
   } catch { return null; }
 }
 let lastPush = 0;
@@ -1618,12 +2241,13 @@ function drawQr(url) {
   const qr = qrcode(0, 'M'); qr.addData(url); qr.make();
   const n = qr.getModuleCount(), q = 2; let d = '';
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) d += `M${c+q},${r+q}h1v1h-1z`;
-  $('qrBox').innerHTML = `<svg viewBox="0 0 ${n+q*2} ${n+q*2}" shape-rendering="crispEdges" role="img" aria-label="QR code for the phone companion"><path d="${d}" fill="#ffffff"/></svg>`;
+  $('qrBox').innerHTML = `<svg viewBox="0 0 ${n+q*2} ${n+q*2}" shape-rendering="crispEdges" role="img" aria-label="QR code for the phone companion"><path d="${d}" fill="#08111f"/></svg>`;
 }
 fetch('/api/info').then(r => r.json()).then(j => {
   const urls = j.companionUrls || [];
-  if (urls.length) { $('qrPanel').style.display = 'flex'; drawQr(urls[0]); }
-}).catch(() => {});
+  if (urls.length) { $('qrNone').style.display = 'none'; $('qrPanel').style.display = 'flex'; drawQr(urls[0]); $('qrUrl').innerHTML = urls.map(esc).join('<br>'); }
+  else $('qrNone').textContent = 'No Wi-Fi address found. Connect this computer to your home Wi-Fi and reload.';
+}).catch(() => { $('qrNone').textContent = 'Could not read the Wi-Fi address. Is the Freehub server running?'; });
 
 window.addEventListener('beforeunload', e => { if (session.state === 'running' || session.state === 'paused') { e.preventDefault(); e.returnValue=''; } });
 </script>

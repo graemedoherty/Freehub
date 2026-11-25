@@ -71,6 +71,7 @@
     <div class="tile"><div class="label">Avg power</div><div class="val" id="pavg">--<small>W</small></div></div>
     <div class="tile"><div class="label">Max power</div><div class="val" id="pmax">--<small>W</small></div></div>
   </div>
+  <div class="tile" id="rtCard" hidden style="margin:10px 0"><div class="label">Route</div><div class="val" id="rtGrade" style="font-size:44px">--<small>% grade</small></div><div class="sub subrow"><span id="rtName"></span><span id="rtProg"></span></div><div class="ybar" style="height:6px;background:#1f3453;border-radius:6px;overflow:hidden;margin-top:8px"><i id="rtBar" style="display:block;height:100%;width:0;background:#c6f31a"></i></div></div>
   <div class="tile yt" data-ic="youtube" id="ytCard">
     <div class="label">YouTube on your Mac</div>
     <div class="ytrow"><input id="ytIn" placeholder="Paste a YouTube link" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false"><button class="primary" id="ytGo">Play</button></div>
@@ -129,9 +130,10 @@ function render() {
   if (W) { const m = x => `${Math.floor(Math.max(0,x)/60)}:${String(Math.max(0,x)%60).padStart(2,'0')}`;
     $('wkName').textContent = W.name; set('wkT', W.target); $('wkStep').textContent = `${W.step} · ${m(W.left)} left`; $('wkNext').textContent = `Next in ${m(W.left)}: ${W.next}`; }
 
+  { const R = st.route; $('rtCard').hidden = !R; if (R) { set('rtGrade', (R.grade >= 0 ? '+' : '') + R.grade.toFixed(1)); $('rtGrade').style.color = R.grade < -2 ? '#4da3ff' : R.grade < 2 ? '#27c4a8' : R.grade < 4 ? '#ffd84d' : R.grade < 7 ? '#ff9a3d' : '#ff5d73'; $('rtName').textContent = R.name; $('rtProg').textContent = `${(R.pos / 1000).toFixed(1)} of ${(R.total / 1000).toFixed(1)} km · ${R.climbed} m up`; $('rtBar').style.width = Math.min(100, R.pos / R.total * 100).toFixed(1) + '%'; } }
   try { renderYt(); } catch (e) { console.error(e); }
   fitVals();
-  $('ver').textContent = st.ver >= 3 ? '' : 'Reload Freehub on your Mac (and restart the server) to get the newest features here.';
+  $('ver').textContent = st.ver >= 4 ? '' : 'Reload Freehub on your Mac (and restart the server) to get the newest features here.';
   let bar = '';
   if (st.phase === 'idle') bar = `<button class="primary" onclick="cmd('start')" ${st.trainer ? '' : 'disabled'}>${st.trainer ? '▶ Start ride' : 'Connect trainer on Mac first'}</button>`;
   else if (st.phase === 'waiting') bar = `<button class="danger" onclick="cmd('finish')">✕ Cancel</button>`;
