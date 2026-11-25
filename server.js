@@ -66,7 +66,7 @@ fs.mkdirSync(RIDES_DIR, { recursive: true });
 const okId = (id) => /^[0-9A-Za-z_-]{1,64}$/.test(id);
 const readJson = (f, dflt) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return dflt; } };
 const writeJson = (f, o) => { const tmp = f + '.tmp'; fs.writeFileSync(tmp, JSON.stringify(o)); fs.renameSync(tmp, f); };
-const STORES = new Set(['custom', 'plans']);
+const STORES = new Set(['custom', 'plans', 'profile', 'routes']);   // profile: FTP history + measured Zone 2; routes: imported GPX rides
 const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
 
 async function stravaUpload({ tcx, name, description }) {
