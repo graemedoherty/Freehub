@@ -20,7 +20,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Prepare site (browser version only: no phone companion, no secrets)
+      - name: Prepare site
         run: |
           mkdir _site
           cp -r public/* _site/
