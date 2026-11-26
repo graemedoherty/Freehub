@@ -19,14 +19,24 @@ Open http://localhost:3000 in Chrome → **Connect Zwift Hub** → **Start**.
 A heart-rate strap can be paired separately with **Connect HR strap** (Zwift Hub has no HR sensor).
 
 ## Strava setup (one time, free)
-1. Go to https://www.strava.com/settings/api and create an app.
-   - Authorization Callback Domain: `localhost`
-2. Create `config.json` next to `server.js`:
-   ```json
-   { "clientId": "12345", "clientSecret": "your_client_secret" }
-   ```
-3. Restart `node server.js`, click **Connect Strava**, approve.
-4. After a ride: **Finish → Upload to Strava**. (Or **Download .tcx** and upload it manually.)
+Click **Set up Strava** in the app. It walks you through creating your own free Strava app (callback domain `localhost`),
+then you paste the Client ID and Client Secret into the box. Freehub saves them to `config.json` next to `server.js`
+(or in the app's data folder in the packaged app) and takes you straight to Strava to approve.
+
+Prefer to do it by hand? Create `config.json` yourself:
+```json
+{ "clientId": "12345", "clientSecret": "your_client_secret" }
+```
+then restart `node server.js`. `config.json` is git-ignored and is never uploaded anywhere.
+
+After a ride: **Finish → Upload to Strava**. (Or **Download .tcx** and upload it manually.)
+Right-click the Strava button to change your keys.
+
+## Browser version (GitHub Pages)
+The same page also runs with no server at all, for example from GitHub Pages. In that mode your rides, plans and routes
+are stored in the browser (use **Data & help** for backup and restore), the phone companion is not available, and Strava
+keys are also kept in the browser. See `FRIENDS.md` for the tester guide. To publish: repo **Settings → Pages → Source:
+GitHub Actions**, then push to `main`.
 
 ## Phone companion
 Keep the dashboard tab open on your Mac and scan the QR code at the bottom of the dashboard with your phone camera
