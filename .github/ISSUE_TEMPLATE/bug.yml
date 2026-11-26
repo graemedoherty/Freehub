@@ -1,0 +1,31 @@
+name: Something is broken
+description: Tell me what went wrong
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations: { required: true }
+  - type: dropdown
+    id: where
+    attributes:
+      label: How are you using Freehub?
+      options: [Website (browser), Downloaded app, Node server on my computer]
+    validations: { required: true }
+  - type: input
+    id: device
+    attributes:
+      label: Computer / phone and browser
+      placeholder: "e.g. Windows 11, Chrome"
+  - type: input
+    id: trainer
+    attributes:
+      label: Trainer and heart rate monitor
+      placeholder: "e.g. Zwift Hub, Wahoo TICKR"
+  - type: textarea
+    id: shot
+    attributes:
+      label: Screenshot (optional)
+      description: Drag a picture into this box.
