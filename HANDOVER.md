@@ -88,3 +88,10 @@ Zwift Hub over Bluetooth in the new build, Electron Bluetooth picker, Mac signin
 - UI: Strava button opens the guided setup modal when unconfigured (right-click = change keys); "Data & help" button replaces "Phone app" in browser mode; amber banner if the browser has no Web Bluetooth; asset paths made relative so the site works from `/Freehub/`.
 - Unverified: whether Strava's token and upload endpoints allow calls from a browser page (CORS). The setup modal's "Check keys" button reports this; if blocked, the upload error tells the rider to download the .tcx instead.
 - `.github/workflows/pages.yml` publishes `public/` (minus companion.html) on push to main. Issue templates in `.github/ISSUE_TEMPLATE/`. Tester guide: `FRIENDS.md`.
+
+## Fix 7: free ride is flat, routes only drive the trainer on purpose
+- `rt.on` = a route is loaded (display only). `rt.ride` = this ride was STARTED from the Route tab; only then do grades go to the Hub, the speed model gets its gradient term, and the strip/companion show route data (`rtLive()`).
+- `start()` sends `flatRide()` (request control + sim mode 0 % grade, crr 40, cw 51) unless an ERG workout is active, so the Hub never keeps a gradient from a previous ride. Finish (`openSummary`) and `resetAll` also send flat after a route ride. The 1 s grade loop is paused while the summary is open.
+- A route loaded during a free ride shows "Free ride in progress: the route is not controlling your trainer".
+- Upload error "Failed to fetch" now says Freehub can't reach its own server (restart `node server.js`). Server logs uncaught errors and keeps running.
+- Strava on the website needs its own Strava app with callback domain `graemedoherty.github.io` (the desktop app uses `localhost`).

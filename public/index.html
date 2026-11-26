@@ -558,7 +558,7 @@
       <div class="hint">Sign in if asked. If you don't have an app yet, Strava shows a form to create one.</div></li>
     <li><b>Fill in the form.</b> Application name: <code>Freehub</code> (anything works). Category: <code>Training</code>. Website: any address, for example <code>https://example.com</code>. Description: anything.
       <div style="margin-top:6px"><b>Authorization Callback Domain</b> must be exactly <code id="setupDomain">localhost</code> <button type="button" id="setupCopy" style="padding:3px 10px;font-size:12.5px">Copy</button></div>
-      <div class="hint">No http://, no slashes, no port. If Strava asks for an icon, any picture will do. Then save.</div></li>
+      <div class="hint">No http://, no slashes, no port. If Strava ever shows <b>redirect_uri invalid</b>, this domain doesn't match what is saved on your Strava app. If Strava asks for an icon, any picture will do. Then save.</div></li>
     <li><b>Copy your two keys</b> from that page: the <b>Client ID</b> (a number) and the <b>Client Secret</b> (click "Show" next to it), and paste them below.</li>
   </ol>
   <label class="fld">Client ID<input id="setupId" inputmode="numeric" autocomplete="off" placeholder="e.g. 123456"></label>
@@ -614,7 +614,7 @@ function stepSpeed(dt) {
   const m = (+$('weight').value || 75) + MODEL.bike;
   const P = Math.max(0, live.power || 0) * MODEL.eff;
   let Pres = MODEL.crr * m * MODEL.g * vSim + 0.5 * MODEL.rho * MODEL.cda * vSim ** 3
-    + (rt.on ? m * MODEL.g * Math.max(-.15, Math.min(.15, rt.gradeNow / 100)) * vSim : 0);   // route rides: climbing costs power, descending gives some back
+    + (rtLive() ? m * MODEL.g * Math.max(-.15, Math.min(.15, rt.gradeNow / 100)) * vSim : 0);   // route rides: climbing costs power, descending gives some back
   if (!live.cadence) Pres += 40 * vSim * vSim;                 // not pedalling: slow down quickly, like a trainer does
   vSim = Math.min(22, Math.sqrt(Math.max(0, vSim * vSim + 2 * dt * (P - Pres) / (m + 1))));   // +1 kg ≈ wheel inertia
 }
@@ -725,6 +725,8 @@ $('btnErg').onclick = async () => {
   try { await writeCtl([0x00]); await writeCtl([0x05, w & 0xFF, (w >> 8) & 0xFF]); toast(`ERG mode: ${w} W`); }
   catch (e) { toast('ERG not accepted: ' + e.message); }
 };
+// Neutral free ride, like Zwift on a flat road: simulation mode, 0 % grade, no wind (same command the Free ride button uses)
+function flatRide() { return writeCtl([0x00]).then(() => writeCtl([0x11, 0, 0, 0, 0, 40, 51])).catch(() => {}); }
 $('btnFree').onclick = async () => {
   try { await writeCtl([0x00]); await writeCtl([0x11, 0,0, 0,0, 40, 51]); toast('Free ride (flat, simulation mode)'); }
   catch (e) { toast('Could not switch mode: ' + e.message); }
@@ -736,6 +738,8 @@ function start() {
   if (!connected() || ['running','paused','waiting'].includes(session.state)) return;
   session = newSession(); session.state = 'waiting'; history.length = 0;      // the clock starts when you start pedalling
   upload = { status:'idle', text:'', activityId:null };
+  rt.ride = rt.on && $('mainTile').dataset.view === 'route';                  // only a ride started from the Route tab follows the route
+  if (!wk.active) flatRide();                                                // neutral start: wipes any gradient the Hub kept from last time (route rides send theirs a second later)
   writeCtl([0x07]).catch(()=>{});
   timer = setInterval(tick, 1000); updateButtons(); pushState();
 }
@@ -750,7 +754,7 @@ function cancelWaiting() { if (session.state === 'waiting') { resetAll(); toast(
 function pause() { if (session.state !== 'running') return; session.state = 'paused'; updateButtons(); pushState(); }
 function resume() { if (session.state !== 'paused') return; session.state = 'running'; writeCtl([0x07]).catch(()=>{}); if (wk.active) applyTarget(true); updateButtons(); pushState(); }
 function resetAll() {
-  endWorkout(false); clearInterval(timer); timer = null; writeCtl([0x08, 0x01]).catch(()=>{});
+  endWorkout(false); clearInterval(timer); timer = null; if (rt.ride) flatRide(); rt.ride = false; writeCtl([0x08, 0x01]).catch(()=>{});
   session = newSession(); history.length = 0; upload = { status:'idle', text:'', activityId:null };
   $('actName').value = ''; closeModal(); updateButtons(); pushState();
 }
@@ -818,6 +822,7 @@ function drawSummaryChart() {
 function openSummary() {
   if (modalOpen || !(session.state === 'running' || session.state === 'paused')) return;
   if (session.state === 'running') pause();
+  if (rt.ride) flatRide();   // finished climbing: back to a flat, easy spin
   modalOpen = true;
   const st = stats(); saveRide();
   $('overlay').classList.add('open');
@@ -884,7 +889,8 @@ async function doUpload() {
     setUploadStatus('done', j.activityId ? `“${rideName()}” is on Strava.` : 'Upload accepted — Strava is still processing it.', j.activityId);
     setModalMode('done'); $('mViewLink').style.display = link ? '' : 'none'; if (link) $('mViewLink').href = link;
   } catch (e) {
-    setUploadStatus('error', 'Upload failed: ' + e.message + ' — you can download the .tcx and upload it manually.');
+    const msg = /Failed to fetch|NetworkError|Load failed/i.test(e.message) ? 'Freehub can’t reach its own server. Is it still running in Terminal? Restart it with node server.js, then press Upload again' : e.message;
+    setUploadStatus('error', 'Upload failed: ' + msg + ' — you can download the .tcx and upload it manually.');
     $('btnUpload').disabled = false;
   }
   pushState();
@@ -1309,7 +1315,7 @@ function drawProfile(cv, t0, t1, pos, o) {   // o = optional {W,H,def,ftp,actual
 function drawWorkout(covered) {
   if (covered) {                                                      // YouTube mode: only the bottom strip is visible, redraw it once a second
     const now = performance.now();
-    if (now - (drawWorkout._t || 0) > 1000) { drawWorkout._t = now; const cv = $('ytStripCv'); if (wk.active) { cv._bare = true; drawProfile(cv, 0, wk.def.total, playPos()); } else if (rt.on) rtElev(cv, true); }
+    if (now - (drawWorkout._t || 0) > 1000) { drawWorkout._t = now; const cv = $('ytStripCv'); if (wk.active) { cv._bare = true; drawProfile(cv, 0, wk.def.total, playPos()); } else if (rtLive()) rtElev(cv, true); }
     return;
   }
   const d = curDef(), T = d.total;
@@ -1322,7 +1328,7 @@ function drawWorkout(covered) {
 }
 
 // ---------- Route rides: a GPX file becomes a map, an elevation profile and hills on the trainer ----------
-const rt = { on: false, id: null, name: '', n: 0, step: 10, total: 0, lat: null, lon: null, wx: null, wy: null, ele: null, grade: null, gain: null, climb: 0, hasEle: true, runs: [], bb: null, rec: null,
+const rt = { on: false, ride: false, id: null, name: '', n: 0, step: 10, total: 0, lat: null, lon: null, wx: null, wy: null, ele: null, grade: null, gain: null, climb: 0, hasEle: true, runs: [], bb: null, rec: null,
   pos: 0, gradeNow: 0, applied: 0, sent: null, lastSend: 0, done: false, tiles: false, maxGrade: 12, strength: 100, saved: [], base: null, baseKey: '', proj: null, tilesLoaded: 0, lastDraw: 0, dirty: true };
 try { rt.tiles = localStorage.getItem('freehub.rt.tiles') === '1'; rt.maxGrade = +localStorage.getItem('freehub.rt.max') || 12; rt.strength = +localStorage.getItem('freehub.rt.str') || 100; } catch {}
 const RT_ICONS = { climbed: ['#ff9a3d', '<path d="M3 19l6-10 4 6 3-4 5 8z"/>'], np: ['#9bd90f', '<path d="M3 15c3 0 3-8 6-8s3 10 6 10 3-6 6-6"/>'] };
@@ -1393,9 +1399,13 @@ const gradeAt = d => { const x = Math.max(0, d) / rt.step, i = Math.min(rt.n - 2
 const gainAt = d => { const x = Math.max(0, d) / rt.step, i = Math.min(rt.n - 2, Math.floor(x)), t = Math.min(1, x - i); return rt.gain[i] + (rt.gain[i + 1] - rt.gain[i]) * t; };
 const eleAt = d => { const x = Math.max(0, d) / rt.step, i = Math.min(rt.n - 2, Math.floor(x)), t = Math.min(1, x - i); return rt.ele[i] + (rt.ele[i + 1] - rt.ele[i]) * t; };
 
+// A route only drives the trainer when the ride was STARTED from the Route tab (rt.ride). A loaded route alone never does.
+function rideActive() { return session.state === 'running' || session.state === 'paused' || session.state === 'waiting'; }
+function rtLive() { return rt.on && rt.ride; }
 // Called every frame: where am I on the route, and what gradient does the trainer get?
 function rtTick() {
   if (!rt.on) return;
+  if (rideActive() && !rt.ride) { rt.pos = 0; rt.gradeNow = 0; rt.applied = 0; rt.done = false; return; }   // free ride or workout: the route stays out of it
   const d = Math.min(rt.total, Math.max(0, session.distance || 0)); rt.pos = d;
   rt.gradeNow = rt.hasEle ? gradeAt(d) : 0;
   const done = d >= rt.total - 1 && session.distance > 0;
@@ -1405,7 +1415,7 @@ function rtTick() {
 }
 // Send the gradient to the Hub (simulation mode: wind 0, grade in 0.01 %, crr 0.004, cw 0.51). Not while an ERG workout is running.
 setInterval(() => {
-  if (!rt.on || !ftmsControl || session.state !== 'running' || wk.active) { rt.sent = null; return; }
+  if (!rtLive() || !ftmsControl || session.state !== 'running' || modalOpen || wk.active) { rt.sent = null; return; }
   const g = Math.round(rt.applied * 100), now = Date.now();
   if (g !== rt.sent || now - rt.lastSend > 5000) { rt.sent = g; rt.lastSend = now; writeCtl([0x11, 0, 0, g & 0xFF, (g >> 8) & 0xFF, 40, 51]).catch(() => {}); }
 }, 1000);
@@ -1425,15 +1435,15 @@ function nextSteep() {
 
 let t7Mode = '';
 function renderRouteBits() {
-  const s = session, on = rt.on;
+  const s = session, on = rtLive(), isRoute = $('mainTile').dataset.view === 'route';
   if ((on ? 'c' : 'n') !== t7Mode) {
     t7Mode = on ? 'c' : 'n'; $('t7Label').textContent = on ? 'Climbed' : 'Norm. power'; $('t7u').textContent = on ? 'm' : 'W';
     const ic = on ? RT_ICONS.climbed : RT_ICONS.np, b = $('t7').querySelector('.tbadge'); if (b) { b.style.setProperty('--ic', ic[0]); b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${ic[1]}</svg>`; }
   }
   if (on) { $('t7v').firstChild.nodeValue = Math.round(gainAt(rt.pos)); rset('t7Sub', rt.hasEle ? `of ${Math.round(rt.climb)} m` : 'no elevation'); rset('kjSub', `of ${(rt.total / 1000).toFixed(1)} km`); }
   else { $('t7v').firstChild.nodeValue = s.npN ? Math.round((s.npSum4 / s.npN) ** .25) : '--'; rset('t7Sub', s.p3.length ? `3s ${Math.round(s.p3.reduce((a, b) => a + b, 0) / s.p3.length)} W` : ''); rset('kjSub', `${Math.round(s.joules / 1000)} kJ burned`); }
-  rset('rideChip', wk.active ? (on ? 'Workout running · route grade paused' : 'Workout · ERG') : on ? 'Route ride · slope simulation' : 'Free ride');
-  if (on && $('mainTile').dataset.view === 'route') {
+  rset('rideChip', wk.active ? (on ? 'Workout running · route grade paused' : 'Workout · ERG') : (on || (rt.on && !rideActive() && isRoute)) ? 'Route ride · slope simulation' : 'Free ride');
+  if (rt.on && isRoute) {
     const shown = wk.active ? rt.gradeNow : rt.applied;
     rset('rtGrade', `${shown >= 0 ? '+' : ''}${shown.toFixed(1)}%`); rset('rtGradeLbl', wk.active ? 'Route grade' : 'Trainer grade');
     const c = gradeColor(rt.gradeNow); if (_rc.gc !== c) { _rc.gc = c; $('rtGradeBox').style.borderColor = c; $('rtGrade').style.color = c; }
@@ -1442,7 +1452,7 @@ function renderRouteBits() {
     if (ns) { const inside = ns.s <= rt.pos + rt.step; rset('rtNext', inside ? `Steep section · ${fmtDist(ns.e - rt.pos)} left at ${ns.avg.toFixed(0)}%` : `Steep section in ${fmtDist(ns.s - rt.pos)} · ${fmtDist(ns.e - ns.s)} at ${ns.avg.toFixed(0)}%`); nx.style.display = 'block'; }
     else nx.style.display = 'none';
   }
-  rset('mtNote', $('mainTile').dataset.view === 'route' && !rt.on ? 'No route loaded' : '');
+  rset('mtNote', isRoute && !rt.on ? 'No route loaded' : isRoute && rideActive() && !rt.ride ? 'Free ride in progress: the route is not controlling your trainer' : '');
 }
 
 // ---- Map ----
@@ -1544,7 +1554,7 @@ function rtElev(cv, bare) {
 }
 let _stripT = 0;
 function drawStripCard(view) {
-  const k = wk.active ? 'wk' : rt.on ? 'rt' : '', show = !!k && view !== 'workout', sv = show ? k : '';
+  const k = wk.active ? 'wk' : rtLive() ? 'rt' : '', show = !!k && view !== 'workout', sv = show ? k : '';
   if (_rc.sv !== sv) { _rc.sv = sv; $('stripCard').style.display = show ? '' : 'none'; _stripT = 0; }
   if (!show) return;
   const now = performance.now(); if (now - _stripT < 250) return; _stripT = now;
@@ -2091,8 +2101,8 @@ function ytUpdate() {
   if ($('yArrow').dataset.k !== $('pArrow').dataset.k || !$('pArrow').dataset.k) { $('yArrow').dataset.k = $('pArrow').dataset.k || ''; $('yArrow').innerHTML = $('pArrow').innerHTML; }
   yset('yHr', live.hr ?? '--'); yset('yCad', live.cadence != null ? Math.round(live.cadence) : '--');
   yset('yCadSub', wk.active && wk.def.steps[wk.idx].cad ? $('cadAvg').textContent : ''); $('yCadSub').style.color = $('cadAvg').style.color;
-  $('ytMode').classList.toggle('strip', !!(wk.active || rt.on)); h.classList.toggle('hasR', rt.on);
-  if (rt.on) { yset('yGrade', (rt.gradeNow >= 0 ? '+' : '') + rt.gradeNow.toFixed(1)); yset('yRtSub', `${(rt.pos / 1000).toFixed(1)} of ${(rt.total / 1000).toFixed(1)} km`); }
+  $('ytMode').classList.toggle('strip', !!(wk.active || rtLive())); h.classList.toggle('hasR', rtLive());
+  if (rtLive()) { yset('yGrade', (rt.gradeNow >= 0 ? '+' : '') + rt.gradeNow.toFixed(1)); yset('yRtSub', `${(rt.pos / 1000).toFixed(1)} of ${(rt.total / 1000).toFixed(1)} km`); }
   yset('yTime', fmtTime(s.elapsed)); yset('yDist', (s.distance / 1000).toFixed(2));
   if (wk.active) { const i = wkInfo(); yset('yWkName', i.name); yset('yLeft', mmss(i.left)); yset('yStep', i.step); yset('yNext', i.next ? 'Next: ' + i.next : 'Last step'); const w = Math.min(100, wk.stepElapsed / (stepDur() || 1) * 100).toFixed(1) + '%'; if (_yc.pw !== w) { _yc.pw = w; $('yProg').style.width = w; } }
   for (const [a, b] of [['ytStart', 'btnStart'], ['ytPause', 'btnPause'], ['ytStop', 'btnStop']]) { $(a).disabled = $(b).disabled; $(a).textContent = $(b).textContent; }
@@ -2318,7 +2328,7 @@ function snapshot() {
     avgSpeed: s.spdN ? s.spdSum/s.spdN : 0, avgPower: s.pN ? Math.round(s.pSum/s.pN) : 0, maxPower: s.pMax,
     hrAvg: s.hrN ? Math.round(s.hrSum/s.hrN) : 0, cadAvg: s.cadN ? Math.round(s.cadSum/s.cadN) : 0, ver: 4,
     summary: modalOpen ? stats() : null, name: $('actName').value, upload, workout: wk.active ? wkInfo() : null, yt: ytSnap(),
-    route: rt.on ? { name: rt.name, total: Math.round(rt.total), pos: Math.round(rt.pos), grade: +rt.gradeNow.toFixed(1), climbed: Math.round(gainAt(rt.pos)), climb: Math.round(rt.climb) } : null };
+    route: rtLive() ? { name: rt.name, total: Math.round(rt.total), pos: Math.round(rt.pos), grade: +rt.gradeNow.toFixed(1), climbed: Math.round(gainAt(rt.pos)), climb: Math.round(rt.climb) } : null };
 }
 // YouTube state for the phone companion. Wrapped in try/catch because the player variables are declared further down the file.
 function ytSnap() {

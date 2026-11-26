@@ -117,6 +117,10 @@ setInterval(() => { for (const c of [...companions, ...hosts]) c.write(': ping\n
 // Routes reachable from other devices on your network (phone companion). Everything else is Mac-only.
 const LAN_ROUTES = new Set(['/companion', '/api/state-stream', '/api/cmd']);
 
+// Never let one bad request take the whole server (and the phone companion) down
+process.on('uncaughtException', e => console.error('Freehub error (still running):', e && e.stack || e));
+process.on('unhandledRejection', e => console.error('Freehub error (still running):', e && e.stack || e));
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, BASE);
   try {
