@@ -26,8 +26,8 @@ catch (e) {
     cfgProblem = `No config.json found in ${HOME_DIR}${txt}`;
   } else cfgProblem = `config.json can't be read as JSON: ${e.message}. Check for curly quotes, a missing comma or brace, or rich-text formatting.`;
 }
-const CLIENT_ID = process.env.STRAVA_CLIENT_ID || cfg.clientId;
-const CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET || cfg.clientSecret;
+let CLIENT_ID = process.env.STRAVA_CLIENT_ID || cfg.clientId;
+let CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET || cfg.clientSecret;
 
 const loadTokens = () => { try { return JSON.parse(fs.readFileSync(TOKEN_FILE, 'utf8')); } catch { return null; } };
 const saveTokens = (t) => fs.writeFileSync(TOKEN_FILE, JSON.stringify(t, null, 2));
@@ -126,6 +126,10 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' });
       return res.end(fs.readFileSync(path.join(__dirname, 'public', 'index.html')));
     }
+    if (url.pathname === '/webmode.js') {
+      res.writeHead(200, { 'Content-Type': 'text/javascript', 'Cache-Control': 'no-store' });
+      return res.end(fs.readFileSync(path.join(__dirname, 'public', 'webmode.js')));
+    }
     if (url.pathname === '/qrcode.js') {
       res.writeHead(200, { 'Content-Type': 'text/javascript' });
       return res.end(fs.readFileSync(path.join(__dirname, 'public', 'qrcode.js')));
@@ -139,7 +143,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (url.pathname === '/api/status') {
       const t = loadTokens();
-      return json(res, 200, { configured: !!(CLIENT_ID && CLIENT_SECRET), connected: !!t, athlete: t && t.athlete,
+      return json(res, 200, { configured: !!(CLIENT_ID && CLIENT_SECRET), connected: !!t, athlete: t && t.athlete, clientId: CLIENT_ID || null,
         canUpload: t && t.scope ? t.scope.includes('activity:write') : null });
     }
 
@@ -167,6 +171,34 @@ const server = http.createServer(async (req, res) => {
       if (!COMMANDS.has(cmd)) return json(res, 400, { error: 'Unknown command' });
       send(hosts, { cmd, name: typeof name === 'string' ? name.slice(0, 100) : undefined, url: typeof link === 'string' ? link.slice(0, 300) : undefined });
       return json(res, 200, { ok: true, delivered: hosts.size > 0 });
+    }
+
+    // Guided Strava setup: the page sends the two keys, we write them to config.json (this computer only: see the isLocal check above).
+    // The secret is never sent back to the page.
+    if (url.pathname === '/api/setup/strava' && req.method === 'POST') {
+      const origin = req.headers.origin;   // refuse requests triggered by other websites
+      if (origin && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return json(res, 403, { error: 'Not allowed from this site' });
+      const b = JSON.parse(await readBody(req, 5e3));
+      const id = String(b.clientId || '').trim(), sec = String(b.clientSecret || '').trim();
+      if (!/^\d{3,10}$/.test(id)) return json(res, 400, { error: 'The Client ID should be a number (for example 123456).' });
+      if (!/^[0-9a-f]{20,64}$/i.test(sec)) return json(res, 400, { error: 'The Client Secret should be a long mix of letters and numbers (about 40 characters).' });
+      if (cfgProblem && fs.existsSync(CFG_PATH)) { try { fs.copyFileSync(CFG_PATH, CFG_PATH + '.bak'); } catch {} cfg = {}; }   // unreadable file: keep a copy, start fresh
+      const changed = id !== CLIENT_ID || sec !== CLIENT_SECRET;
+      cfg = { ...cfg, clientId: id, clientSecret: sec };
+      const tmp = CFG_PATH + '.tmp'; fs.writeFileSync(tmp, JSON.stringify(cfg, null, 2) + '\n', { mode: 0o600 }); fs.renameSync(tmp, CFG_PATH);
+      CLIENT_ID = id; CLIENT_SECRET = sec; cfgProblem = null;
+      if (changed) { try { fs.unlinkSync(TOKEN_FILE); } catch {} }   // tokens belonged to the old app
+      console.log(`Strava keys saved to ${CFG_PATH} (client ID ${id}).`);
+      return json(res, 200, { ok: true });
+    }
+    if (url.pathname === '/api/setup/test') {
+      if (!CLIENT_ID || !CLIENT_SECRET) return json(res, 200, { ok: false, message: 'Enter and save your keys first.' });
+      let j = {};
+      try { const r = await fetch('https://www.strava.com/oauth/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, grant_type: 'authorization_code', code: 'freehub-key-check' }) }); j = await r.json(); }
+      catch (e) { return json(res, 200, { ok: false, message: 'Could not reach Strava from this computer. Check your internet connection.' }); }
+      if ((j.errors || []).some(e => e.resource === 'Application')) return json(res, 200, { ok: false, message: 'Strava does not recognise this Client ID / Secret pair. Check you copied both from your Strava API page.' });
+      return json(res, 200, { ok: true, message: 'Strava recognised the keys. Click Connect Strava to finish.' });
     }
 
     if (url.pathname === '/auth/strava') {

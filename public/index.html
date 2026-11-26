@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <title>Freehub</title>
-<link rel="icon" type="image/png" href="/images/favicon.png">
+<link rel="icon" type="image/png" href="images/favicon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root { --bg:#08111f; --card:#0f1c31; --card2:#14253f; --line:#1f3453; --text:#f2f6fc; --mute:#8da0ba; --accent:#c6f31a; --blue:#4da3ff; --pink:#ff5d73; --good:#c6f31a; --grad:linear-gradient(135deg,#c6f31a,#8fe03a); }
   * { box-sizing:border-box; }
-  @font-face { font-family:'Nunito'; src:url(/fonts/nunito.woff2) format('woff2'); font-weight:200 1000; font-style:normal; font-display:swap; }
+  @font-face { font-family:'Nunito'; src:url(fonts/nunito.woff2) format('woff2'); font-weight:200 1000; font-style:normal; font-display:swap; }
   body { margin:0; background:var(--bg); color:var(--text); font-family:Nunito,ui-rounded,"SF Pro Rounded",-apple-system,BlinkMacSystemFont,sans-serif; }
   header { display:flex; align-items:center; justify-content:space-between; padding:16px 28px; border-bottom:1px solid var(--line); gap:12px; flex-wrap:wrap; }
   h1 { font-size:18px; margin:0; letter-spacing:.5px; } h1 span { background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
@@ -291,11 +291,34 @@
   main.app { height:max(640px,calc(100vh - var(--hdr,72px) - 104px)); }
   .rtbar { gap:6px; } .rtbar button, .rtbar select, .rtbar label { height:34px; font-size:12.5px; } .rtbar select { max-width:150px; }
   @media (max-width:1100px) { main.app { height:auto; } }
+
+  /* dark, slim scrollbars everywhere (sessions list, history, tiles) */
+  :root { color-scheme: dark; }
+  * { scrollbar-width: thin; scrollbar-color: #2a4468 transparent; }
+  *::-webkit-scrollbar { width: 10px; height: 10px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb { background: #2a4468; border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
+  *::-webkit-scrollbar-thumb:hover { background: #3b5f8f; background-clip: content-box; }
+  *::-webkit-scrollbar-corner { background: transparent; }
+
+  /* Strava guided setup, data modal, browser warning */
+  [hidden] { display:none !important; }
+  #browserWarn { background:#3a2a10; border-bottom:1px solid #7a5a1a; color:#ffd9a0; padding:9px 16px; font-size:14px; text-align:center; }
+  .steps { margin:14px 0 6px; padding-left:22px; display:grid; gap:12px; font-size:14.5px; line-height:1.5; }
+  .steps li::marker { color:var(--accent); font-weight:800; }
+  .steps code, .kbox { background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:1px 7px; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:13.5px; color:var(--accent); }
+  .hint { font-size:12.5px; color:var(--mute); margin-top:4px; line-height:1.45; }
+  .fld { display:grid; gap:4px; margin-top:12px; font-size:13px; color:var(--mute); }
+  .fld input { width:100%; box-sizing:border-box; background:var(--bg); border:1px solid var(--line); color:var(--text); padding:11px 12px; border-radius:10px; font:inherit; font-size:15px; }
+  #setupMsg, #dataMsg { margin-top:12px; font-size:13.5px; min-height:18px; } #setupMsg.ok, #dataMsg.ok { color:var(--good); } #setupMsg.bad, #dataMsg.bad { color:#ff8a9b; }
+  .qrfb { display:block; margin-top:12px; text-align:center; font-size:12.5px; color:var(--mute); text-decoration:underline; }
 </style>
 </head>
 <body>
+<script src="webmode.js"></script>
+<div id="browserWarn" hidden>Freehub needs <b>Google Chrome or Microsoft Edge</b> (on a computer or an Android phone) to talk to your trainer. This browser can't use Bluetooth, so you can look around but not ride.</div>
 <header class="top">
-  <div class="brand"><img class="logo" src="/images/freehub_mark.png" alt=""><h1>FREE<span>HUB</span></h1>
+  <div class="brand"><img class="logo" src="images/freehub_mark.png" alt=""><h1>FREE<span>HUB</span></h1>
     <nav class="nav" aria-label="Main">
       <button id="btnSessions" title="Browse your sessions or build a new one">Sessions</button>
       <button id="btnPlan" title="Your training plan">Plan<i class="pdot" id="planDot"></i></button>
@@ -311,11 +334,13 @@
     <div class="pill"><span class="dot" id="dotHr"></span><span id="txtHr">HR: not connected</span></div>
     <button id="btnHr" title="Connect a Bluetooth heart-rate strap">Connect HR strap</button>
     <button id="btnStrava" title="Checking Strava…">Strava…</button>
+    <button id="btnData" hidden title="Backup, restore and feedback">Data &amp; help</button>
     <div class="qrwrap" id="qrWrap">
       <button id="btnQr" aria-haspopup="true" aria-expanded="false" title="Open the companion on your phone">Phone app</button>
       <div class="qrpop" id="qrPop" role="dialog" aria-label="Phone companion">
         <div class="qrurl" id="qrNone" style="font-size:13px">Looking for your Wi-Fi address…</div>
         <div class="qrmin" id="qrPanel"><div class="qrbox" id="qrBox"></div><div class="qrcap">Scan with your phone</div><div class="qrurl" id="qrUrl"></div></div>
+        <a class="qrfb" href="https://github.com/graemedoherty/Freehub/issues/new/choose" target="_blank" rel="noopener">Found a bug or have an idea? Send feedback</a>
       </div>
     </div>
   </div>
@@ -525,13 +550,37 @@
     </div>
   </div>
 </div>
+<div class="overlay" id="setupOverlay"><div class="modal" role="dialog" aria-modal="true" aria-label="Set up Strava" style="max-width:600px">
+  <h2>Connect Strava</h2>
+  <div class="sub" style="margin-top:2px">Optional. Lets Freehub send your rides to Strava. It takes about 3 minutes, once. You create your own Strava app, so your keys belong to you.</div>
+  <ol class="steps">
+    <li><b>Open your Strava API page.</b> <a href="https://www.strava.com/settings/api" target="_blank" rel="noopener"><button type="button">Open Strava settings ↗</button></a>
+      <div class="hint">Sign in if asked. If you don't have an app yet, Strava shows a form to create one.</div></li>
+    <li><b>Fill in the form.</b> Application name: <code>Freehub</code> (anything works). Category: <code>Training</code>. Website: any address, for example <code>https://example.com</code>. Description: anything.
+      <div style="margin-top:6px"><b>Authorization Callback Domain</b> must be exactly <code id="setupDomain">localhost</code> <button type="button" id="setupCopy" style="padding:3px 10px;font-size:12.5px">Copy</button></div>
+      <div class="hint">No http://, no slashes, no port. If Strava asks for an icon, any picture will do. Then save.</div></li>
+    <li><b>Copy your two keys</b> from that page: the <b>Client ID</b> (a number) and the <b>Client Secret</b> (click "Show" next to it), and paste them below.</li>
+  </ol>
+  <label class="fld">Client ID<input id="setupId" inputmode="numeric" autocomplete="off" placeholder="e.g. 123456"></label>
+  <label class="fld">Client Secret<input id="setupSecret" type="password" autocomplete="off" spellcheck="false" placeholder="about 40 letters and numbers"></label>
+  <div class="hint" id="setupWhere"></div>
+  <div id="setupMsg" role="status"></div>
+  <div class="mactions"><button class="primary" id="setupSave">Save and connect</button><button id="setupTest" type="button">Check keys</button><button id="setupClose" type="button">Close</button></div>
+</div></div>
+<div class="overlay" id="dataOverlay"><div class="modal" role="dialog" aria-modal="true" aria-label="Your data" style="max-width:520px">
+  <h2>Your data</h2>
+  <div class="sub" style="margin-top:2px">Freehub is running in your browser. Your rides, plans and routes are stored on this device only, and clearing your browser data deletes them. Download a backup now and then; you can restore it on any device.</div>
+  <div class="mactions"><button class="primary" id="dataExport">Download backup</button><button id="dataImport" type="button">Restore backup…</button><input type="file" id="dataFile" accept=".json,application/json" hidden></div>
+  <div id="dataMsg" role="status"></div>
+  <div class="mactions"><button id="dataStrava" type="button">Strava keys…</button><a href="https://github.com/graemedoherty/Freehub/issues/new/choose" target="_blank" rel="noopener"><button type="button">Send feedback</button></a><button id="dataClose" type="button">Close</button></div>
+</div></div>
 <div class="overlay" id="testOverlay"><div class="modal" role="dialog" aria-modal="true" aria-label="FTP test result" style="max-width:520px"><div id="testBody"></div></div></div>
 <div class="overlay" id="progOverlay"><div class="modal cat-modal" role="dialog" aria-modal="true" aria-label="Progress"><div id="progBody"></div></div></div>
 <div class="overlay" id="histOverlay"><div class="modal cat-modal" role="dialog" aria-modal="true" aria-label="Ride history"><div id="histBody"></div></div></div>
 <div class="overlay" id="planOverlay"><div class="modal cat-modal" role="dialog" aria-modal="true" aria-label="Training plan"><div id="planBody"></div></div></div>
 <div id="toast"></div>
 
-<script src="/qrcode.js"></script>
+<script src="qrcode.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const toast = (m, ms=4500) => { const t=$('toast'); t.textContent=m; t.style.display='block'; clearTimeout(toast.t); toast.t=setTimeout(()=>t.style.display='none',ms); };
@@ -1566,7 +1615,7 @@ function drawChart() {
 render();
 
 // ---------- Persistence, ride image, history and plans ----------
-const markImg = new Image(); markImg.src = '/images/freehub_mark.png';
+const markImg = new Image(); markImg.src = 'images/freehub_mark.png';
 let rideId = null, rides = [], rideFeel = null;
 const rid = d => d.toISOString().slice(0, 19).replace(/:/g, '-');
 const dkey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -2185,17 +2234,77 @@ async function loadStrava() {
   const b = $('btnStrava');
   stravaConnected = j.connected && j.canUpload !== false;
   b.classList.remove('linked');
-  if (!j.configured) { stravaState = 'unconfigured'; b.textContent = 'Set up Strava'; b.title = 'Strava keys missing: add them to config.json and restart the server (see README)'; }
-  else if (!j.connected) { stravaState = 'disconnected'; b.textContent = 'Connect Strava'; b.title = 'Sign in to Strava so rides can be uploaded'; }
+  if (!j.configured) { stravaState = 'unconfigured'; b.textContent = 'Set up Strava'; b.title = 'A guided 3-minute setup to link your own Strava account'; }
+  else if (!j.connected) { stravaState = 'disconnected'; b.textContent = 'Connect Strava'; b.title = 'Sign in to Strava so rides can be uploaded. Right-click to change your Strava keys.'; }
   else if (j.canUpload === false) { stravaState = 'noperm'; b.textContent = 'Reconnect Strava'; b.title = 'Connected, but upload permission was not granted. Reconnect and tick "Upload your activities".'; }
   else { stravaState = 'linked'; b.classList.add('linked'); b.textContent = '✓ Strava linked'; b.title = (j.athlete ? 'Connected as ' + j.athlete + '. ' : '') + 'Click to disconnect'; }
+  stravaClientId = j.clientId || '';
   pushState();
 }
+let stravaClientId = '';
+async function stravaConnect() {
+  if (!window.FREEHUB_WEB) { location.href = '/auth/strava'; return; }
+  let j; try { j = await (await fetch('/api/status')).json(); } catch { return; }
+  if (!j.clientId) return openSetup();
+  location.href = 'https://www.strava.com/oauth/authorize?' + new URLSearchParams({ client_id: j.clientId, response_type: 'code', redirect_uri: location.origin + location.pathname, approval_prompt: 'force', scope: 'activity:write,read' });
+}
+// ---- guided Strava setup ----
+const setupMsg = (t, cls) => { const m = $('setupMsg'); m.textContent = t || ''; m.className = cls || ''; };
+function openSetup() {
+  const domain = window.FREEHUB_WEB ? location.hostname : 'localhost';
+  $('setupDomain').textContent = domain;
+  $('setupId').value = stravaClientId || ''; $('setupSecret').value = '';
+  $('setupSecret').placeholder = stravaClientId ? 'leave empty to keep the saved secret' : 'about 40 letters and numbers';
+  $('setupWhere').textContent = window.FREEHUB_WEB ? 'Your keys are kept in this browser only. They are never sent anywhere except to Strava.' : 'Your keys are saved in config.json on this computer only. They are never sent anywhere except to Strava.';
+  setupMsg(''); $('setupOverlay').classList.add('open'); setTimeout(() => $('setupId').focus(), 50);
+}
+const closeSetup = () => $('setupOverlay').classList.remove('open');
+async function saveKeys() {
+  const clientId = $('setupId').value.trim(), clientSecret = $('setupSecret').value.trim();
+  if (!clientSecret && stravaClientId && clientId === stravaClientId) return true;   // nothing to change
+  const r = await fetch('/api/setup/strava', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientId, clientSecret }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { setupMsg(j.error || 'Could not save the keys.', 'bad'); return false; }
+  return true;
+}
+$('setupCopy').onclick = async () => { try { await navigator.clipboard.writeText($('setupDomain').textContent); $('setupCopy').textContent = 'Copied'; setTimeout(() => $('setupCopy').textContent = 'Copy', 1500); } catch { toast('Select the text and copy it.'); } };
+$('setupClose').onclick = closeSetup;
+$('setupOverlay').addEventListener('mousedown', e => { if (e.target === $('setupOverlay')) closeSetup(); });
+$('setupSave').onclick = async () => {
+  setupMsg('Saving…'); $('setupSave').disabled = true;
+  try { if (!(await saveKeys())) return; await loadStrava(); setupMsg('Saved. Taking you to Strava…', 'ok'); setTimeout(stravaConnect, 400); }
+  catch (e) { setupMsg('Could not save: ' + e.message, 'bad'); }
+  finally { $('setupSave').disabled = false; }
+};
+$('setupTest').onclick = async () => {
+  setupMsg('Checking…'); $('setupTest').disabled = true;
+  try { if (!(await saveKeys())) return; await loadStrava(); const j = await (await fetch('/api/setup/test')).json(); setupMsg(j.message, j.ok ? 'ok' : 'bad'); }
+  catch (e) { setupMsg('Check failed: ' + e.message, 'bad'); }
+  finally { $('setupTest').disabled = false; }
+};
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSetup(); $('dataOverlay').classList.remove('open'); } });
+$('btnStrava').oncontextmenu = e => { e.preventDefault(); openSetup(); };
 $('btnStrava').onclick = async () => {
-  if (stravaState === 'unconfigured') return toast('Add your Strava keys to config.json next to server.js, then restart the server (see README).', 7000);
-  if (stravaState === 'disconnected' || stravaState === 'noperm') { location.href = '/auth/strava'; return; }
+  if (stravaState === 'unconfigured') return openSetup();
+  if (stravaState === 'disconnected' || stravaState === 'noperm') return stravaConnect();
   if (stravaState === 'linked') { await fetch('/auth/disconnect'); toast('Strava disconnected.'); loadStrava(); }
 };
+// ---- browser-only extras ----
+if (!navigator.bluetooth) $('browserWarn').hidden = false;
+if (window.FREEHUB_WEB) {
+  $('qrWrap').style.display = 'none'; $('btnData').hidden = false;
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch {}
+  const dmsg = (t, c) => { $('dataMsg').textContent = t || ''; $('dataMsg').className = c || ''; };
+  $('btnData').onclick = () => { dmsg(window.FREEHUB_MEMONLY ? 'This browser is blocking storage (private window?), so nothing will be kept after you close the tab.' : '', 'bad'); $('dataOverlay').classList.add('open'); };
+  $('dataClose').onclick = () => $('dataOverlay').classList.remove('open');
+  $('dataOverlay').addEventListener('mousedown', e => { if (e.target === $('dataOverlay')) $('dataOverlay').classList.remove('open'); });
+  $('dataExport').onclick = async () => { try { const n = await freehubWeb.exportAll(); dmsg(`Backup downloaded (${n} items). Keep it somewhere safe.`, 'ok'); } catch (e) { dmsg(e.message, 'bad'); } };
+  $('dataImport').onclick = () => $('dataFile').click();
+  $('dataFile').onchange = async () => { const f = $('dataFile').files[0]; if (!f) return; try { const n = await freehubWeb.importAll(f); dmsg(`Restored ${n} items. Reloading…`, 'ok'); setTimeout(() => location.reload(), 900); } catch (e) { dmsg(e.message, 'bad'); } finally { $('dataFile').value = ''; } };
+  $('dataStrava').onclick = () => { $('dataOverlay').classList.remove('open'); openSetup(); };
+  if (window.FREEHUB_AUTH_ERROR) setTimeout(() => toast(window.FREEHUB_AUTH_ERROR, 9000), 600);
+  else if (window.FREEHUB_JUST_CONNECTED) setTimeout(() => toast('Strava connected.', 3500), 600);
+}
 loadStrava();
 
 // ---------- Companion sync ----------
