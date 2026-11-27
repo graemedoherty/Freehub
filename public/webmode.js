@@ -121,7 +121,8 @@
           canUpload: t && t.scope ? t.scope.includes('activity:write') : null });
       }
       if (p === '/api/setup/strava' && method === 'POST') {
-        const b = body(), id = String(b.clientId || '').trim(), sec = String(b.clientSecret || '').trim();
+        const b = body(); if (b.clear) { const s0 = sget(); delete s0.clientId; delete s0.clientSecret; delete s0.tokens; sset(s0); return J({ ok: true }); }
+        const id = String(b.clientId || '').trim(), sec = String(b.clientSecret || '').trim();
         if (!/^\d{3,10}$/.test(id)) return J({ error: 'The Client ID should be a number (for example 123456).' }, 400);
         if (!/^[0-9a-f]{20,64}$/i.test(sec)) return J({ error: 'The Client Secret should be a long mix of letters and numbers (about 40 characters).' }, 400);
         const s = sget(); if (s.clientId !== id || s.clientSecret !== sec) delete s.tokens;
