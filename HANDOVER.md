@@ -108,3 +108,9 @@ Zwift Hub over Bluetooth in the new build, Electron Bluetooth picker, Mac signin
 ## Update 10
 - Landscape phone, full-screen video: data now runs along the bottom as a single bar (Speed, Power, HR, Cadence, Time, Distance, plus Gradient on route rides); the workout/route profile strip sits just above it.
 - Portrait phone, Video tab: skinny 16:9 player; stat tiles compact into a 3-column grid so all seven fit above the Start bar. `body[data-view]` now tracks the active main view (set in `setView`).
+
+## UI redesign (branch ui-redesign)
+- Two states, driven by `body[data-ride|st|wk|free|conn|view]` (set in `updateButtons`, `updateWorkoutUi`, `setView`): a start screen (activity only) and a riding screen (live data). Idle phones hide the data tiles; desktop keeps them.
+- "Free ride (no plan)" is the first option in the workout picker (`__free`); Start runs `start()` instead of `startWorkout()`. "Connect Zwift Hub" replaces Start until a trainer is connected.
+- No page scrolling: `main.app` fills the viewport minus `--hdr` and `--bar` (bottom bar). The averages, ERG target, free-ride switch, weight and speed source moved into the "Ride details" sheet (header button `#btnMore`, `#moreSheet`).
+- Colours: violet accent, power zones follow a 7-zone-style palette (grey, blue, green, yellow, orange, red, purple; Z6 purple above 146%).
