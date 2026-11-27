@@ -4,6 +4,18 @@
 <meta charset="utf-8">
 <title>Freehub</title>
 <link rel="icon" type="image/png" href="images/favicon.png">
+<link rel="apple-touch-icon" href="images/freehub_mark.png">
+<meta name="description" content="Freehub: a free virtual cycling trainer app. Connect your smart trainer over Bluetooth, ride structured workouts and routes, and upload to Strava.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Freehub">
+<meta property="og:title" content="Freehub: Virtual Cycling Trainer App">
+<meta property="og:description" content="Free in your browser. Connect your smart trainer, ride workouts and routes, and send rides to Strava.">
+<meta property="og:url" content="https://graemedoherty.github.io/Freehub/">
+<meta property="og:image" content="https://graemedoherty.github.io/Freehub/images/share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://graemedoherty.github.io/Freehub/images/share.png">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#08111f">
 <style>
@@ -410,6 +422,42 @@
     #rtGradeBox { bottom:50px; } .rtg { font-size:26px; }
     #rtNext { top:54px; }
   }
+
+  /* ===== Responsive part 3: full-screen video on phones ===== */
+  body.ytfull header.top { display:none; }
+  @media (max-width:700px), (orientation:landscape) and (max-height:520px) {
+    #ytBar { flex-wrap:nowrap; overflow-x:auto; gap:6px; padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) 8px max(10px,env(safe-area-inset-left)); scrollbar-width:none; }
+    #ytBar::-webkit-scrollbar { display:none; } #ytBar > * { flex:none; } #ytBar .grow { display:none; }
+    #ytUrl { flex:1 0 170px; min-width:170px; padding:8px 10px; } #ytBar button { padding:7px 11px; font-size:13px; white-space:nowrap; }
+    #ytMode.full #ytBar #ytSize { display:none; }
+    #ytExit .lg { display:none; }
+    #ytMsg, #ytMode.full #ytMsg { padding:0 24px; } #ytMsg .big { font-size:20px; } #ytMsg .sub { font-size:13px; }
+    #ytHud .ytb, #ytHud .ys, #ytHud .yarrow { display:none !important; }
+    #ytHud .yc, #ytHud .ygrid .yc { padding:7px 11px; border-radius:16px; }
+    #ytHud .yl { font-size:10px; letter-spacing:1px; } #ytHud .yu { font-size:11px; }
+    #ytHud .yv, #ytHud .ygrid .yv { font-size:21px; } #ytHud .yv.big { font-size:30px; letter-spacing:-.5px; }
+    #ytHud .ytgt b { font-size:18px; }
+    #ytStrip { height:86px; } #ytStripCv { height:68px; left:10px; right:10px; width:calc(100% - 20px); bottom:8px; border-radius:14px; }
+  }
+  @media (max-width:700px) and (orientation:portrait) {
+    #ytMode.full #ytMsg { align-items:flex-start; padding-top:22%; }
+    #ytMode.full #ytBar button { padding:7px 9px; font-size:12.5px; }
+    #ytMode.full #ytUrl, #ytMode.full #ytLoad, #ytMode.full #ytBar #ytGlass { display:none; }
+    #ytMode.full #ytHud, #ytMode.full.strip #ytHud { top:auto; bottom:calc(10px + env(safe-area-inset-bottom)); left:max(8px,env(safe-area-inset-left)); right:max(8px,env(safe-area-inset-right)); width:auto; max-height:none; transform:none; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+    #ytMode.full.strip #ytHud { bottom:calc(104px + env(safe-area-inset-bottom)); }
+    #ytHud .ygrid { display:contents; }
+    #ytHud #yRt, #ytHud #yWk { grid-column:1/-1; } #ytHud.hasT #yPc { grid-column:span 2; }
+    #ytHud #yWk .yrow, #ytHud #yRt .yrow { gap:4px; }
+  }
+  @media (orientation:landscape) and (max-height:520px) {
+    #ytMode.full #ytHud, #ytMode.full.strip #ytHud { top:calc(50px + env(safe-area-inset-top)); bottom:auto; right:max(10px,env(safe-area-inset-right)); width:176px; transform:none; gap:5px; max-height:calc(100% - 58px - env(safe-area-inset-top)); overflow:hidden; }
+    #ytMode.full.strip #ytHud { max-height:calc(100% - 58px - 90px - env(safe-area-inset-top)); }
+    #ytHud #yWk { display:none !important; }
+    #ytHud .yc, #ytHud .ygrid .yc { padding:5px 9px; border-radius:13px; } #ytHud .ygrid { gap:5px; }
+    #ytHud .yv, #ytHud .ygrid .yv { font-size:17px; } #ytHud .yv.big { font-size:26px; }
+    #ytHud .ygrid .yc { min-width:0; } #ytHud .yl { font-size:9px; }
+    #ytMode.full #ytMsg { padding:0 200px 0 24px; }
+  }
 </style>
 </head>
 <body>
@@ -522,7 +570,7 @@
           <span class="grow"></span>
           <button id="ytStart" class="primary fsonly">▶ Start</button><button id="ytPause" class="fsonly">⏸ Pause</button><button id="ytStop" class="danger fsonly">■ Finish</button>
           <button id="ytSize" class="fsonly" title="Data panel size">Aa</button><button id="ytGlass" class="fsonly" title="Full glass blur looks best; Light is smoother on slower machines">Glass: Full</button><button id="ytHide" class="fsonly" title="Hide or show the data panel">◧ Data</button>
-          <button id="ytFs" class="embonly" title="Full screen, with your ride data and the strip over the video">⛶ Full screen</button><button id="ytExit" class="fsonly">✕ Exit full screen</button>
+          <button id="ytFs" class="embonly" title="Full screen, with your ride data and the strip over the video">⛶ Full screen</button><button id="ytExit" class="fsonly">✕ Exit<span class="lg"> full screen</span></button>
         </div>
         <div id="ytStrip"><canvas id="ytStripCv"></canvas></div>
         <div id="ytHud">
@@ -2228,10 +2276,10 @@ function setView(v) {
   if (v === 'video') { ytApplySize(); try { const l = localStorage.getItem('freehub.yt'); if (l && !$('ytUrl').value) $('ytUrl').value = l; } catch {} ytUpdate(); ytWake(); if (!ytPlayer) setTimeout(() => $('ytUrl').focus(), 50); else if (ytReady && ytPlayer.playVideo) ytPlayer.playVideo(); }
 }
 function ytEnterFull() {
-  $('ytMode').classList.add('full'); drawWorkout._t = 0; ytUpdate(); ytWake();
+  $('ytMode').classList.add('full'); document.body.classList.add('ytfull'); drawWorkout._t = 0; ytUpdate(); ytWake();
   const el = document.documentElement; if (!document.fullscreenElement && el.requestFullscreen) el.requestFullscreen().then(() => { ytFsReq = true; }).catch(() => {});
 }
-function ytLeaveFull() { ytFsReq = false; $('ytMode').classList.remove('full'); drawWorkout._t = 0; rt.dirty = true; _stripT = 0; if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
+function ytLeaveFull() { ytFsReq = false; $('ytMode').classList.remove('full'); document.body.classList.remove('ytfull'); drawWorkout._t = 0; rt.dirty = true; _stripT = 0; if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && ytFsReq && ytFull()) ytLeaveFull(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && ytFull() && !document.fullscreenElement) ytLeaveFull(); });
 $('ytExit').onclick = () => ytLeaveFull();
