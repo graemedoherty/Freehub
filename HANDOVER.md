@@ -100,3 +100,7 @@ Zwift Hub over Bluetooth in the new build, Electron Bluetooth picker, Mac signin
 - Strava button: when keys are saved but not connected, it now opens the setup screen (showing the Strava app ID in use, with "Connect to Strava" and "Remove saved keys") instead of jumping straight to Strava. A wrong app or callback domain (`redirect_uri invalid`) can now be fixed in-app. Server and browser mode both accept `{clear:true}` on `POST /api/setup/strava`.
 - Responsive: burger menu, phone bottom bar no longer overflows, route HUD scrolls on phones, toast and banner tidied, `--hdr` includes the browser warning.
 - Companion: landscape phone shows all data fields on one screen.
+
+## Update 9
+- Link preview: Open Graph/Twitter tags and `public/images/share.png` (1200x630) so shared links show the logo. If the site URL changes, update the absolute URLs in the `og:` tags in `public/index.html`.
+- Full-screen video on phones: the site header is hidden, the top bar scrolls sideways (URL box hidden in portrait), and the data panel is compact (a 3x2 strip at the bottom in portrait, a slim right column in landscape) so the video stays visible.
