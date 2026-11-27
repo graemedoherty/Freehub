@@ -183,6 +183,13 @@ const server = http.createServer(async (req, res) => {
       const origin = req.headers.origin;   // refuse requests triggered by other websites
       if (origin && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return json(res, 403, { error: 'Not allowed from this site' });
       const b = JSON.parse(await readBody(req, 5e3));
+      if (b.clear) {   // "Remove saved keys": back to a clean slate
+        cfg = { ...cfg }; delete cfg.clientId; delete cfg.clientSecret;
+        const tmp = CFG_PATH + '.tmp'; fs.writeFileSync(tmp, JSON.stringify(cfg, null, 2) + '\n', { mode: 0o600 }); fs.renameSync(tmp, CFG_PATH);
+        CLIENT_ID = CLIENT_SECRET = ''; try { fs.unlinkSync(TOKEN_FILE); } catch {}
+        console.log('Strava keys removed from ' + CFG_PATH + '.');
+        return json(res, 200, { ok: true });
+      }
       const id = String(b.clientId || '').trim(), sec = String(b.clientSecret || '').trim();
       if (!/^\d{3,10}$/.test(id)) return json(res, 400, { error: 'The Client ID should be a number (for example 123456).' });
       if (!/^[0-9a-f]{20,64}$/i.test(sec)) return json(res, 400, { error: 'The Client Secret should be a long mix of letters and numbers (about 40 characters).' });

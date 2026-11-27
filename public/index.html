@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <title>Freehub</title>
 <link rel="icon" type="image/png" href="images/favicon.png">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08111f">
 <style>
   :root { --bg:#08111f; --card:#0f1c31; --card2:#14253f; --line:#1f3453; --text:#f2f6fc; --mute:#8da0ba; --accent:#c6f31a; --blue:#4da3ff; --pink:#ff5d73; --good:#c6f31a; --grad:linear-gradient(135deg,#c6f31a,#8fe03a); }
   * { box-sizing:border-box; }
@@ -312,13 +313,113 @@
   .fld input { width:100%; box-sizing:border-box; background:var(--bg); border:1px solid var(--line); color:var(--text); padding:11px 12px; border-radius:10px; font:inherit; font-size:15px; }
   #setupMsg, #dataMsg { margin-top:12px; font-size:13.5px; min-height:18px; } #setupMsg.ok, #dataMsg.ok { color:var(--good); } #setupMsg.bad, #dataMsg.bad { color:#ff8a9b; }
   .qrfb { display:block; margin-top:12px; text-align:center; font-size:12.5px; color:var(--mute); text-decoration:underline; }
+
+  /* ===== Responsive: desktop keeps the pills; phones and small windows get a menu ===== */
+  header.top { justify-content:flex-start; }
+  .hdrMenu { display:contents; }
+  .conn { margin-left:auto; }
+  .burger, .miniStatus { display:none; }
+  .burger { width:44px; height:44px; border-radius:14px; padding:0; flex-direction:column; align-items:center; justify-content:center; gap:5px; }
+  .burger span { display:block; width:20px; height:2px; border-radius:2px; background:var(--text); transition:transform .2s, opacity .2s; }
+  header.menuOpen .burger span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+  header.menuOpen .burger span:nth-child(2) { opacity:0; }
+  header.menuOpen .burger span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+  .miniStatus { align-items:center; gap:6px; margin-left:auto; font-size:12px; color:var(--mute); } .miniStatus small { margin-right:6px; }
+  .miniStatus .dot { width:9px; height:9px; }
+  html { -webkit-text-size-adjust:100%; } button, select { touch-action:manipulation; }
+
+  @media (max-width:1100px), (orientation:landscape) and (max-height:520px) {
+    header.top { position:sticky; top:0; z-index:35; flex-wrap:nowrap; gap:10px; padding:8px 14px; padding-top:calc(8px + env(safe-area-inset-top)); padding-left:max(14px,env(safe-area-inset-left)); padding-right:max(14px,env(safe-area-inset-right)); background:rgba(8,17,31,.94); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+    .brand h1 { font-size:17px; } .brand .logo { width:30px; height:30px; }
+    .burger, .miniStatus { display:inline-flex; }
+    .hdrMenu { display:none; position:absolute; left:10px; right:10px; top:calc(100% + 6px); flex-direction:column; gap:12px; padding:12px; background:var(--card); border:1px solid var(--line); border-radius:18px; box-shadow:0 24px 70px rgba(0,0,0,.65); max-height:calc(100dvh - var(--hdr,56px) - 14px); overflow:auto; }
+    header.menuOpen .hdrMenu { display:flex; }
+    .hdrMenu .nav, .hdrMenu .conn { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0; width:100%; }
+    .hdrMenu .nav button, .hdrMenu .conn button { height:48px; width:100%; justify-content:center; border-radius:14px; font-size:15px; padding:0 10px; }
+    .hdrMenu .conn .pill { display:flex; order:1; height:40px; justify-content:flex-start; border-radius:12px; padding:0 12px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    #btnTrainer { order:2; } #btnHr { order:3; } #btnStrava { order:4; } #btnData, #qrWrap { order:5; }
+    #qrWrap { position:static; } #qrPop { position:static; margin-top:8px; width:auto; }
+    main.app { padding:10px 12px 0; gap:12px; height:auto; }
+  }
+  @media (max-width:700px) {
+    #qrWrap { display:none; }
+    .stage { min-height:0; } .mainTile { min-height:430px; border-radius:20px; }
+    .mtHead { padding:8px 10px; gap:8px; } .seg button { padding:0 12px; height:32px; } .mtNote { font-size:12px; }
+    .view { padding:12px; }
+    .wkhead { gap:8px; } .wkhead #wkSel { flex:1 1 100%; } .wkhead #wkStart { flex:1 1 100%; height:48px; } .wkhead .sub { flex:1 1 auto; }
+    .tiles { gap:10px; grid-template-rows:none; grid-auto-rows:minmax(96px,auto); }
+    .tiles .tile { padding:12px 14px; border-radius:18px; }
+    .tiles .tile.big { padding:14px 16px; }
+    .tiles .val { font-size:clamp(28px,8.8vw,42px); margin-top:8px; }
+    .tiles .tile.big .val { font-size:clamp(60px,21vw,96px); }
+    .tiles .tile:not(.big) .tbadge { width:36px; height:32px; }
+    .more { padding:14px 12px calc(120px + env(safe-area-inset-bottom)); }
+    .bottombar { flex-wrap:wrap; gap:8px; padding:8px 12px calc(10px + env(safe-area-inset-bottom)); padding-left:max(12px,env(safe-area-inset-left)); padding-right:max(12px,env(safe-area-inset-right)); background:linear-gradient(rgba(8,17,31,0),rgba(8,17,31,.97) 22%); }
+    .bottombar > span[style] { display:none; }
+    .bottombar .pill, .bottombar .chip { height:28px; padding:0 10px; font-size:12px; }
+    .bottombar button { flex:1 1 0; min-width:0; height:50px; padding:0 6px; font-size:15px; }
+    .overlay { padding:0; align-items:flex-end; }
+    .modal { width:100%; max-width:100% !important; max-height:92dvh; border-radius:22px 22px 0 0; padding:18px 16px calc(18px + env(safe-area-inset-bottom)); }
+    .modal h2 { font-size:22px; }
+    .rtLegend { display:none !important; } .rtbar { flex-wrap:wrap; } .rtbar select { max-width:none; flex:1 1 40%; }
+    .ytbar, #ytBar { flex-wrap:wrap; }
+  }
+  /* phone on its side: everything on one screen, no scrolling to see your numbers */
+  @media (orientation:landscape) and (max-height:520px) {
+    header.top { padding-top:max(4px,env(safe-area-inset-top)); padding-bottom:4px; } .burger { width:38px; height:38px; } .brand .logo { width:26px; height:26px; } .brand h1 { font-size:15px; }
+    main.app { grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); height:calc(100dvh - var(--hdr,46px) - 58px); min-height:230px; padding:6px max(10px,env(safe-area-inset-right)) 0 max(10px,env(safe-area-inset-left)); gap:8px; }
+    .stage { min-height:0; gap:6px; } .mainTile { min-height:0; border-radius:16px; }
+    .stripCard { height:96px; border-radius:16px; padding:6px 12px; }
+    .mtHead { padding:4px 8px; } .seg { padding:2px; } .seg button { height:26px; padding:0 12px; font-size:12px; }
+    .view { padding:8px 10px; }
+    .tiles { grid-template-columns:repeat(3,minmax(0,1fr)); grid-template-rows:1.3fr 1fr 1fr; grid-auto-rows:auto; gap:6px; }
+    .tiles .tile { padding:5px 9px; border-radius:12px; } .tiles .tile.big { padding:6px 12px; }
+    .tiles .label { font-size:9px; letter-spacing:.8px; }
+    .tiles .val { font-size:clamp(16px,7vh,28px); margin-top:2px; }
+    .tiles .tile.big .val { font-size:clamp(32px,15vh,60px); margin-top:0; }
+    .tiles .val small { font-size:10px; }
+    .tiles .tbadge, .tiles .sub { display:none !important; }
+    .bottombar { flex-wrap:nowrap; gap:8px; padding:6px max(10px,env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left)); }
+    .bottombar .pill, .bottombar .chip { height:28px; padding:0 10px; font-size:12px; }
+    .bottombar button { height:40px; padding:0 18px; font-size:14px; flex:0 0 auto; }
+    .more { padding:12px max(12px,env(safe-area-inset-left)) 90px; }
+    .overlay { padding:8px; align-items:center; } .modal { max-height:96dvh; padding:14px 18px; border-radius:18px; }
+  }
+
+  /* ===== Responsive part 2: bar info, route HUD, toast, banner ===== */
+  .barInfo { display:contents; }
+  @media (max-width:700px) {
+    .barInfo { display:flex; gap:8px; flex:1 1 100%; min-width:0; align-items:center; }
+    .barInfo .pill { flex:none; } .barInfo .chip { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #toast { bottom:calc(132px + env(safe-area-inset-bottom)); max-width:92%; font-size:14px; padding:10px 14px; }
+    #browserWarn { font-size:13px; padding:8px 12px; }
+  }
+  @media (max-width:700px), (orientation:landscape) and (max-height:520px) {
+    #rtInfo { left:10px; top:10px; right:10px; max-width:none; padding:7px 12px; border-radius:14px; } .rtName { font-size:15px; } .rtMeta { font-size:12px; }
+    #rtNext { left:10px; right:10px; top:62px; max-width:none; padding:6px 12px; font-size:13px; border-radius:14px; }
+    #rtGradeBox { right:10px; bottom:54px; padding:5px 12px; border-radius:14px; } .rtg { font-size:30px; }
+    .rtbar { left:10px; right:10px; bottom:10px; flex-wrap:nowrap; overflow-x:auto; gap:6px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+    .rtbar::-webkit-scrollbar { display:none; } .rtbar > * { flex:none; } .rtbar select { max-width:150px; flex:none; }
+    .rtEmptyCard { padding:16px; } .rtEmptyCard .big { font-size:20px; }
+  }
+  @media (orientation:landscape) and (max-height:520px) {
+    .barInfo { display:flex; gap:8px; flex:1 1 auto; min-width:0; align-items:center; } .barInfo .pill { flex:none; } .barInfo .chip { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .bottombar > span[style] { display:none; }
+    #toast { bottom:calc(64px + env(safe-area-inset-bottom)); max-width:70%; font-size:13px; padding:8px 12px; }
+    #browserWarn { font-size:12px; padding:3px 10px; line-height:1.3; }
+    #rtGradeBox { bottom:50px; } .rtg { font-size:26px; }
+    #rtNext { top:54px; }
+  }
 </style>
 </head>
 <body>
 <script src="webmode.js"></script>
 <div id="browserWarn" hidden>Freehub needs <b>Google Chrome or Microsoft Edge</b> (on a computer or an Android phone) to talk to your trainer. This browser can't use Bluetooth, so you can look around but not ride.</div>
-<header class="top">
-  <div class="brand"><img class="logo" src="images/freehub_mark.png" alt=""><h1>FREE<span>HUB</span></h1>
+<header class="top" id="hdr">
+  <div class="brand"><img class="logo" src="images/freehub_mark.png" alt=""><h1>FREE<span>HUB</span></h1></div>
+  <div class="miniStatus" aria-hidden="true"><span class="dot" id="miniT"></span><small>Hub</small><span class="dot" id="miniH"></span><small>HR</small></div>
+  <button class="burger" id="btnMenu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="hdrMenu"><span></span><span></span><span></span></button>
+  <div class="hdrMenu" id="hdrMenu">
     <nav class="nav" aria-label="Main">
       <button id="btnSessions" title="Browse your sessions or build a new one">Sessions</button>
       <button id="btnPlan" title="Your training plan">Plan<i class="pdot" id="planDot"></i></button>
@@ -327,7 +428,6 @@
       <button id="btnProg" title="FTP history, fitness trends and your zones">Progress</button>
       <button id="btnYt" title="Watch a YouTube video with your ride data">YouTube</button>
     </nav>
-  </div>
   <div class="conn">
     <div class="pill"><span class="dot" id="dotTrainer"></span><span id="txtTrainer">Trainer: not connected</span></div>
     <button id="btnTrainer" title="Connect your trainer over Bluetooth">Connect Zwift Hub</button>
@@ -343,6 +443,7 @@
         <a class="qrfb" href="https://github.com/graemedoherty/Freehub/issues/new/choose" target="_blank" rel="noopener">Found a bug or have an idea? Send feedback</a>
       </div>
     </div>
+  </div>
   </div>
 </header>
 
@@ -477,8 +578,7 @@
 </section>
 
 <div class="bottombar">
-  <span class="pill" id="state">Idle</span>
-  <span class="chip" id="rideChip">Free ride</span>
+  <div class="barInfo"><span class="pill" id="state">Idle</span><span class="chip" id="rideChip">Free ride</span></div>
   <span style="flex:1"></span>
   <button id="btnStart" class="primary" disabled>▶ Start</button>
   <button id="btnPause" disabled>⏸ Pause</button>
@@ -563,6 +663,7 @@
   </ol>
   <label class="fld">Client ID<input id="setupId" inputmode="numeric" autocomplete="off" placeholder="e.g. 123456"></label>
   <label class="fld">Client Secret<input id="setupSecret" type="password" autocomplete="off" spellcheck="false" placeholder="about 40 letters and numbers"></label>
+  <div class="hint" id="setupSaved" hidden style="border:1px solid var(--line,#444);border-radius:10px;padding:8px 10px;margin:6px 0">Saved keys are for Strava app <b id="setupCur"></b>. If Strava shows <b>redirect_uri invalid</b>, or this is the wrong app, paste the right keys above, or <button type="button" id="setupClear" style="padding:3px 10px;font-size:12.5px">Remove saved keys</button> and start again.</div>
   <div class="hint" id="setupWhere"></div>
   <div id="setupMsg" role="status"></div>
   <div class="mactions"><button class="primary" id="setupSave">Save and connect</button><button id="setupTest" type="button">Check keys</button><button id="setupClose" type="button">Close</button></div>
@@ -1230,7 +1331,7 @@ function updateWorkoutUi() {
   for (const id of ['wkSkip','wkExt','wkEnd']) $(id).style.display = on ? '' : 'none';
   $('wkActive').style.display = on ? 'grid' : 'none';
   $('wkZoom').style.display = $('wkCapNow').style.display = $('wkCapAll').style.display = on ? '' : 'none';
-  $('wkChart').style.height = on ? '110px' : Math.max(200, Math.min(420, Math.round(innerHeight * .4))) + 'px';
+  $('wkChart').style.height = on ? '110px' : Math.max(innerHeight < 520 ? 110 : 200, Math.min(420, Math.round(innerHeight * .4))) + 'px';
   if (!on) { $('wkActive').classList.remove('alert'); return; }
   const i = wkInfo(), cur = wk.def.steps[wk.idx], nx = wk.def.steps[wk.idx + 1];
   const hardNext = nx && nx.from > cur.to + .15;            // a real step up in effort
@@ -2210,7 +2311,21 @@ $('rtDel').onclick = () => {
 document.querySelectorAll('.seg button').forEach(b => { b.onclick = () => setView(b.dataset.v); });
 $('btnRoute').onclick = () => setView('route');
 rtSyncUi();
-{ const hd = document.querySelector('header.top'), sync = () => document.documentElement.style.setProperty('--hdr', hd.offsetHeight + 'px'); sync(); if (window.ResizeObserver) new ResizeObserver(sync).observe(hd); }
+{ const hd = document.querySelector('header.top'), bw = $('browserWarn'), sync = () => document.documentElement.style.setProperty('--hdr', (hd.offsetHeight + (bw.hidden ? 0 : bw.offsetHeight)) + 'px'); sync(); if (window.ResizeObserver) { const ro = new ResizeObserver(sync); ro.observe(hd); ro.observe(bw); } }
+
+
+// ---- header menu (phones / small windows) ----
+{
+  const hd = $('hdr'), btn = $('btnMenu'), setOpen = o => { hd.classList.toggle('menuOpen', o); btn.setAttribute('aria-expanded', o ? 'true' : 'false'); };
+  btn.onclick = () => setOpen(!hd.classList.contains('menuOpen'));
+  $('hdrMenu').addEventListener('click', e => { if (e.target.closest('button, a')) setTimeout(() => setOpen(false), 0); });
+  document.addEventListener('pointerdown', e => { if (hd.classList.contains('menuOpen') && !e.target.closest('#hdr')) setOpen(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') setOpen(false); });
+  const mq = matchMedia('(max-width:1100px), (orientation:landscape) and (max-height:520px)'); (mq.addEventListener ? mq.addEventListener('change', () => setOpen(false)) : 0);
+  // trainer / HR status dots stay visible beside the menu button
+  const mirror = (src, dst) => { const f = () => $(dst).classList.toggle('on', $(src).classList.contains('on')); f(); new MutationObserver(f).observe($(src), { attributes: true, attributeFilter: ['class'] }); };
+  mirror('dotTrainer', 'miniT'); mirror('dotHr', 'miniH');
+}
 
 // ---- Phone companion dropdown ----
 $('btnQr').onclick = e => { e.stopPropagation(); const o = !$('qrPop').classList.contains('open'); $('qrPop').classList.toggle('open', o); $('btnQr').setAttribute('aria-expanded', String(o)); };
@@ -2245,7 +2360,7 @@ async function loadStrava() {
   stravaConnected = j.connected && j.canUpload !== false;
   b.classList.remove('linked');
   if (!j.configured) { stravaState = 'unconfigured'; b.textContent = 'Set up Strava'; b.title = 'A guided 3-minute setup to link your own Strava account'; }
-  else if (!j.connected) { stravaState = 'disconnected'; b.textContent = 'Connect Strava'; b.title = 'Sign in to Strava so rides can be uploaded. Right-click to change your Strava keys.'; }
+  else if (!j.connected) { stravaState = 'disconnected'; b.textContent = 'Connect Strava'; b.title = 'Sign in to Strava so rides can be uploaded. Shows the keys in use, so you can change them.'; }
   else if (j.canUpload === false) { stravaState = 'noperm'; b.textContent = 'Reconnect Strava'; b.title = 'Connected, but upload permission was not granted. Reconnect and tick "Upload your activities".'; }
   else { stravaState = 'linked'; b.classList.add('linked'); b.textContent = '✓ Strava linked'; b.title = (j.athlete ? 'Connected as ' + j.athlete + '. ' : '') + 'Click to disconnect'; }
   stravaClientId = j.clientId || '';
@@ -2266,6 +2381,8 @@ function openSetup() {
   $('setupId').value = stravaClientId || ''; $('setupSecret').value = '';
   $('setupSecret').placeholder = stravaClientId ? 'leave empty to keep the saved secret' : 'about 40 letters and numbers';
   $('setupWhere').textContent = window.FREEHUB_WEB ? 'Your keys are kept in this browser only. They are never sent anywhere except to Strava.' : 'Your keys are saved in config.json on this computer only. They are never sent anywhere except to Strava.';
+  $('setupSaved').hidden = !stravaClientId; $('setupCur').textContent = stravaClientId;
+  $('setupSave').textContent = stravaClientId ? 'Connect to Strava' : 'Save and connect';
   setupMsg(''); $('setupOverlay').classList.add('open'); setTimeout(() => $('setupId').focus(), 50);
 }
 const closeSetup = () => $('setupOverlay').classList.remove('open');
@@ -2279,6 +2396,11 @@ async function saveKeys() {
 }
 $('setupCopy').onclick = async () => { try { await navigator.clipboard.writeText($('setupDomain').textContent); $('setupCopy').textContent = 'Copied'; setTimeout(() => $('setupCopy').textContent = 'Copy', 1500); } catch { toast('Select the text and copy it.'); } };
 $('setupClose').onclick = closeSetup;
+$('setupClear').onclick = async () => {
+  if (!confirm('Remove the saved Strava keys? You can paste new ones straight away.')) return;
+  try { await fetch('/api/setup/strava', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clear: true }) }); await loadStrava(); openSetup(); setupMsg('Keys removed. Paste your new Client ID and Secret.', 'ok'); }
+  catch (e) { setupMsg('Could not remove: ' + e.message, 'bad'); }
+};
 $('setupOverlay').addEventListener('mousedown', e => { if (e.target === $('setupOverlay')) closeSetup(); });
 $('setupSave').onclick = async () => {
   setupMsg('Saving…'); $('setupSave').disabled = true;
@@ -2296,7 +2418,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSetup
 $('btnStrava').oncontextmenu = e => { e.preventDefault(); openSetup(); };
 $('btnStrava').onclick = async () => {
   if (stravaState === 'unconfigured') return openSetup();
-  if (stravaState === 'disconnected' || stravaState === 'noperm') return stravaConnect();
+  if (stravaState === 'disconnected' || stravaState === 'noperm') return openSetup();   // always show which keys are in use, so a wrong app can be fixed
   if (stravaState === 'linked') { await fetch('/auth/disconnect'); toast('Strava disconnected.'); loadStrava(); }
 };
 // ---- browser-only extras ----

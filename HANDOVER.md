@@ -95,3 +95,8 @@ Zwift Hub over Bluetooth in the new build, Electron Bluetooth picker, Mac signin
 - A route loaded during a free ride shows "Free ride in progress: the route is not controlling your trainer".
 - Upload error "Failed to fetch" now says Freehub can't reach its own server (restart `node server.js`). Server logs uncaught errors and keeps running.
 - Strava on the website needs its own Strava app with callback domain `graemedoherty.github.io` (the desktop app uses `localhost`).
+
+## Update 8
+- Strava button: when keys are saved but not connected, it now opens the setup screen (showing the Strava app ID in use, with "Connect to Strava" and "Remove saved keys") instead of jumping straight to Strava. A wrong app or callback domain (`redirect_uri invalid`) can now be fixed in-app. Server and browser mode both accept `{clear:true}` on `POST /api/setup/strava`.
+- Responsive: burger menu, phone bottom bar no longer overflows, route HUD scrolls on phones, toast and banner tidied, `--hdr` includes the browser warning.
+- Companion: landscape phone shows all data fields on one screen.
