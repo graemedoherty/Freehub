@@ -104,3 +104,7 @@ Zwift Hub over Bluetooth in the new build, Electron Bluetooth picker, Mac signin
 ## Update 9
 - Link preview: Open Graph/Twitter tags and `public/images/share.png` (1200x630) so shared links show the logo. If the site URL changes, update the absolute URLs in the `og:` tags in `public/index.html`.
 - Full-screen video on phones: the site header is hidden, the top bar scrolls sideways (URL box hidden in portrait), and the data panel is compact (a 3x2 strip at the bottom in portrait, a slim right column in landscape) so the video stays visible.
+
+## Update 10
+- Landscape phone, full-screen video: data now runs along the bottom as a single bar (Speed, Power, HR, Cadence, Time, Distance, plus Gradient on route rides); the workout/route profile strip sits just above it.
+- Portrait phone, Video tab: skinny 16:9 player; stat tiles compact into a 3-column grid so all seven fit above the Start bar. `body[data-view]` now tracks the active main view (set in `setView`).
