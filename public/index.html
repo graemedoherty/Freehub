@@ -1588,7 +1588,7 @@ function drawProfile(cv, t0, t1, pos, o) {   // o = optional {W,H,def,ftp,actual
     const x0 = X(s0), x1 = X(s1), y0 = Y(st.from * ftp), y1 = Y(st.to * ftp), col = zoneColor((st.from + st.to) / 2);
     const grad = g.createLinearGradient(0, padT, 0, padT + ph); grad.addColorStop(0, col); grad.addColorStop(1, col + '55');
     g.fillStyle = grad; g.globalAlpha = bare ? .8 : .92;
-    const gap = mini ? .5 : 1.5 * sc, bx0 = x0 + gap, bx1 = x1 - gap, base = Y(0), rr = Math.max(0, Math.min((mini ? 3 : 10 * sc), (bx1 - bx0) / 2, (base - Math.min(y0, y1)) / 2));
+    const gap = mini ? .5 : 1.5 * sc, bx0 = x0 + gap, bx1 = x1 - gap, base = Y(0), rr = Math.max(0, Math.min((mini ? 1.5 : 4 * sc), (bx1 - bx0) / 2, (base - Math.min(y0, y1)) / 2));
     g.beginPath(); g.moveTo(bx0, base); g.arcTo(bx0, y0, bx1, y1, rr); g.arcTo(bx1, y1, bx1, base, rr); g.lineTo(bx1, base); g.closePath(); g.fill();
     const cx = (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, wA = Math.round(st.from * ftp), wB = Math.round(st.to * ftp), ramp = wA !== wB, wTxt = ramp ? `${wA}→${wB} W` : `${wA} W`;
     const showW = !mini && !st.free && Math.min(x1, W - padR) - Math.max(x0, padL) > (ramp ? 100 : 40) * sc && Y(0) - (ramp ? Math.max(y0, y1) : Math.min(y0, y1)) > 26 * sc, yTop = ramp ? Math.max(y0, y1) : Math.min(y0, y1), yOff = showW ? 17 * sc : 0;
