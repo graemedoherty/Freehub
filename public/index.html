@@ -579,6 +579,20 @@
     body[data-wk="1"] .wkhead { flex-wrap:nowrap; gap:6px; } body[data-wk="1"] .wkhead button { flex:1 1 0; height:32px; padding:0 8px; font-size:13px; border-radius:16px; white-space:nowrap; }
     body[data-wk="1"] #wkCard { gap:6px; } body[data-ride=on] .mainTile .view { padding:6px 8px; }
   }
+
+  /* ===== Interval polish, header connect pills, Strava orange ===== */
+  .miniStatus { gap:6px; }
+  .miniBtn { height:36px; padding:0 12px; border-radius:18px; display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:700; color:var(--text); background:var(--card2); border:1px solid var(--line); }
+  .miniBtn .dot { width:9px; height:9px; margin:0; } .miniBtn:has(.dot.on) { border-color:rgba(61,220,151,.55); }
+  #btnStrava { background:#fc4c02; border-color:#fc4c02; color:#fff; font-weight:700; }
+  #btnStrava:hover:not(:disabled) { background:#e04400; border-color:#e04400; }
+  #btnStrava.linked { background:rgba(252,76,2,.12); border-color:#fc4c02; color:#ff8a4d; }
+  #btnStrava.linked:hover:not(:disabled) { background:rgba(252,76,2,.22); }
+  @media (max-width:1100px), (orientation:landscape) and (max-height:520px) {
+    .hdrMenu .conn .pill, .hdrMenu #btnTrainer, .hdrMenu #btnHr { display:none; }
+    .hdrMenu .conn { padding-top:12px; border-top:1px solid var(--line); }
+    #btnMore { order:1; } #btnStrava { order:2; } #btnData { order:3; } #qrWrap { order:4; }
+  }
 </style>
 </head>
 <body data-view="workout" data-ride="off" data-st="idle" data-wk="0" data-free="0" data-conn="0">
@@ -586,7 +600,7 @@
 <div id="browserWarn" hidden>Freehub needs <b>Google Chrome or Microsoft Edge</b> (on a computer or an Android phone) to talk to your trainer. This browser can't use Bluetooth, so you can look around but not ride.</div>
 <header class="top" id="hdr">
   <div class="brand"><img class="logo" src="images/freehub_mark.png" alt=""><h1>FREE<span>HUB</span></h1></div>
-  <div class="miniStatus" aria-hidden="true"><span class="dot" id="miniT"></span><small>Hub</small><span class="dot" id="miniH"></span><small>HR</small></div>
+  <div class="miniStatus"><button type="button" class="miniBtn" id="miniBtnT" title="Connect or disconnect your Zwift Hub"><span class="dot" id="miniT"></span><span id="miniTt">+ Hub</span></button><button type="button" class="miniBtn" id="miniBtnH" title="Connect or disconnect a heart-rate strap"><span class="dot" id="miniH"></span><span id="miniHt">+ HR</span></button></div>
   <button class="burger" id="btnMenu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="hdrMenu"><span></span><span></span><span></span></button>
   <div class="hdrMenu" id="hdrMenu">
     <nav class="nav" aria-label="Main">
@@ -690,7 +704,7 @@
 
       <div id="ytMode" aria-label="YouTube video">
         <div id="ytStage"><div id="ytPlayer"></div>
-          <div id="ytMsg"><div><div class="big">Paste a YouTube link above</div><div class="sub">A match, a race, a scenic ride, a film — anything that allows embedding. Press Full screen to put your ride data on top of the video.</div></div></div></div>
+          <div id="ytMsg"><div><div class="big">Paste a YouTube link above</div></div></div></div>
         <div id="ytBar">
           <input id="ytUrl" type="text" placeholder="Paste a YouTube link…" autocomplete="off" spellcheck="false"><button id="ytLoad" class="primary">Play</button>
           <span class="grow"></span>
@@ -1574,15 +1588,15 @@ function drawProfile(cv, t0, t1, pos, o) {   // o = optional {W,H,def,ftp,actual
     const x0 = X(s0), x1 = X(s1), y0 = Y(st.from * ftp), y1 = Y(st.to * ftp), col = zoneColor((st.from + st.to) / 2);
     const grad = g.createLinearGradient(0, padT, 0, padT + ph); grad.addColorStop(0, col); grad.addColorStop(1, col + '55');
     g.fillStyle = grad; g.globalAlpha = bare ? .8 : .92;
-    g.beginPath(); g.moveTo(x0, Y(0)); g.lineTo(x0, y0); g.lineTo(x1, y1); g.lineTo(x1, Y(0)); g.closePath(); g.fill();
-    if (!mini && i > 0) { g.globalAlpha = 1; g.strokeStyle = 'rgba(11,11,25,.95)'; g.lineWidth = 2 * sc; g.beginPath(); g.moveTo(x0, Y(0)); g.lineTo(x0, Math.min(y0, Y(0))); g.stroke(); }   // clear gap between steps
+    const gap = mini ? .5 : 1.5 * sc, bx0 = x0 + gap, bx1 = x1 - gap, base = Y(0), rr = Math.max(0, Math.min((mini ? 3 : 10 * sc), (bx1 - bx0) / 2, (base - Math.min(y0, y1)) / 2));
+    g.beginPath(); g.moveTo(bx0, base); g.arcTo(bx0, y0, bx1, y1, rr); g.arcTo(bx1, y1, bx1, base, rr); g.lineTo(bx1, base); g.closePath(); g.fill();
     const cx = (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, wA = Math.round(st.from * ftp), wB = Math.round(st.to * ftp), ramp = wA !== wB, wTxt = ramp ? `${wA}→${wB} W` : `${wA} W`;
     const showW = !mini && !st.free && Math.min(x1, W - padR) - Math.max(x0, padL) > (ramp ? 100 : 40) * sc && Y(0) - (ramp ? Math.max(y0, y1) : Math.min(y0, y1)) > 26 * sc, yTop = ramp ? Math.max(y0, y1) : Math.min(y0, y1), yOff = showW ? 17 * sc : 0;
     if (showW) { const f = g.font; g.font = `700 ${12 * sc}px Nunito, -apple-system, Helvetica, Arial, sans-serif`; g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(wTxt, cx, yTop + 6 * sc); g.font = f; }
     if (st.free && !mini && x1 - x0 > 60 * sc) { g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText('free effort', (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, Math.min(y0, y1) + 6 * sc + yOff); }
     if (st.cad && !st.hr && !mini && x1 - x0 > 60 * sc) { g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(`${st.cad[0]}–${st.cad[1]} rpm`, (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, Math.min(y0, y1) + 6 * sc + yOff); }
     if (st.hr && !mini && x1 - x0 > 50 * sc) { g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(`♥ ${st.hr} bpm`, (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, Math.min(y0, y1) + 6 * sc + yOff); }
-    g.globalAlpha = 1; g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = (mini ? 1 : 2.5 * sc); g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+    if (bx1 - bx0 > 2 * rr + 2) { const t = u => y0 + (y1 - y0) * u, ua = rr * .7 / (x1 - x0 || 1), ub = 1 - ua; g.globalAlpha = 1; g.strokeStyle = col; g.lineCap = 'round'; g.lineWidth = (mini ? 1 : 3 * sc); g.beginPath(); g.moveTo(x0 + (x1 - x0) * ua + gap, t(ua)); g.lineTo(x0 + (x1 - x0) * ub - gap, t(ub)); g.stroke(); g.lineCap = 'butt'; }
   });
   if (!o && wk.active) { g.fillStyle = 'rgba(11,11,25,.66)'; g.fillRect(padL, padT, Math.max(0, X(pos) - padL), ph); }   // dim what's done
   g.restore();
@@ -2512,6 +2526,9 @@ rtSyncUi();
   // trainer / HR status dots stay visible beside the menu button
   const mirror = (src, dst) => { const f = () => $(dst).classList.toggle('on', $(src).classList.contains('on')); f(); new MutationObserver(f).observe($(src), { attributes: true, attributeFilter: ['class'] }); };
   mirror('dotTrainer', 'miniT'); mirror('dotHr', 'miniH');
+  const lab = (dot, txt, on, off) => { const f = () => $(txt).textContent = $(dot).classList.contains('on') ? on : off; f(); new MutationObserver(f).observe($(dot), { attributes: true, attributeFilter: ['class'] }); };
+  lab('dotTrainer', 'miniTt', 'Hub', '+ Hub'); lab('dotHr', 'miniHt', 'HR', '+ HR');
+  $('miniBtnT').onclick = () => $('btnTrainer').click(); $('miniBtnH').onclick = () => $('btnHr').click();
 }
 
 // ---- Phone companion dropdown ----
