@@ -593,6 +593,17 @@
     .hdrMenu .conn { padding-top:12px; border-top:1px solid var(--line); }
     #btnMore { order:1; } #btnStrava { order:2; } #btnData { order:3; } #qrWrap { order:4; }
   }
+
+  /* ===== Zone bar ===== */
+  .zoneBar { flex:none; padding:0 2px; }
+  .zbTrack { display:flex; gap:2px; height:22px; } .zbTrack i { display:flex; align-items:center; justify-content:center; font-style:normal; font-size:11px; font-weight:800; color:#fff; border-radius:4px; min-width:0; }
+  .zbTrack i:nth-child(1) { border-radius:8px 4px 4px 8px; } .zbTrack i:nth-child(4) { color:#14142a; } .zbTrack i:last-child { border-radius:4px 8px 8px 4px; }
+  .zbLab { display:flex; gap:2px; margin-top:3px; } .zbLab span { display:flex; flex-direction:column; align-items:center; min-width:0; line-height:1.15; }
+  .zbLab b { font-size:11px; color:var(--text); font-weight:700; } .zbLab small { font-size:10px; color:var(--mute); }
+  body[data-wk="1"] .zoneBar { display:none; }
+  @media (max-width:480px) { .zbLab b { font-size:9.5px; letter-spacing:-.3px; } .zbLab small { font-size:9px; } .zbTrack i { font-size:10px; } }
+  @media (orientation:landscape) and (max-height:520px) { .zoneBar { display:none; } }
+  @media (max-width:1100px) and (orientation:portrait) and (max-height:700px) { .zbLab small { display:none; } .zbTrack { height:18px; } }
 </style>
 </head>
 <body data-view="workout" data-ride="off" data-st="idle" data-wk="0" data-free="0" data-conn="0">
@@ -662,6 +673,7 @@
     <canvas id="wkZoom" style="display:none"></canvas>
     <div class="label wkcap" id="wkCapAll" style="display:none">Full workout</div>
     <canvas id="wkChart"></canvas>
+    <div class="zoneBar" id="zoneBar" aria-label="Power zones for your FTP"></div>
     <div class="freeNote" id="freeNote"><b>Free ride</b><span>No plan. Pedal at any effort. The Hub stays neutral, like a flat road.</span></div>
     <div class="wkfoot">
       <div class="sub" id="wkDesc"></div>
@@ -1050,6 +1062,11 @@ function resetAll() {
   $('actName').value = ''; closeModal(); updateButtons(); pushState();
 }
 
+let _zbk = '';
+function zbRender(ftp) {
+  if (_zbk === String(ftp)) return; _zbk = String(ftp); const el = $('zoneBar'); if (!el) return;
+  el.innerHTML = '<div class="zbTrack">' + ZONES.map(z => `<i style="flex:${(z[2] - z[1]) * 100};background:${z[3]}">${z[0].slice(0, 2)}</i>`).join('') + '</div><div class="zbLab">' + ZONES.map(z => `<span style="flex:${(z[2] - z[1]) * 100}"><b>${Math.round(z[2] * 100)}%</b><small>${Math.round(z[2] * ftp)}</small></span>`).join('') + '</div>';
+}
 const FREE_ID = '__free', isFreeSel = () => $('wkSel').value === FREE_ID;
 function updateButtons() {
   const st = session.state, live_ = st === 'running' || st === 'paused' || st === 'waiting';
@@ -1524,6 +1541,7 @@ $('wkConnect').onclick = () => $('btnTrainer').click();
 
 function updateWorkoutUi() {
   const d = curDef(), on = wk.active, ftp = +$('ftp').value || 200;
+  zbRender(ftp);
   const fr = isFreeSel() && !on; document.body.dataset.free = fr ? '1' : '0'; document.body.dataset.wk = on ? '1' : '0';
   $('wkStart').textContent = fr ? '▶ Start ride' : '▶ Start workout';
   $('wkMeta').textContent = fr ? 'Free ride' : `${mmss(d.total)} · ${d.steps.length} steps`;
@@ -1542,7 +1560,8 @@ function updateWorkoutUi() {
   $('wkNextLabel').textContent = nx ? `Next up · in ${mmss(i.left)}` : 'Last step';
   $('wkNext').textContent = (hardNext && i.left <= 15 ? '⚡ Get ready — ' : '') + i.next;
 }
-const zoneColor = f => f < .55 ? '#7d7b94' : f < .75 ? '#5b8fd6' : f < .9 ? '#5bb086' : f < 1.05 ? '#f5c842' : f < 1.2 ? '#d97b3a' : f < 1.46 ? '#d9414d' : '#a54bc0';
+const ZONES = [['Z1 Recovery', 0, .55, '#66667a'], ['Z2 Endurance', .55, .75, '#5b8fd6'], ['Z3 Tempo', .75, .9, '#5aae85'], ['Z4 Threshold', .9, 1.05, '#f5c842'], ['Z5 VO2 max', 1.05, 1.2, '#d8793a'], ['Z6 Anaerobic', 1.2, 1.46, '#c1323f'], ['Z7 Neuromuscular', 1.46, 2, '#85309f']];
+const zoneColor = f => ZONES[f < .55 ? 0 : f < .75 ? 1 : f < .9 ? 2 : f < 1.05 ? 3 : f < 1.2 ? 4 : f < 1.46 ? 5 : 6][3];
 function playPos() {
   if (!wk.active) return 0;
   const st = wk.def.steps[wk.idx];
@@ -1568,7 +1587,8 @@ function drawProfile(cv, t0, t1, pos, o) {   // o = optional {W,H,def,ftp,actual
   const mini = !!(o && o.mini), bare = !!cv._bare;   // bare: no axes or grid (used over video)
   const padL = mini || bare ? 0 : 40*sc, padR = mini || bare ? 0 : (o ? 22 : 10)*sc, padT = mini ? 4 : bare ? 6 : 8*sc, padB = mini || bare ? 0 : 20*sc, pw = W - padL - padR, ph = H - padT - padB;
   const peak = Math.max(ftp * 1.2, ...d.steps.map(s => Math.max(s.from, s.to) * ftp));
-  const stepW = peak > 450 ? 100 : peak > 220 ? 50 : 25, maxW = Math.ceil(peak * 1.08 / stepW) * stepW;
+  let stepW = peak > 450 ? 100 : peak > 220 ? 50 : 25, maxW = Math.ceil(peak * 1.08 / stepW) * stepW;
+  while (!mini && !bare && ph / (maxW / stepW) < 15 * sc && stepW < 400) { stepW *= 2; maxW = Math.ceil(peak * 1.08 / stepW) * stepW; }   // fewer watt labels on short charts
   const X = t => padL + (t - t0) / (t1 - t0) * pw, Y = w => padT + ph - Math.min(w, maxW) / maxW * ph;
   cv._geo = mini ? null : { padL, pw, t0, t1, d, ftp };
   g.font = `${11*sc}px Nunito, -apple-system, Helvetica, Arial, sans-serif`; g.textBaseline = 'middle';
@@ -1585,18 +1605,16 @@ function drawProfile(cv, t0, t1, pos, o) {   // o = optional {W,H,def,ftp,actual
   g.save(); g.beginPath(); g.rect(padL, 0, pw, H); g.clip();
   d.steps.forEach((st, i) => {
     const s0 = d.offsets[i], s1 = s0 + st.dur; if (s1 < t0 || s0 > t1) return;
-    const x0 = X(s0), x1 = X(s1), y0 = Y(st.from * ftp), y1 = Y(st.to * ftp), col = zoneColor((st.from + st.to) / 2);
-    const grad = g.createLinearGradient(0, padT, 0, padT + ph); grad.addColorStop(0, col); grad.addColorStop(1, col + '55');
-    g.fillStyle = grad; g.globalAlpha = bare ? .8 : .92;
+    const x0 = X(s0), x1 = X(s1), y0 = Y(st.from * ftp), y1 = Y(st.to * ftp), col = zoneColor((st.from + st.to) / 2), tcol = (st.from + st.to) / 2 >= .9 && (st.from + st.to) / 2 < 1.05 ? '#14142a' : '#fff';
+    g.fillStyle = col; g.globalAlpha = bare ? .85 : 1;
     const gap = mini ? .5 : 1.5 * sc, bx0 = x0 + gap, bx1 = x1 - gap, base = Y(0), rr = Math.max(0, Math.min((mini ? 1.5 : 4 * sc), (bx1 - bx0) / 2, (base - Math.min(y0, y1)) / 2));
     g.beginPath(); g.moveTo(bx0, base); g.arcTo(bx0, y0, bx1, y1, rr); g.arcTo(bx1, y1, bx1, base, rr); g.lineTo(bx1, base); g.closePath(); g.fill();
     const cx = (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, wA = Math.round(st.from * ftp), wB = Math.round(st.to * ftp), ramp = wA !== wB, wTxt = ramp ? `${wA}→${wB} W` : `${wA} W`;
     const showW = !mini && !st.free && Math.min(x1, W - padR) - Math.max(x0, padL) > (ramp ? 100 : 40) * sc && Y(0) - (ramp ? Math.max(y0, y1) : Math.min(y0, y1)) > 26 * sc, yTop = ramp ? Math.max(y0, y1) : Math.min(y0, y1), yOff = showW ? 17 * sc : 0;
-    if (showW) { const f = g.font; g.font = `700 ${12 * sc}px Nunito, -apple-system, Helvetica, Arial, sans-serif`; g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(wTxt, cx, yTop + 6 * sc); g.font = f; }
-    if (st.free && !mini && x1 - x0 > 60 * sc) { g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText('free effort', (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, Math.min(y0, y1) + 6 * sc + yOff); }
-    if (st.cad && !st.hr && !mini && x1 - x0 > 60 * sc) { g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(`${st.cad[0]}–${st.cad[1]} rpm`, (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, Math.min(y0, y1) + 6 * sc + yOff); }
-    if (st.hr && !mini && x1 - x0 > 50 * sc) { g.globalAlpha = 1; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(`♥ ${st.hr} bpm`, (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, Math.min(y0, y1) + 6 * sc + yOff); }
-    if (bx1 - bx0 > 8 * sc) { const lw = mini ? 1.5 : 3 * sc, inset = Math.min(8 * sc, (bx1 - bx0) / 4); g.globalAlpha = 1; g.strokeStyle = col; g.lineCap = 'round'; g.lineWidth = lw; g.beginPath(); g.moveTo(bx0 + inset, base - lw / 2 - 1); g.lineTo(bx1 - inset, base - lw / 2 - 1); g.stroke(); g.lineCap = 'butt'; }   // zone-colour bar along the bottom of each step
+    if (showW) { const f = g.font; g.font = `700 ${12 * sc}px Nunito, -apple-system, Helvetica, Arial, sans-serif`; g.globalAlpha = 1; g.fillStyle = tcol; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(wTxt, cx, yTop + 6 * sc); g.font = f; }
+    if (st.free && !mini && x1 - x0 > 60 * sc) { g.globalAlpha = 1; g.fillStyle = tcol; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText('free effort', (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, Math.min(y0, y1) + 6 * sc + yOff); }
+    if (st.cad && !st.hr && !mini && x1 - x0 > 60 * sc) { g.globalAlpha = 1; g.fillStyle = tcol; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(`${st.cad[0]}–${st.cad[1]} rpm`, (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, Math.min(y0, y1) + 6 * sc + yOff); }
+    if (st.hr && !mini && x1 - x0 > 50 * sc) { g.globalAlpha = 1; g.fillStyle = tcol; g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(`♥ ${st.hr} bpm`, (Math.max(x0, padL) + Math.min(x1, W - padR)) / 2, Math.min(y0, y1) + 6 * sc + yOff); }
   });
   if (!o && wk.active) { g.fillStyle = 'rgba(11,11,25,.66)'; g.fillRect(padL, padT, Math.max(0, X(pos) - padL), ph); }   // dim what's done
   g.restore();
@@ -1869,7 +1887,7 @@ function drawStripCard(view) {
 function zoneInfo(p) {
   const f = +$('ftp').value || 200, r = p / f;
   return r < .55 ? [1,'Recovery','#8a88a2'] : r < .75 ? [2,'Endurance','#5b8fd6'] : r < .9 ? [3,'Tempo','#5bb086']
-       : r < 1.05 ? [4,'Threshold','#f5c842'] : r < 1.2 ? [5,'VO2max','#d97b3a'] : r < 1.46 ? [6,'Anaerobic','#d9414d'] : [6,'Anaerobic','#a54bc0'];
+       : r < 1.05 ? [4,'Threshold','#f5c842'] : r < 1.2 ? [5,'VO2max','#d97b3a'] : r < 1.46 ? [6,'Anaerobic','#e0505c'] : [7,'Neuromuscular','#b45fd0'];
 }
 function render() {
   const s = session, p = live.power, z = p != null ? zoneInfo(p) : null;
@@ -2076,7 +2094,7 @@ $('histOverlay').addEventListener('mousedown', e => { if (e.target === $('histOv
 const histRec_inDetail = () => !!$('hImg');
 
 // ---- Coach foundations: ride analysis, how-it-felt rating, FTP history, Zone 2 profile, Progress screen ----
-const COACH_ZONES = [['Z1 Recovery', 0, .55, '#7d7b94'], ['Z2 Endurance', .55, .75, '#5b8fd6'], ['Z3 Tempo', .75, .9, '#5bb086'], ['Z4 Threshold', .9, 1.05, '#f5c842'], ['Z5 VO2 max', 1.05, 1.2, '#d97b3a'], ['Z6 Anaerobic', 1.2, 9, '#d9414d']];
+const COACH_ZONES = ZONES.map((z, i) => i === 6 ? [z[0], z[1], 9, z[3]] : z);
 let profile = { ftpHistory: [], zone2: null }, pendingFtpSrc = null;
 const saveProfile = () => putJson('/api/store/profile', profile).catch(() => {});
 function logFtp(w, src) {
@@ -2093,8 +2111,8 @@ function analyse(rec) {
   const np = rec.np > 0 ? rec.np : (rec.avgPower || 0);            // normalised power, or plain average if the ride was too short for it
   if (np > 0 && secs >= 300) { out.IF = np / ftp; out.tss = Math.round(secs * np * out.IF / (ftp * 3600) * 100); }
   if (np > 0 && rec.avgHr > 40) out.ef = +(np / rec.avgHr).toFixed(2);
-  const bounds = COACH_ZONES.slice(0, 5).map(z => z[2]), zs = [0, 0, 0, 0, 0, 0]; let cnt = 0;
-  for (const p of P) { if (p < 5) continue; cnt++; let z = bounds.findIndex(b => p / ftp < b); if (z < 0) z = 5; zs[z]++; }
+  const bounds = COACH_ZONES.slice(0, 6).map(z => z[2]), zs = [0, 0, 0, 0, 0, 0, 0]; let cnt = 0;
+  for (const p of P) { if (p < 5) continue; cnt++; let z = bounds.findIndex(b => p / ftp < b); if (z < 0) z = 6; zs[z]++; }
   out.zones = cnt ? zs.map(x => x / cnt) : null;
   // Aerobic drift (Pw:HR): compare watts-per-heartbeat in the first and second half of the main part of the ride
   const a = secs >= 3000 ? 120 : secs >= 1500 ? 60 : 0, b = n - (secs >= 3000 ? 60 : 0);
